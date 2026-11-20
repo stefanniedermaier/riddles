@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] – 2026-11-20
+
 ### Added
 
 - New game **Arrows**: tap arrows in the right order so they slide off the board (6×6 to

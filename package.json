@@ -1,6 +1,6 @@
 {
   "name": "riddles",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "description": "Installable offline puzzle games (Sudoku, Crowns, Shapes) as a Progressive Web App.",
   "license": "MIT",
