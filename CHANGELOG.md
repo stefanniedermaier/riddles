@@ -6,6 +6,13 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Crowns: crowns and marks no longer change the cell size and distort the board
+- Crowns: taps and drags always hit the cell under the finger (browser hit testing instead
+  of geometry that ignored the board border and uneven rows)
+- Sudoku: grid rows and columns stay equal regardless of cell content
+
 ### Security
 
 - CI deploys only after supply-chain checks (lockfile sources/integrity/licenses, registry

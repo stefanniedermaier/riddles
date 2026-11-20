@@ -60,6 +60,39 @@ describe('CrownsBoard', () => {
     expect(wrapper.emitted('tap')).toBeUndefined()
   })
 
+  it('uses the element under the pointer (browser hit testing) when available', async () => {
+    const wrapper = mountBoard(new Array<CellState>(16).fill(0))
+    const target = wrapper.find('[data-cell="9"]').element
+    const original = document.elementFromPoint
+    document.elementFromPoint = () => target
+    try {
+      const board = wrapper.find('.crowns-board')
+      // Geometry would say cell 0 – hit testing wins.
+      await board.trigger('pointerdown', at(0, 0))
+      await board.trigger('pointerup', at(0, 0))
+      expect(wrapper.emitted('tap')).toEqual([[9]])
+    } finally {
+      document.elementFromPoint = original
+    }
+  })
+
+  it('excludes the board border in the geometric fallback', async () => {
+    const wrapper = mountBoard(new Array<CellState>(16).fill(0))
+    const el = wrapper.find('.crowns-board').element as HTMLElement
+    // 406 px including a 3 px border on each side → 400 px content, 100 px per cell.
+    el.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, width: 406, height: 406, right: 406, bottom: 406, x: 0, y: 0 }) as DOMRect
+    Object.defineProperty(el, 'clientLeft', { value: 3 })
+    Object.defineProperty(el, 'clientTop', { value: 3 })
+    Object.defineProperty(el, 'clientWidth', { value: 400 })
+    Object.defineProperty(el, 'clientHeight', { value: 400 })
+    const board = wrapper.find('.crowns-board')
+    // x = 101 is inside cell column 0 once the 3 px border is subtracted (98 px).
+    await board.trigger('pointerdown', { clientX: 101, clientY: 302, pointerId: 1 })
+    await board.trigger('pointerup', { clientX: 101, clientY: 302, pointerId: 1 })
+    expect(wrapper.emitted('tap')).toEqual([[8]])
+  })
+
   it('erases marks while dragging from a marked cell', async () => {
     const cells = new Array<CellState>(16).fill(0)
     cells[0] = 1
