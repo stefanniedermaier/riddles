@@ -19,12 +19,15 @@ generated.
 
 ## 2. Difficulty → size
 
-| Difficulty | Board  | Arrows (approx.) | Max. dependency depth |
-| ---------- | ------ | ---------------- | --------------------- |
-| Easy       | 6×6    | 8–12             | 3–4                   |
-| Medium     | 8×8    | 14–20            | 5–6                   |
-| Hard       | 10×10  | 22–30            | 7–9                   |
-| Expert     | 12×12  | 30–42            | 9+                    |
+| Difficulty | Board  | Arrows | Constraints (as implemented)        |
+| ---------- | ------ | ------ | ----------------------------------- |
+| Easy       | 6×6    | 8–13   | –                                   |
+| Medium     | 8×8    | 14–22  | –                                   |
+| Hard       | 10×10  | 22–32  | coverage ≥ 82 %                     |
+| Expert     | 12×12  | 32–52  | depth ≥ 8, coverage ≥ 80 %          |
+
+(Implementation notes: a depth of 9+ for Expert was practically never reached, hence ≥ 8;
+the slide-out animation moves the whole arrow straight along the head direction.)
 
 *Dependency depth* = length of the longest chain "A can only leave after B left".
 

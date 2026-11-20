@@ -4,7 +4,11 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/arrows',
     name: 'arrows',
-    component: () => import('@/views/ComingSoon.vue'),
-    props: { title: 'Arrows' },
+    component: () => import('./ArrowsLobby.vue'),
+  },
+  {
+    path: '/arrows/play',
+    name: 'arrows-play',
+    component: () => import('./ArrowsPlay.vue'),
   },
 ]

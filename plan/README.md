@@ -17,6 +17,7 @@ all data on the device. Every level is generated on the fly.
 | 07 | [Nonogram](07-nonogram.md)                   | Nonogram with line-logic generator, added after v0.3.1        |
 | 08 | [Game management](08-game-management.md)     | Show/hide and reorder games (settings, drag & drop)           |
 | 09 | [Merge](09-merge.md)                         | Sliding number game (3×3, 4×4, 5×5)                           |
+| 10 | [Arrows](10-arrows.md)                       | Ordering puzzle: tap arrows so they slide out                 |
 
 ## Decisions (from the kick-off wizard)
 
