@@ -32,15 +32,17 @@ export function createPuzzlePool<D extends string, P>(
   const stored = load<Partial<Record<D, P>>>(options.key, {}, (raw) =>
     typeof raw === 'object' && raw !== null ? (raw as Partial<Record<D, P>>) : undefined,
   )
-  const pool: Partial<Record<D, P>> = {}
+  // A Map, because the keys come from storage (possibly an imported backup) and must never
+  // be able to touch Object.prototype (e.g. a "__proto__" key).
+  const pool = new Map<D, P>()
   for (const [difficulty, puzzle] of Object.entries(stored) as [D, unknown][]) {
-    if (!options.isValid || options.isValid(puzzle)) pool[difficulty] = puzzle as P
+    if (!options.isValid || options.isValid(puzzle)) pool.set(difficulty, puzzle as P)
   }
 
   const inflight = new Map<D, Promise<void>>()
 
   function persist(): void {
-    save(options.key, pool)
+    save(options.key, Object.fromEntries(pool))
   }
 
   function refill(difficulty: D): Promise<void> {
@@ -49,7 +51,7 @@ export function createPuzzlePool<D extends string, P>(
     const job = options
       .generate(difficulty, randomSeed())
       .then((puzzle) => {
-        pool[difficulty] = puzzle
+        pool.set(difficulty, puzzle)
         persist()
       })
       .catch(() => {
@@ -61,12 +63,12 @@ export function createPuzzlePool<D extends string, P>(
   }
 
   async function take(difficulty: D): Promise<P> {
-    if (pool[difficulty] === undefined && inflight.has(difficulty)) {
+    if (!pool.has(difficulty) && inflight.has(difficulty)) {
       await inflight.get(difficulty)
     }
-    const cached = pool[difficulty]
+    const cached = pool.get(difficulty)
     if (cached !== undefined) {
-      delete pool[difficulty]
+      pool.delete(difficulty)
       persist()
       void refill(difficulty)
       return cached
@@ -78,7 +80,7 @@ export function createPuzzlePool<D extends string, P>(
 
   function warm(difficulties: readonly D[]): void {
     for (const difficulty of difficulties) {
-      if (pool[difficulty] === undefined) void refill(difficulty)
+      if (!pool.has(difficulty)) void refill(difficulty)
     }
   }
 

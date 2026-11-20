@@ -30,9 +30,16 @@ function createPool(mode: SudokuMode): PuzzlePool<Difficulty, SudokuPuzzle> {
   })
 }
 
-const pools: Partial<Record<SudokuMode, PuzzlePool<Difficulty, SudokuPuzzle>>> = {}
+// A Map (not a plain object): the mode can come from the URL, and Map keys can never touch
+// Object.prototype.
+const pools = new Map<SudokuMode, PuzzlePool<Difficulty, SudokuPuzzle>>()
 
 /** Puzzle pool of a mode (created lazily). */
 export function poolOf(mode: SudokuMode): PuzzlePool<Difficulty, SudokuPuzzle> {
-  return (pools[mode] ??= createPool(mode))
+  let pool = pools.get(mode)
+  if (!pool) {
+    pool = createPool(mode)
+    pools.set(mode, pool)
+  }
+  return pool
 }
