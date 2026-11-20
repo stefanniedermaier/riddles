@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] – 2026-11-20
+
 ### Added
 
 - *Install app* button on the home screen (native install dialog on Android/Chromium,
