@@ -1,13 +1,22 @@
 # Sudoku
 
-Classic 9×9 Sudoku with four difficulty levels, notes, and hints that explain the next
-logical step. Every puzzle is generated on the device, has exactly one solution and can be
-solved by logic alone, without guessing.
+Sudoku in two grid sizes – **Classic 9×9** with four difficulty levels and **Mini 6×6** with
+three – with notes, unlimited undo and hints that explain the next logical step. Every puzzle
+is generated on the device, has exactly one solution and can be solved by logic alone,
+without guessing.
 
 ## Rules
 
-Fill the grid so that every row, every column and every 3×3 box contains each digit 1–9
-exactly once. Some digits (the *givens*) are fixed from the start.
+| Grid          | Digits | Boxes                     |
+| ------------- | ------ | ------------------------- |
+| Classic 9×9   | 1–9    | nine 3×3 boxes            |
+| Mini 6×6      | 1–6    | six boxes of 2 rows × 3 columns |
+
+Fill the grid so that every row, every column and every box contains each digit exactly
+once. Some digits (the *givens*) are fixed from the start.
+
+The grid is chosen with the switch at the top of the Sudoku menu; the choice is remembered.
+Each grid has its own running game, puzzle pool and statistics.
 
 ## Controls
 
@@ -18,6 +27,7 @@ exactly once. Some digits (the *givens*) are fixed from the start.
 | Remove a digit            | tap the same digit again, or **Erase**   | `Backspace`, `Delete`, `0` |
 | Notes mode on/off         | **Notes**                                | `N`                   |
 | Hint                      | **Hint**                                 | `H` (`Esc` closes it) |
+| Undo                      | **Undo**                                 | `Ctrl`/`⌘` + `Z`      |
 | Menu (new game, clear …)  | ⋮ in the app bar                         | –                     |
 
 - In **notes mode**, digits toggle small candidate marks in the selected cell.
@@ -29,6 +39,11 @@ exactly once. Some digits (the *givens*) are fixed from the start.
 - Entries are **not** checked automatically. Wrong entries are only reported when you ask
   for a hint.
 - The timer pauses while the app is in the background and while the menu is open.
+- **Undo** reverts the last board change, step by step and without limit: entering or
+  removing a digit (including the notes cleaned up automatically by it), toggling a note,
+  erasing, applying a hint and *Clear entries*. The undo history is saved with the game, so
+  it survives a reload. Undo does not stop the timer and does not reduce the hint count.
+- After solving, the result dialog offers *New game*, *Choose difficulty* and *Home*.
 
 ### Settings
 
@@ -37,6 +52,8 @@ exactly once. Some digits (the *givens*) are fixed from the start.
 | Highlight row, column and box   | on      |
 | Highlight same digits           | on      |
 | Remove notes automatically      | on      |
+
+(The last chosen grid is stored in the same settings object as `lastMode`.)
 
 ## Difficulty levels
 
@@ -59,6 +76,22 @@ The difficulty is the hardest solving technique a human needs. Technique levels:
 A puzzle of a given difficulty *needs* at least one technique of that level and never needs
 a harder one.
 
+### Mini 6×6
+
+On a 6×6 grid almost every puzzle falls to singles: in a measurement of 300 maximally dug
+grids, 98 % needed nothing beyond level 1. The technique level can therefore not separate
+difficulties. Mini difficulties are defined by the **number of givens** instead (fewer
+clues mean longer chains of singles and fewer places to start):
+
+| Difficulty | Givens | Techniques allowed |
+| ---------- | ------ | ------------------ |
+| Easy       | 16     | singles            |
+| Medium     | 12     | singles            |
+| Hard       | 8–10 (practically always 10) | any (levels 1–4) |
+
+Clues are removed in symmetric pairs, so clue counts are even. Generation takes about 1 ms on
+average (max. ≈ 10 ms) per puzzle.
+
 ### Techniques
 
 - **Naked single** – a cell has only one candidate left.
@@ -78,7 +111,9 @@ a harder one.
 
 ## Generator
 
-Source: `src/games/sudoku/logic/`.
+Source: `src/games/sudoku/logic/`. All logic is size-independent: the grid geometry
+(`board.ts`, `geometry(size)`) is derived from the number of cells (81 or 36), so puzzles and
+saves need no extra size field.
 
 1. **Complete grid** – an exact bitmask backtracking solver (`solver.ts`, most constrained
    cell first) fills an empty grid with a randomly ordered digit sequence.
@@ -121,10 +156,16 @@ Every requested hint is counted and shown in the result dialog.
 
 | Key                          | Content                                                      |
 | ---------------------------- | ------------------------------------------------------------ |
-| `riddles:sudoku:current:v1`  | running game: puzzle, entries, notes (bitmask), time, hints, selection |
-| `riddles:sudoku:pool:v1`     | one prefetched puzzle per difficulty                         |
-| `riddles:sudoku:settings`    | Sudoku settings                                              |
-| `riddles:stats:v1`           | statistics (shared), variant = difficulty                    |
+| `riddles:sudoku:current:v1`  | running classic game: puzzle, entries, notes (bitmask), time, hints, selection, undo history |
+| `riddles:sudoku:mini:current:v1` | running mini game (same format, 36 cells)                |
+| `riddles:sudoku:pool:v1`     | one prefetched classic puzzle per difficulty                 |
+| `riddles:sudoku:mini:pool:v1` | one prefetched mini puzzle per difficulty                   |
+| `riddles:sudoku:settings`    | Sudoku settings (incl. last chosen grid)                     |
+| `riddles:stats:v1`           | statistics (shared); variant = difficulty (`easy` …) for classic, `mini-easy` … for mini |
+
+The undo history (`history`: list of `{ changes: [cell, previous value, previous notes][],
+selected }`) was added without a key change; saves of older versions simply start with an
+empty history.
 
 The running game is saved after every move, every 5 seconds while the timer runs, and when
 the app is hidden or closed. It is deleted when the puzzle is solved.
@@ -134,15 +175,16 @@ the app is hidden or closed. It is deleted when the puzzle is solved.
 | File                        | Purpose                                              |
 | --------------------------- | ---------------------------------------------------- |
 | `logic/types.ts`            | types, difficulties, validators for stored data      |
-| `logic/board.ts`            | geometry (rows/cols/boxes/peers), bitmask helpers    |
+| `logic/board.ts`            | geometry for 9×9 and 6×6 (rows/cols/boxes/peers), bitmask helpers |
 | `logic/solver.ts`           | exact solver, solution counting, random full grids   |
 | `logic/techniques.ts`       | candidate grid and technique finders                 |
 | `logic/grader.ts`           | technique catalogue, `findNextStep`, `gradePuzzle`   |
-| `logic/generator.ts`        | difficulty profiles and puzzle generation            |
+| `logic/generator.ts`        | difficulty profiles (classic + mini) and puzzle generation |
 | `logic/hints.ts`            | hint computation                                     |
 | `explain.ts`                | translated hint texts                                |
-| `useSudokuGame.ts`          | game state, input, persistence, timer, statistics    |
-| `SudokuLobby.vue`           | continue / difficulty selection                      |
+| `useSudokuGame.ts`          | game state, input, undo, persistence, timer, statistics |
+| `generate.ts`               | worker client and one puzzle pool per grid           |
+| `SudokuLobby.vue`           | grid switch, continue / difficulty selection         |
 | `SudokuPlay.vue`            | play screen, menu, result dialog, keyboard input     |
-| `SudokuBoard.vue`           | 9×9 grid rendering and highlighting                  |
+| `SudokuBoard.vue`           | grid rendering (9×9 / 6×6) and highlighting          |
 | `NumberPad.vue`, `HintPanel.vue`, `SudokuSettings.vue` | controls             |

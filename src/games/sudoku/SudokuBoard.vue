@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 import { t } from '@/core/i18n'
-import { boxOf, colOf, digitsOf, rowOf } from './logic/board'
+import { digitsOf, geometryOfCells } from './logic/board'
 
 const props = defineProps<{
   givens: readonly number[]
@@ -18,7 +18,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{ select: [cell: number] }>()
 
-const NOTE_DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+/** Geometry (9×9 or 6×6) derived from the number of cells. */
+const geo = computed(() => geometryOfCells(props.values.length))
+const rowOf = (cell: number): number => geo.value.rowOf[cell]!
+const colOf = (cell: number): number => geo.value.colOf[cell]!
+const boxOf = (cell: number): number => geo.value.boxOf[cell]!
 
 const selectedDigit = computed(() =>
   props.selected === null ? 0 : (props.values[props.selected] ?? 0),
@@ -37,6 +41,7 @@ function cellClasses(cell: number) {
   const value = props.values[cell]!
   const row = rowOf(cell)
   const col = colOf(cell)
+  const { size, boxRows, boxCols } = geo.value
   return {
     'cell--given': props.givens[cell] !== 0,
     'cell--entry': props.givens[cell] === 0 && value !== 0,
@@ -46,8 +51,10 @@ function cellClasses(cell: number) {
     'cell--focus': focusSet.value.has(cell),
     'cell--target': props.targetCell === cell,
     'cell--wrong': wrongSet.value.has(cell),
-    'cell--box-right': col === 2 || col === 5,
-    'cell--box-bottom': row === 2 || row === 5,
+    'cell--box-right': col < size - 1 && (col + 1) % boxCols === 0,
+    'cell--box-bottom': row < size - 1 && (row + 1) % boxRows === 0,
+    'cell--last-col': col === size - 1,
+    'cell--last-row': row === size - 1,
   }
 }
 
@@ -63,12 +70,23 @@ function cellLabel(cell: number): string {
 }
 
 function noteHighlighted(cell: number, digit: number): boolean {
-  return props.highlightSameDigits && selectedDigit.value === digit && props.values[cell] === 0
+  return (
+    props.highlightSameDigits &&
+    selectedDigit.value === digit &&
+    props.values[cell] === 0 &&
+    (props.notes[cell]! & (1 << digit)) !== 0
+  )
 }
 </script>
 
 <template>
-  <div class="board no-select" role="group" :aria-label="t('sudoku.name')">
+  <div
+    class="board no-select"
+    :class="{ 'board--mini': geo.size === 6 }"
+    :style="{ '--n': geo.size }"
+    role="group"
+    :aria-label="t('sudoku.name')"
+  >
     <button
       v-for="(value, cell) in values"
       :key="cell"
@@ -83,7 +101,7 @@ function noteHighlighted(cell: number, digit: number): boolean {
       <span v-if="value !== 0" class="cell__value">{{ value }}</span>
       <span v-else-if="notes[cell]" class="cell__notes" aria-hidden="true">
         <span
-          v-for="digit in NOTE_DIGITS"
+          v-for="digit in geo.digits"
           :key="digit"
           class="cell__note"
           :class="{ 'cell__note--hl': noteHighlighted(cell, digit) }"
@@ -100,8 +118,8 @@ function noteHighlighted(cell: number, digit: number): boolean {
   /* Cell font sizes scale with the board width (cqi units). */
   container-type: inline-size;
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  grid-template-rows: repeat(9, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
@@ -130,12 +148,16 @@ function noteHighlighted(cell: number, digit: number): boolean {
   transition: background-color var(--dur-fast);
 }
 
-.cell:nth-child(9n) {
+.cell--last-col {
   border-right: 0;
 }
 
-.cell:nth-last-child(-n + 9) {
+.cell--last-row {
   border-bottom: 0;
+}
+
+.board--mini .cell {
+  font-size: 9cqi;
 }
 
 .cell--box-right {
@@ -207,6 +229,15 @@ function noteHighlighted(cell: number, digit: number): boolean {
   font-size: 2.5cqi;
   font-weight: 600;
   line-height: 1;
+}
+
+.board--mini .cell__notes {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  padding: 2px 3px;
+}
+
+.board--mini .cell__note {
+  font-size: 3.6cqi;
 }
 
 .cell__note--hl {

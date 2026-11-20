@@ -4,6 +4,13 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Sudoku',
   tagline: 'Classic number puzzle with notes and hints.',
+  modes: {
+    label: 'Grid',
+    classic: 'Classic 9×9',
+    mini: 'Mini 6×6',
+    miniShort: 'Mini',
+    miniInfo: 'Digits 1–6 in every row, column and 2×3 box. Fewer givens make it harder.',
+  },
   lobby: {
     newGame: 'New game',
     continueDetail: '{difficulty} · {time}',
@@ -16,8 +23,9 @@ export const en = {
     notes: 'Notes',
     erase: 'Erase',
     hint: 'Hint',
+    undo: 'Undo',
     restart: 'Clear entries',
-    restartConfirm: 'Remove all your entries and notes? The timer keeps running.',
+    restartConfirm: 'Remove all your entries and notes? The timer keeps running (can be undone).',
     newGameConfirm: 'Start a new {difficulty} puzzle? The current one will be lost.',
     remaining: '{count} left',
     cellLabel: 'Row {row}, column {col}',
@@ -87,6 +95,13 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Sudoku',
   tagline: 'Klassisches Zahlenrätsel mit Notizen und Hinweisen.',
+  modes: {
+    label: 'Raster',
+    classic: 'Klassisch 9×9',
+    mini: 'Mini 6×6',
+    miniShort: 'Mini',
+    miniInfo: 'Ziffern 1–6 in jeder Zeile, Spalte und jedem 2×3-Block. Weniger Vorgaben = schwerer.',
+  },
   lobby: {
     newGame: 'Neues Spiel',
     continueDetail: '{difficulty} · {time}',
@@ -99,8 +114,9 @@ export const de: Messages<typeof en> = {
     notes: 'Notizen',
     erase: 'Löschen',
     hint: 'Hinweis',
+    undo: 'Rückgängig',
     restart: 'Eingaben löschen',
-    restartConfirm: 'Alle Eingaben und Notizen entfernen? Die Zeit läuft weiter.',
+    restartConfirm: 'Alle Eingaben und Notizen entfernen? Die Zeit läuft weiter (rückgängig machbar).',
     newGameConfirm: 'Neues Rätsel ({difficulty}) starten? Das aktuelle geht verloren.',
     remaining: 'noch {count}',
     cellLabel: 'Zeile {row}, Spalte {col}',

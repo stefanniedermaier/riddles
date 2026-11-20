@@ -4,21 +4,13 @@
  * puzzle is solved; hints use the same steps to explain the next deduction.
  */
 import {
-  ALL_DIGITS,
-  ALL_UNITS,
-  BOXES,
-  COLS,
-  IS_PEER,
-  PEERS,
-  ROWS,
-  boxOf,
-  colOf,
   combinations,
   digitsOf,
+  geometryOfCells,
   popcount,
-  rowOf,
   singleDigit,
   unitCells,
+  type Geometry,
 } from './board'
 import type { CellDigit, Step, TechniqueId, Unit } from './types'
 
@@ -26,20 +18,25 @@ export interface LogicState {
   values: number[]
   /** Candidate bitmask per cell (0 for filled cells). */
   cands: Uint16Array
+  /** Grid geometry; derived from the number of cells when omitted. */
+  geo?: Geometry
 }
+
+const geoOf = (state: LogicState): Geometry => (state.geo ??= geometryOfCells(state.values.length))
 
 /** Builds the candidate grid for the given values; `null` if the values contradict. */
 export function createLogicState(values: readonly number[]): LogicState | null {
-  const state: LogicState = { values: Array.from(values), cands: new Uint16Array(81) }
-  for (let cell = 0; cell < 81; cell++) {
+  const geo = geometryOfCells(values.length)
+  const state: LogicState = { values: Array.from(values), cands: new Uint16Array(geo.cellCount), geo }
+  for (let cell = 0; cell < geo.cellCount; cell++) {
     const digit = state.values[cell]!
     if (digit === 0) continue
-    for (const peer of PEERS[cell]!) if (state.values[peer] === digit) return null
+    for (const peer of geo.peers[cell]!) if (state.values[peer] === digit) return null
   }
-  for (let cell = 0; cell < 81; cell++) {
+  for (let cell = 0; cell < geo.cellCount; cell++) {
     if (state.values[cell] !== 0) continue
-    let mask = ALL_DIGITS
-    for (const peer of PEERS[cell]!) mask &= ~(1 << state.values[peer]!)
+    let mask = geo.allDigits
+    for (const peer of geo.peers[cell]!) mask &= ~(1 << state.values[peer]!)
     state.cands[cell] = mask
   }
   return state
@@ -49,7 +46,7 @@ export function placeDigit(state: LogicState, cell: number, digit: number): void
   state.values[cell] = digit
   state.cands[cell] = 0
   const bit = ~(1 << digit)
-  for (const peer of PEERS[cell]!) state.cands[peer]! &= bit
+  for (const peer of geoOf(state).peers[cell]!) state.cands[peer]! &= bit
 }
 
 export function applyStep(state: LogicState, step: Step): void {
@@ -63,7 +60,7 @@ export function isComplete(state: LogicState): boolean {
 
 /** `true` if an empty cell has no candidates left. */
 export function hasContradiction(state: LogicState): boolean {
-  for (let cell = 0; cell < 81; cell++) {
+  for (let cell = 0; cell < state.values.length; cell++) {
     if (state.values[cell] === 0 && state.cands[cell] === 0) return true
   }
   return false
@@ -103,7 +100,8 @@ function positionsOf(state: LogicState, cells: readonly number[], digit: number)
 // --- Level 1 ---------------------------------------------------------------
 
 export function findNakedSingle(state: LogicState): Step | null {
-  for (let cell = 0; cell < 81; cell++) {
+  const geo = geoOf(state)
+  for (let cell = 0; cell < geo.cellCount; cell++) {
     if (state.values[cell] !== 0) continue
     const mask = state.cands[cell]!
     if (popcount(mask) !== 1) continue
@@ -112,16 +110,17 @@ export function findNakedSingle(state: LogicState): Step | null {
       placements: [{ cell, digit }],
       focusCells: [cell],
       digits: [digit],
-      units: [rowUnit(rowOf(cell)), colUnit(colOf(cell)), boxUnit(boxOf(cell))],
+      units: [rowUnit(geo.rowOf[cell]!), colUnit(geo.colOf[cell]!), boxUnit(geo.boxOf[cell]!)],
     })
   }
   return null
 }
 
 export function findHiddenSingle(state: LogicState): Step | null {
-  for (const unit of ALL_UNITS) {
-    const cells = unitCells(unit)
-    for (let digit = 1; digit <= 9; digit++) {
+  const geo = geoOf(state)
+  for (const unit of geo.allUnits) {
+    const cells = unitCells(unit, geo)
+    for (const digit of geo.digits) {
       if (digitPlacedIn(state, cells, digit)) continue
       const positions = positionsOf(state, cells, digit)
       if (positions.length !== 1) continue
@@ -141,20 +140,22 @@ export function findHiddenSingle(state: LogicState): Step | null {
 
 /** Candidates of a digit inside a box all lie on one line → remove from the rest of the line. */
 export function findPointing(state: LogicState): Step | null {
-  for (let box = 0; box < 9; box++) {
-    const boxCells = BOXES[box]!
-    for (let digit = 1; digit <= 9; digit++) {
+  const geo = geoOf(state)
+  const { rowOf, colOf, boxOf } = geo
+  for (let box = 0; box < geo.size; box++) {
+    const boxCells = geo.boxes[box]!
+    for (const digit of geo.digits) {
       if (digitPlacedIn(state, boxCells, digit)) continue
       const positions = positionsOf(state, boxCells, digit)
       if (positions.length < 2) continue
       const lines: [Unit, readonly number[]][] = []
-      const row = rowOf(positions[0]!)
-      if (positions.every((cell) => rowOf(cell) === row)) lines.push([rowUnit(row), ROWS[row]!])
-      const col = colOf(positions[0]!)
-      if (positions.every((cell) => colOf(cell) === col)) lines.push([colUnit(col), COLS[col]!])
+      const row = rowOf[positions[0]!]!
+      if (positions.every((cell) => rowOf[cell] === row)) lines.push([rowUnit(row), geo.rows[row]!])
+      const col = colOf[positions[0]!]!
+      if (positions.every((cell) => colOf[cell] === col)) lines.push([colUnit(col), geo.cols[col]!])
       for (const [line, lineCells] of lines) {
         const eliminations = positionsOf(state, lineCells, digit)
-          .filter((cell) => boxOf(cell) !== box)
+          .filter((cell) => boxOf[cell] !== box)
           .map((cell) => ({ cell, digit }))
         if (eliminations.length > 0) {
           return makeStep('pointing', {
@@ -173,19 +174,21 @@ export function findPointing(state: LogicState): Step | null {
 
 /** Candidates of a digit on a line all lie in one box → remove from the rest of the box. */
 export function findClaiming(state: LogicState): Step | null {
+  const geo = geoOf(state)
+  const { boxOf } = geo
   const lines: [Unit, readonly number[]][] = [
-    ...ROWS.map((cells, i): [Unit, readonly number[]] => [rowUnit(i), cells]),
-    ...COLS.map((cells, i): [Unit, readonly number[]] => [colUnit(i), cells]),
+    ...geo.rows.map((cells, i): [Unit, readonly number[]] => [rowUnit(i), cells]),
+    ...geo.cols.map((cells, i): [Unit, readonly number[]] => [colUnit(i), cells]),
   ]
   for (const [line, lineCells] of lines) {
-    for (let digit = 1; digit <= 9; digit++) {
+    for (const digit of geo.digits) {
       if (digitPlacedIn(state, lineCells, digit)) continue
       const positions = positionsOf(state, lineCells, digit)
       if (positions.length < 2) continue
-      const box = boxOf(positions[0]!)
-      if (!positions.every((cell) => boxOf(cell) === box)) continue
+      const box = boxOf[positions[0]!]!
+      if (!positions.every((cell) => boxOf[cell] === box)) continue
       const onLine = new Set(lineCells)
-      const eliminations = positionsOf(state, BOXES[box]!, digit)
+      const eliminations = positionsOf(state, geo.boxes[box]!, digit)
         .filter((cell) => !onLine.has(cell))
         .map((cell) => ({ cell, digit }))
       if (eliminations.length > 0) {
@@ -205,8 +208,9 @@ export function findClaiming(state: LogicState): Step | null {
 // --- Level 3 ---------------------------------------------------------------
 
 function findNakedSubset(state: LogicState, size: number, technique: TechniqueId): Step | null {
-  for (const unit of ALL_UNITS) {
-    const cells = unitCells(unit)
+  const geo = geoOf(state)
+  for (const unit of geo.allUnits) {
+    const cells = unitCells(unit, geo)
     const candidates = cells.filter((cell) => {
       if (state.values[cell] !== 0) return false
       const count = popcount(state.cands[cell]!)
@@ -237,11 +241,12 @@ function findNakedSubset(state: LogicState, size: number, technique: TechniqueId
 }
 
 function findHiddenSubset(state: LogicState, size: number, technique: TechniqueId): Step | null {
-  for (const unit of ALL_UNITS) {
-    const cells = unitCells(unit)
-    // positions[d] = bitmask over the unit's 9 cell slots
+  const geo = geoOf(state)
+  for (const unit of geo.allUnits) {
+    const cells = unitCells(unit, geo)
+    // positions[d] = bitmask over the unit's cell slots
     const digitPositions = new Map<number, number>()
-    for (let digit = 1; digit <= 9; digit++) {
+    for (const digit of geo.digits) {
       if (digitPlacedIn(state, cells, digit)) continue
       let mask = 0
       cells.forEach((cell, slot) => {
@@ -284,11 +289,14 @@ export const findHiddenTriple = (s: LogicState): Step | null =>
 // --- Level 4 ---------------------------------------------------------------
 
 function findFish(state: LogicState, size: number, technique: TechniqueId): Step | null {
-  for (let digit = 1; digit <= 9; digit++) {
+  const geo = geoOf(state)
+  const rowOf = (cell: number): number => geo.rowOf[cell]!
+  const colOf = (cell: number): number => geo.colOf[cell]!
+  for (const digit of geo.digits) {
     const bit = 1 << digit
     for (const orientation of ['row', 'col'] as const) {
-      const baseLines = orientation === 'row' ? ROWS : COLS
-      const coverLines = orientation === 'row' ? COLS : ROWS
+      const baseLines = orientation === 'row' ? geo.rows : geo.cols
+      const coverLines = orientation === 'row' ? geo.cols : geo.rows
       const crossIndex = orientation === 'row' ? colOf : rowOf
 
       // For every base line: bitmask of cross indices holding the candidate.
@@ -307,7 +315,7 @@ function findFish(state: LogicState, size: number, technique: TechniqueId): Step
         for (const base of combo) cover |= base.mask
         if (popcount(cover) !== size) continue
         const baseIndices = new Set(combo.map((base) => base.index))
-        const coverIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8].filter((i) => cover & (1 << i))
+        const coverIndices = geo.digits.map((d) => d - 1).filter((i) => cover & (1 << i))
         const eliminations: CellDigit[] = []
         for (const coverIndex of coverIndices) {
           for (const cell of coverLines[coverIndex]!) {
@@ -345,8 +353,10 @@ export const findSwordfish = (s: LogicState): Step | null => findFish(s, 3, 'swo
  * Whatever the pivot is, one pincer becomes c → c is removed from cells seeing both pincers.
  */
 export function findXYWing(state: LogicState): Step | null {
+  const geo = geoOf(state)
+  const { isPeer: IS_PEER, peers: PEERS } = geo
   const bivalue: number[] = []
-  for (let cell = 0; cell < 81; cell++) {
+  for (let cell = 0; cell < geo.cellCount; cell++) {
     if (state.values[cell] === 0 && popcount(state.cands[cell]!) === 2) bivalue.push(cell)
   }
   for (const pivot of bivalue) {
