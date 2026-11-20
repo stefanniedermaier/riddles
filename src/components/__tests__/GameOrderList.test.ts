@@ -17,7 +17,7 @@ describe('GameOrderList', () => {
   it('lists all games in the stored order', () => {
     gameLayout.value = normalizeLayout({ order: ['shapes', 'sudoku'] })
     const wrapper = mount(GameOrderList)
-    expect(names(wrapper)).toEqual(['Shapes', 'Sudoku', 'Crowns', 'Links', 'Nonogram'])
+    expect(names(wrapper)).toEqual(['Shapes', 'Sudoku', 'Crowns', 'Links', 'Nonogram', 'Merge'])
   })
 
   it('moves a game with the arrow keys on its handle and announces it', async () => {
@@ -34,7 +34,7 @@ describe('GameOrderList', () => {
   it('reorders by dragging the handle', async () => {
     const wrapper = mount(GameOrderList, { attachTo: document.body })
     const list = wrapper.find('.order__list').element as HTMLElement
-    list.getBoundingClientRect = () => ({ top: 0, height: 300 }) as DOMRect
+    list.getBoundingClientRect = () => ({ top: 0, height: 60 * names(wrapper).length }) as DOMRect
     for (const row of wrapper.findAll('.order__row')) {
       const index = Number(names(wrapper).indexOf(row.find('.order__name').text()))
       ;(row.element as HTMLElement).getBoundingClientRect = () => ({ top: index * 60 }) as DOMRect
@@ -44,7 +44,7 @@ describe('GameOrderList', () => {
     window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 160 })) // near slot 2
     window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientY: 160 }))
     await flushPromises()
-    expect(names(wrapper)).toEqual(['Crowns', 'Links', 'Sudoku', 'Nonogram', 'Shapes'])
+    expect(names(wrapper)).toEqual(['Crowns', 'Links', 'Sudoku', 'Nonogram', 'Shapes', 'Merge'])
     wrapper.unmount()
   })
 

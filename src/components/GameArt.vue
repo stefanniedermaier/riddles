@@ -81,6 +81,19 @@ defineProps<{ game: GameId }>()
       <rect x="43" y="24" width="9" height="9" rx="1.5" fill="none" stroke="var(--game-nonogram)" stroke-opacity=".35" />
       <rect x="33" y="44" width="9" height="9" rx="1.5" fill="none" stroke="var(--game-nonogram)" stroke-opacity=".35" />
     </template>
+    <template v-else-if="game === 'merge'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <g font-family="var(--font-sans)" font-weight="800" text-anchor="middle">
+        <rect x="9" y="9" width="21" height="21" rx="5" fill="var(--game-merge)" opacity=".25" />
+        <text x="19.5" y="24" font-size="11" fill="var(--game-merge)">2</text>
+        <rect x="34" y="9" width="21" height="21" rx="5" fill="var(--game-merge)" opacity=".45" />
+        <text x="44.5" y="24" font-size="11" fill="var(--color-surface)">4</text>
+        <rect x="9" y="34" width="21" height="21" rx="5" fill="var(--game-merge)" opacity=".7" />
+        <text x="19.5" y="49" font-size="10" fill="var(--color-surface)">16</text>
+        <rect x="34" y="34" width="21" height="21" rx="5" fill="var(--game-merge)" />
+        <text x="44.5" y="48.5" font-size="8" fill="var(--color-surface)">128</text>
+      </g>
+    </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <circle cx="19" cy="19" r="8" fill="#e2445c" />
