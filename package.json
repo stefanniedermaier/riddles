@@ -52,5 +52,14 @@
     "vitest": "^5.1.1",
     "vue-tsc": "^3.3.14",
     "workbox-window": "^7.4.1"
+  },
+  "overrides": {
+    "workbox-build": {
+      "glob": "^14.0.2"
+    },
+    "js-beautify": {
+      "glob": "^14.0.2",
+      "editorconfig": "^4.0.0"
+    }
   }
 }
