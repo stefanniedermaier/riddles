@@ -30,6 +30,19 @@ The dev server listens on all interfaces (`--host`), so you can open
 | `npm run build`      | Type-check + production build to `dist/`                  |
 | `npm run preview`    | Serve `dist/` (with service worker)                       |
 | `npm run icons`      | Regenerate icons from `public/logo.svg`                   |
+| `npm run check:deps` | Lockfile sources, integrity hashes, runtime licenses      |
+| `npm run audit:ci`   | Registry signatures + vulnerability audit (as in CI)      |
+
+## Dependencies
+
+- `.npmrc` sets `min-release-age=7`: `npm install` / `npm update` only pick versions that
+  have been published for at least a week, and `engine-strict=true` enforces Node 26.
+- Always commit `package-lock.json`; CI installs with `npm ci --ignore-scripts`.
+- Before committing dependency changes run `npm run check:deps && npm run audit:ci`.
+- Runtime dependencies (`dependencies`) must use a permissive license (see the allow list in
+  `scripts/check-dependencies.mjs`). Prefer adding tools to `devDependencies`.
+- Dependabot proposes updates weekly; see [deployment](deployment.md#supply-chain-safeguards)
+  for all safeguards.
 
 ## Testing
 

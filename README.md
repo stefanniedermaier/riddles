@@ -53,6 +53,7 @@ npm run dev        # http://localhost:5173/riddles/ (also reachable from your ph
 | `npm run build`      | Type-check and production build into `dist/`        |
 | `npm run preview`    | Serve the production build (incl. service worker)   |
 | `npm run icons`      | Regenerate app icons from `public/logo.svg`         |
+| `npm run check:deps` / `audit:ci` | Supply-chain checks (lockfile, licenses, signatures, audit) |
 
 Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
 

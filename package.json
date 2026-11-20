@@ -22,7 +22,9 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --cache --fix",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "check:deps": "node scripts/check-dependencies.mjs",
+    "audit:ci": "npm audit signatures && npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=high"
   },
   "dependencies": {
     "vue": "^3.5.45",

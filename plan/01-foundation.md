@@ -230,9 +230,11 @@ Name and description come from i18n keys `<id>.name` / `<id>.tagline`.
 Single workflow `.github/workflows/deploy.yml`:
 
 - Triggers: push to `main`, pull requests, manual dispatch.
-- Job `build`: checkout → setup-node (`node-version-file: .nvmrc`, npm cache) → `npm ci` →
+- Jobs `supply-chain` (lockfile/license check, signatures, audit), `codeql` and `verify`
+  (see docs/deployment.md) gate the deployment; PRs also run `dependency-review`.
+- Job `verify`: checkout → setup-node (`node-version-file: .nvmrc`, npm cache) → `npm ci` →
   lint → type-check → test → build → upload Pages artifact (only on `main`).
-- Job `deploy` (only on `main`): `actions/deploy-pages` into the `github-pages` environment.
+- Job `deploy` (only on `main`, needs all gates): `actions/deploy-pages` into `github-pages`.
 - One-time repo setting: *Settings → Pages → Source: GitHub Actions*.
 
 ## 8. Tests

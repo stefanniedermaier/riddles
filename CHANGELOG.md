@@ -6,6 +6,14 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Security
+
+- CI deploys only after supply-chain checks (lockfile sources/integrity/licenses, registry
+  signatures, npm audit), CodeQL and all tests pass; dependency review on pull requests
+- GitHub Actions pinned to commit SHAs, least-privilege permissions
+- Dependabot for npm and GitHub Actions with release cooldown; `min-release-age` and
+  `engine-strict` in `.npmrc`
+
 ## [0.1.0] – 2026-11-20
 
 ### Added

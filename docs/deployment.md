@@ -9,17 +9,54 @@ URL: <https://stefanniedermaier.github.io/riddles/>
 
 1. Push the repository to GitHub.
 2. *Settings → Pages → Build and deployment → Source:* **GitHub Actions**.
-3. (Optional) *Settings → Environments → github-pages*: restrict deployments to `main`.
+3. *Settings → Environments → github-pages*: restrict deployments to the `main` branch.
+4. Recommended: *Settings → Code security*: enable the dependency graph, Dependabot alerts
+   and Dependabot security updates; *Settings → Branches*: protect `main` and require the
+   checks `Supply chain`, `CodeQL`, `Lint, test & build` and `Dependency review` for PRs.
 
 ## Workflow
 
-| Trigger              | Jobs                                                                |
-| -------------------- | ------------------------------------------------------------------- |
-| Pull request         | `build`: install, lint, type-check, test, build                     |
-| Push to `main`       | `build` + upload of `dist/` as Pages artifact, then `deploy`        |
-| Manual (`workflow_dispatch`) | same as push                                                |
+```
+pull request:  dependency-review ─┐
+                                  ├─ (no deploy)
+               supply-chain ──────┤
+               codeql ────────────┤
+               verify ────────────┘
 
-Node is installed from `.nvmrc`, dependencies with `npm ci` (lockfile required).
+push to main:  supply-chain ──┐
+               codeql ────────┼──▶ deploy (GitHub Pages)
+               verify ────────┘    only if all three succeed
+```
+
+| Job                 | When        | Checks                                                                                       |
+| ------------------- | ----------- | -------------------------------------------------------------------------------------------- |
+| `dependency-review` | PRs         | New/updated packages: no known vulnerability ≥ moderate, license on the allow list, OpenSSF Scorecard warning |
+| `supply-chain`      | always      | `scripts/check-dependencies.mjs` (see below), `npm ci --ignore-scripts`, `npm audit signatures`, `npm audit` (runtime: no vulnerability ≥ moderate; all: none ≥ high) |
+| `codeql`            | always      | CodeQL `security-extended` analysis of the TypeScript/Vue code and the workflow files        |
+| `verify`            | always      | lint, type-check, unit tests, production build, clean working tree, upload of `dist/`         |
+| `deploy`            | `main` only | publishes the uploaded artifact – needs `supply-chain`, `codeql` and `verify` to succeed      |
+
+### Supply-chain safeguards
+
+| Safeguard                         | Where                               | Protects against                                                  |
+| --------------------------------- | ----------------------------------- | ----------------------------------------------------------------- |
+| Lockfile check                    | `npm run check:deps`                | packages from other registries, git/URL/file dependencies, missing sha512 integrity, non-permissive licenses in shipped code |
+| `npm ci --ignore-scripts`         | CI                                  | exact lockfile versions only; no install scripts executed         |
+| `npm audit signatures`            | CI, `npm run audit:ci`              | tampered packages (registry signatures, Sigstore provenance)      |
+| `npm audit`                       | CI, `npm run audit:ci`              | known vulnerabilities                                             |
+| Dependency review                 | PRs                                 | vulnerable or unexpectedly licensed new dependencies              |
+| CodeQL                            | CI                                  | security bugs in our own code and workflows                       |
+| Actions pinned to commit SHAs     | `deploy.yml`                        | moved/compromised action tags                                     |
+| Least-privilege permissions       | `deploy.yml`                        | token misuse (`contents: read` by default, `persist-credentials: false`) |
+| `min-release-age=7`               | `.npmrc`                            | freshly published malicious versions when installing/updating locally |
+| Dependabot with cooldown          | `.github/dependabot.yml`            | outdated dependencies and action pins; waits 7 (major: 14) days after a release |
+| `engine-strict`                   | `.npmrc`, CI                        | installing with an unsupported Node.js version                    |
+
+Run the same checks locally with `npm run check:deps` and `npm run audit:ci`.
+
+> CodeQL and dependency review are free for public repositories. For a private repository
+> they require GitHub Advanced Security (Code Security); otherwise remove these jobs from
+> `needs` of `deploy`.
 
 ## Base path
 
