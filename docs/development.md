@@ -41,6 +41,10 @@ The dev server listens on all interfaces (`--host`), so you can open
 - Before committing dependency changes run `npm run check:deps && npm run audit:ci`.
 - Runtime dependencies (`dependencies`) must use a permissive license (see the allow list in
   `scripts/check-dependencies.mjs`). Prefer adding tools to `devDependencies`.
+- `overrides` in `package.json` pin patched transitive versions where upstream has not
+  caught up yet (currently `glob` 14 / `editorconfig` 4 for `workbox-build` and `js-beautify`,
+  fixing GHSA-g3hv-75wg-m249 and GHSA-3g3m-2fjr-6pw4 in `minimatch`/`glob`). Remove an
+  override once the parent package depends on a patched version itself.
 - Dependabot proposes updates weekly; see [deployment](deployment.md#supply-chain-safeguards)
   for all safeguards.
 
