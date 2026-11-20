@@ -1,0 +1,18 @@
+import './styles/tokens.css'
+import './styles/base.css'
+
+import { createApp } from 'vue'
+
+import App from './App.vue'
+import { installI18n } from './core/i18n'
+import { requestPersistentStorage } from './core/storage'
+import { installTheme } from './core/theme'
+import { router } from './router'
+
+installTheme()
+installI18n()
+
+createApp(App).use(router).mount('#app')
+
+// Ask once to keep our local data even under storage pressure (fire and forget).
+void requestPersistentStorage()
