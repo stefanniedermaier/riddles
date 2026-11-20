@@ -216,7 +216,7 @@ Name and description come from i18n keys `<id>.name` / `<id>.tagline`.
   `start_url: './'`, `scope: './'`, theme/background colours, icons 64/192/512 + maskable.
 - iOS: `apple-touch-icon` (180 px), `apple-mobile-web-app-capable`,
   `apple-mobile-web-app-title`, `viewport-fit=cover`.
-- `navigator.storage.persist()` requested on first game start.
+- `navigator.storage.persist()` requested once at app start (fire and forget).
 
 ## 6. Settings view – data section
 
