@@ -13,6 +13,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- New game **Links**: connect pairs of coloured dots, fill every cell (5×5 to 11×11,
+  unique solutions, hints, undo, move counter with *perfect* rating)
 - Sudoku: **Mini 6×6** mode (digits 1–6, 2×3 boxes) with its own difficulties, saves and
   statistics
 - Sudoku and Crowns: **undo** (unlimited, saved with the game, Ctrl/Cmd+Z)
@@ -29,6 +31,7 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Toasts no longer stack up or cover dialog buttons (only the newest is shown, below dialogs)
 - Back button sometimes needed two taps (duplicate history entry after a finished game, and a
   late navigation after leaving a game while a puzzle was being generated)
 

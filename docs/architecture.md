@@ -101,8 +101,11 @@ incompatible format change instead of crashing the app.
 | `sudoku:pool:v1`             | Pre-generated Sudoku puzzles                |
 | `crowns:current:v1`          | Running Crowns game                         |
 | `crowns:pool:v1`             | Pre-generated Crowns puzzles                |
-| `shapes:current:<mode>:v1`   | Running Shapes game per mode                |
-| `shapes:progress:v1`         | Unlocked levels and stars                   |
+| `links:current:v1`           | Running Links game                          |
+| `links:pool:v1`              | Pre-generated Links puzzles                 |
+| `shapes:current:<mode>:v1`   | Running Shapes game per mode (levels: `v2`) |
+| `shapes:progress:v2`         | Current (highest unlocked) level            |
+| `sudoku:mini:current:v1`     | Running Mini-Sudoku game (pool: `sudoku:mini:pool:v1`) |
 
 Settings → *Your data* exports all keys into one JSON file and imports it again
 (see [privacy](privacy.md)).

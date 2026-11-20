@@ -13,6 +13,7 @@ Every puzzle and level is generated on the fly.
 | ---------- | ------------------------------------------------------------------------------------------------ |
 | **Sudoku** | Classic 9×9 number puzzle. Four difficulties, unique solutions, notes and hints that explain the next logical step. |
 | **Crowns** | Place one crown in every row, column and coloured region – crowns may not touch, not even diagonally. Grid size grows with difficulty (6×6 to 10×10). |
+| **Links**  | Connect each pair of coloured dots with a line – lines may not cross and every cell must be filled. 5×5 to 11×11, hints, undo, move counter. |
 | **Shapes** | Match-3: swap neighbouring shapes to line up three or more. Zen, Time and Levels modes with special pieces and combos. |
 
 ## Features
@@ -66,7 +67,7 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
 - [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, releasing a version, PWA updates
 - [Privacy](docs/privacy.md) – what is stored and where
 - [Security](docs/security.md) – threat model, supply chain, SBOM & provenance, CRA alignment
-- Games: [Sudoku](docs/games/sudoku.md) · [Crowns](docs/games/crowns.md) · [Shapes](docs/games/shapes.md)
+- Games: [Sudoku](docs/games/sudoku.md) · [Crowns](docs/games/crowns.md) · [Links](docs/games/links.md) · [Shapes](docs/games/shapes.md)
 - [Implementation plans](plan/README.md) – the original design and decisions
 - [Changelog](CHANGELOG.md)
 
