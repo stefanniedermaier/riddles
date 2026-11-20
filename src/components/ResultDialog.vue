@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppDialog from './AppDialog.vue'
 import AppIcon from './AppIcon.vue'
+import type { IconName } from './icons'
 
 /**
  * Generic "solved / game over" dialog. Pass the result rows and put buttons into the
@@ -16,8 +17,10 @@ withDefaults(
     badge?: string
     /** 0–3 stars (Shapes levels); omitted when undefined. */
     stars?: number
+    /** Header icon, e.g. something else than the trophy for a lost round. */
+    icon?: IconName
   }>(),
-  { subtitle: undefined, badge: undefined, stars: undefined },
+  { subtitle: undefined, badge: undefined, stars: undefined, icon: 'trophy' },
 )
 
 const emit = defineEmits<{ close: [] }>()
@@ -27,7 +30,7 @@ const emit = defineEmits<{ close: [] }>()
   <AppDialog :open="open" :dismissible="false" @close="emit('close')">
     <div class="result">
       <div class="result__icon" aria-hidden="true">
-        <AppIcon name="trophy" :size="36" />
+        <AppIcon :name="icon" :size="36" />
       </div>
       <h2 class="result__title">{{ title }}</h2>
       <p v-if="subtitle" class="result__subtitle">{{ subtitle }}</p>
