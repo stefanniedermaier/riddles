@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.1] – 2026-11-20
+
 ### Fixed
 
 - Shapes: opening a mode without playing no longer leaves a permanent *Continue* on the home
