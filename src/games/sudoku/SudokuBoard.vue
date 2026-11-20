@@ -100,8 +100,8 @@ function noteHighlighted(cell: number, digit: number): boolean {
   /* Cell font sizes scale with the board width (cqi units). */
   container-type: inline-size;
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  grid-template-rows: repeat(9, 1fr);
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-rows: repeat(9, minmax(0, 1fr));
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
@@ -192,8 +192,8 @@ function noteHighlighted(cell: number, digit: number): boolean {
 
 .cell__notes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   width: 100%;
   height: 100%;
   padding: 1px;

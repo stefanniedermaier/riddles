@@ -89,15 +89,30 @@ interface Stroke {
 
 let stroke: Stroke | null = null
 
+/**
+ * Cell under the pointer. Uses the browser's hit testing (the element actually rendered at
+ * that point), so it is always consistent with what the user sees. Falls back to geometry
+ * of the board's content box (without its border) where hit testing is unavailable.
+ */
 function cellAt(event: PointerEvent): number {
   const el = board.value
   if (!el) return -1
+
+  const hit =
+    typeof document.elementFromPoint === 'function'
+      ? document.elementFromPoint(event.clientX, event.clientY)
+      : null
+  const cellEl = hit?.closest<HTMLElement>('[data-cell]')
+  if (cellEl && el.contains(cellEl)) return Number(cellEl.dataset.cell)
+
   const rect = el.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
-  if (x < 0 || y < 0 || x >= rect.width || y >= rect.height) return -1
-  const col = Math.floor((x / rect.width) * props.size)
-  const row = Math.floor((y / rect.height) * props.size)
+  const width = el.clientWidth || rect.width
+  const height = el.clientHeight || rect.height
+  const x = event.clientX - rect.left - el.clientLeft
+  const y = event.clientY - rect.top - el.clientTop
+  if (x < 0 || y < 0 || x >= width || y >= height) return -1
+  const col = Math.floor((x / width) * props.size)
+  const row = Math.floor((y / height) * props.size)
   return row * props.size + col
 }
 
@@ -212,6 +227,7 @@ function onKeydown(event: KeyboardEvent): void {
       :key="cell - 1"
       class="cell"
       role="gridcell"
+      :data-cell="cell - 1"
       :aria-label="cellLabel(cell - 1)"
       :class="{
         'cell--tint': highlight?.tint.has(cell - 1),
@@ -251,7 +267,9 @@ function onKeydown(event: KeyboardEvent): void {
   --crowns-line-strong: var(--color-border-strong);
 
   display: grid;
-  grid-template-columns: repeat(var(--n), 1fr);
+  /* minmax(0, 1fr): all rows and columns stay equal, whatever a cell contains. */
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
@@ -269,12 +287,21 @@ function onKeydown(event: KeyboardEvent): void {
 
 .cell {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   border-style: solid;
   color: var(--color-text);
+}
+
+/* Symbols are taken out of the layout flow so they can never change the cell size. */
+.cell__crown,
+.cell__mark,
+.cell__dot {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  pointer-events: none;
 }
 
 .cell--tint {
@@ -326,9 +353,6 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .cell__ghost {
-  position: absolute;
-  inset: 0;
-  margin: auto;
   color: var(--color-accent);
   opacity: 0.75;
   animation: ghost-pulse 1.4s ease-in-out infinite;
