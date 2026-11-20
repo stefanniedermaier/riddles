@@ -3,7 +3,8 @@ import { computed, ref } from 'vue'
 
 import { t } from '@/core/i18n'
 import type { DisplayPiece, ScorePopup } from './animator'
-import { SIZE, areAdjacent, cellAt } from './logic/types'
+import { CELLS, SIZE, areAdjacent, cellAt, type Field } from './logic/types'
+import ObstacleArt from './ObstacleArt.vue'
 import ShapePiece from './ShapePiece.vue'
 
 const props = defineProps<{
@@ -15,6 +16,8 @@ const props = defineProps<{
   hint: [number, number] | null
   /** Ignore input (animations running, paused, finished). */
   locked: boolean
+  /** Level obstacles (crates, target tiles, chains). */
+  field?: Field | null
 }>()
 
 const emit = defineEmits<{
@@ -111,6 +114,20 @@ function popupStyle(popup: ScorePopup) {
   }
 }
 
+const cellsWith = (values: number[] | undefined) =>
+  values ? Array.from({ length: CELLS }, (_, cell) => cell).filter((cell) => values[cell]! > 0) : []
+
+const targetCells = computed(() => cellsWith(props.field?.targets))
+const crateCells = computed(() => cellsWith(props.field?.crates))
+const chainCells = computed(() => cellsWith(props.field?.chains))
+
+function cellStyle(cell: number) {
+  return {
+    left: `${(cell % SIZE) * 12.5}%`,
+    top: `${Math.floor(cell / SIZE) * 12.5}%`,
+  }
+}
+
 function isSelected(piece: DisplayPiece): boolean {
   return props.selected !== null && cellAt(piece.row, piece.col) === props.selected
 }
@@ -128,6 +145,12 @@ function isSelected(piece: DisplayPiece): boolean {
     @pointercancel="onPointerCancel"
     @lostpointercapture="onPointerCancel"
   >
+    <TransitionGroup name="obstacle">
+      <div v-for="cell in targetCells" :key="`t${cell}`" class="cell-layer cell-layer--target" :style="cellStyle(cell)">
+        <ObstacleArt type="target" />
+      </div>
+    </TransitionGroup>
+
     <div
       v-for="piece in pieces"
       :key="piece.id"
@@ -147,6 +170,24 @@ function isSelected(piece: DisplayPiece): boolean {
         <ShapePiece :kind="piece.kind" :special="piece.special" />
       </div>
     </div>
+
+    <TransitionGroup name="obstacle">
+      <div
+        v-for="cell in crateCells"
+        :key="`c${cell}`"
+        class="cell-layer cell-layer--crate"
+        :class="{ 'cell-layer--strong': (field?.crates[cell] ?? 0) >= 2 }"
+        :style="cellStyle(cell)"
+      >
+        <ObstacleArt type="crate" :hp="field?.crates[cell]" />
+      </div>
+    </TransitionGroup>
+
+    <TransitionGroup name="obstacle">
+      <div v-for="cell in chainCells" :key="`k${cell}`" class="cell-layer cell-layer--chain" :style="cellStyle(cell)">
+        <ObstacleArt type="chain" />
+      </div>
+    </TransitionGroup>
 
     <div
       v-for="popup in popups"
@@ -173,6 +214,38 @@ function isSelected(piece: DisplayPiece): boolean {
   box-shadow: var(--shadow-sm);
   touch-action: none;
   cursor: pointer;
+}
+
+.cell-layer {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  pointer-events: none;
+}
+
+.cell-layer--target {
+  padding: calc(12.5% * 0.02);
+}
+
+.cell-layer--crate {
+  z-index: 1;
+  padding: calc(12.5% * 0.03);
+}
+
+.cell-layer--chain {
+  z-index: 2;
+  padding: calc(12.5% * 0.04);
+}
+
+.obstacle-leave-active {
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+}
+
+.obstacle-leave-to {
+  opacity: 0;
+  transform: scale(1.35);
 }
 
 .piece {

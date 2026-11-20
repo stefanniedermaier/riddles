@@ -5,8 +5,9 @@ import { MODES, type Mode } from './logic/types'
 
 export { MODES, type Mode }
 
-/** Storage key of the running game of a mode. */
-export const saveKey = (mode: Mode): string => `shapes:current:${mode}:v1`
+/** Storage key of the running game of a mode (levels: v2 since obstacles were added). */
+export const saveKey = (mode: Mode): string =>
+  mode === 'levels' ? 'shapes:current:levels:v2' : `shapes:current:${mode}:v1`
 
 export const descriptor: GameDescriptor = {
   id: 'shapes',

@@ -6,10 +6,10 @@
  * The list is kept sorted by id: Vue then never has to move DOM nodes (which would cancel
  * running transitions) – it only appends new and removes cleared pieces.
  */
-import { ref, type Ref } from 'vue'
+import { ref, shallowRef, type Ref } from 'vue'
 
 import type { Phase } from './logic/resolve'
-import { colOf, rowOf, type Board, type Special } from './logic/types'
+import { cloneField, colOf, rowOf, type Board, type Field, type Special } from './logic/types'
 
 export interface DisplayPiece {
   id: number
@@ -57,10 +57,14 @@ export interface PlayCallbacks {
   onClear?: (score: number) => void
   /** Called when the board had to be shuffled. */
   onShuffle?: () => void
+  /** Called when drop items reached the bottom. */
+  onCollect?: (count: number) => void
 }
 
 export function useBoardAnimator(motion: Ref<boolean>) {
   const pieces = ref<DisplayPiece[]>([])
+  /** Obstacles as currently shown (levels only). */
+  const field = shallowRef<Field | null>(null)
   const popups = ref<ScorePopup[]>([])
   const animating = ref(false)
   let popupId = 1
@@ -83,9 +87,10 @@ export function useBoardAnimator(motion: Ref<boolean>) {
     return list.sort((a, b) => a.id - b.id)
   }
 
-  /** Shows a board immediately, without animation. */
-  function show(board: Board): void {
+  /** Shows a board (and the obstacles of a level) immediately, without animation. */
+  function show(board: Board, levelField?: Field): void {
     pieces.value = display(board)
+    field.value = levelField ? cloneField(levelField) : null
   }
 
   function pieceAt(cell: number): DisplayPiece | undefined {
@@ -135,6 +140,16 @@ export function useBoardAnimator(motion: Ref<boolean>) {
         )
         callbacks.onClear?.(phase.score)
         addPopup(phase.cells, phase.score)
+        if (phase.field) field.value = phase.field
+        await wait(CLEAR_MS)
+        pieces.value = display(phase.board)
+        return
+      }
+      case 'collect': {
+        const collected = new Set(phase.cells.map((cell) => pieceAt(cell)?.id))
+        pieces.value = pieces.value.map((p) => (collected.has(p.id) ? { ...p, clearing: true } : p))
+        callbacks.onCollect?.(phase.cells.length)
+        field.value = phase.field
         await wait(CLEAR_MS)
         pieces.value = display(phase.board)
         return
@@ -167,6 +182,7 @@ export function useBoardAnimator(motion: Ref<boolean>) {
       }
       case 'shuffle': {
         callbacks.onShuffle?.()
+        if (phase.field) field.value = phase.field
         pieces.value = display(phase.board, () => SHUFFLE_MS)
         await wait(SHUFFLE_MS)
         return
@@ -178,7 +194,12 @@ export function useBoardAnimator(motion: Ref<boolean>) {
    * Animates the phases of one move and ends with `finalBoard` on screen.
    * With reduced motion the result is shown immediately.
    */
-  async function play(phases: Phase[], finalBoard: Board, callbacks: PlayCallbacks = {}) {
+  async function play(
+    phases: Phase[],
+    finalBoard: Board,
+    callbacks: PlayCallbacks = {},
+    finalField?: Field,
+  ) {
     animating.value = true
     try {
       if (motion.value) {
@@ -186,14 +207,16 @@ export function useBoardAnimator(motion: Ref<boolean>) {
       } else {
         for (const phase of phases) {
           if (phase.type === 'clear') callbacks.onClear?.(phase.score)
+          if (phase.type === 'collect') callbacks.onCollect?.(phase.cells.length)
           if (phase.type === 'shuffle') callbacks.onShuffle?.()
         }
       }
     } finally {
       pieces.value = display(finalBoard)
+      if (finalField) field.value = cloneField(finalField)
       animating.value = false
     }
   }
 
-  return { pieces, popups, animating, show, play }
+  return { pieces, popups, animating, field, show, play }
 }

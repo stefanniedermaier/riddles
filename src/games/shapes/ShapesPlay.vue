@@ -9,6 +9,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
+import { returnTo } from '@/core/navigation'
 import { randomSeed } from '@/core/rng'
 import { getVariantStats, recordFinish, recordStart } from '@/core/stats'
 import { motionEnabled } from '@/core/theme'
@@ -37,18 +38,17 @@ function newRun(level?: number): ShapesRun {
 }
 
 const isNew = route.query.new === '1'
-const requestedLevel = Math.min(
-  Math.max(1, Math.floor(Number(route.query.level)) || 1),
-  levelProgress.value.unlocked,
-)
-const initial: ShapesRun | null = isNew ? newRun(requestedLevel) : loadRun(props.mode)
+// Levels are played in order: a new level run always starts the current level.
+const initial: ShapesRun | null = isNew
+  ? newRun(levelProgress.value.level)
+  : loadRun(props.mode)
 
 const run = shallowRef<ShapesRun | null>(initial)
 const finished = ref(false)
 
 const animator = useBoardAnimator(motionEnabled)
 const displayScore = ref(initial?.score ?? 0)
-if (initial) animator.show(initial.board)
+if (initial) animator.show(initial.board, initial.level?.field)
 
 // ---------------------------------------------------------------------------
 // Time mode
@@ -76,14 +76,7 @@ const hint = ref<[number, number] | null>(null)
 
 type ResultState =
   | { kind: 'time'; score: number; best: number; newBest: boolean }
-  | {
-      kind: 'won'
-      level: number
-      score: number
-      bonus: number
-      total: number
-      stars: number
-    }
+  | { kind: 'won'; level: number; score: number; bonus: number; total: number }
   | { kind: 'lost'; level: number; score: number }
 
 const result = ref<ResultState | null>(null)
@@ -100,7 +93,7 @@ const locked = computed(
 const levelDef = computed(() => (run.value?.level ? getLevel(run.value.level.n) : null))
 const goals = computed(() =>
   run.value?.level && levelDef.value
-    ? goalStatus(levelDef.value, run.value.score, run.value.level.progress)
+    ? goalStatus(levelDef.value, run.value.score, run.value.level.progress, run.value.level.field)
     : undefined,
 )
 
@@ -145,7 +138,7 @@ function scheduleHint(): void {
   if (!shapesSettings.value.idleHint) return
   hintTimer = setTimeout(() => {
     if (locked.value || !run.value) return
-    const move = findAnyMove(run.value.board)
+    const move = findAnyMove(run.value.board, run.value.level?.field)
     hint.value = move ? [move.a, move.b] : null
   }, IDLE_HINT_MS)
 }
@@ -175,7 +168,7 @@ async function onSwap(a: number, b: number): Promise<void> {
       displayScore.value += score
     },
     onShuffle: () => showToast(t('shapes.board.shuffled')),
-  })
+  }, run.value?.level?.field)
   displayScore.value = run.value?.score ?? 0
 
   if (outcome.levelState === 'won') finishLevel(true)
@@ -208,7 +201,7 @@ function finishLevel(won: boolean): void {
   clearRun('levels')
   if (won) {
     const done = completeLevel(current)
-    recordLevelWin(current.level.n, done.stars)
+    recordLevelWin(current.level.n)
     recordFinish('shapes', 'levels', { score: done.finalScore })
     displayScore.value = done.finalScore
     result.value = {
@@ -217,7 +210,6 @@ function finishLevel(won: boolean): void {
       score: current.score,
       bonus: done.bonus,
       total: done.finalScore,
-      stars: done.stars,
     }
   } else {
     result.value = { kind: 'lost', level: current.level.n, score: current.score }
@@ -234,7 +226,7 @@ function startRun(next: ShapesRun): void {
   selected.value = null
   bonusMs.value = 0
   displayScore.value = next.score
-  animator.show(next.board)
+  animator.show(next.board, next.level?.field)
   recordStart('shapes', props.mode)
   if (countdown && next.time) {
     countdown.reset(next.time.limitMs, next.time.elapsedMs)
@@ -266,16 +258,18 @@ function newGame(): void {
   startRun(newRun(current?.level?.n))
 }
 
-function playLevel(level: number): void {
-  startRun(createRun('levels', 0, level))
+/** Plays the current level (the next one after a win, the same one after a loss). */
+function playCurrentLevel(): void {
+  startRun(createRun('levels', 0, levelProgress.value.level))
 }
 
 function toLobby(): void {
-  void router.push({ name: 'shapes' })
+  // returnTo avoids piling up history entries (push would make "back" return to the game).
+  void returnTo(router, { name: 'shapes' })
 }
 
-function toLevels(): void {
-  void router.push({ name: 'shapes-levels' })
+function toHome(): void {
+  void returnTo(router, { name: 'home' })
 }
 
 const resultRows = computed(() => {
@@ -376,10 +370,11 @@ onBeforeUnmount(() => {
       :moves-left="run.level?.movesLeft"
       :goals="goals"
     />
-    <div class="board-wrap">
+    <div class="board-wrap" :class="{ 'board-wrap--levels': mode === 'levels' }">
       <ShapesBoard
         :pieces="animator.pieces.value"
         :popups="animator.popups.value"
+        :field="animator.field.value"
         :selected="selected"
         :hint="hint"
         :locked="locked"
@@ -398,9 +393,6 @@ onBeforeUnmount(() => {
       <AppButton icon="restart" block @click="newGame">
         {{ mode === 'levels' ? t('shapes.pause.restartLevel') : t('shapes.pause.newGame') }}
       </AppButton>
-      <AppButton v-if="mode === 'levels'" icon="grid" block @click="toLevels">
-        {{ t('shapes.pause.levels') }}
-      </AppButton>
       <AppButton variant="ghost" icon="back" block @click="toLobby">
         {{ t('shapes.pause.quit') }}
       </AppButton>
@@ -412,7 +404,6 @@ onBeforeUnmount(() => {
     :title="resultTitle"
     :subtitle="result?.kind === 'lost' ? t('shapes.result.levelFailedText') : undefined"
     :rows="resultRows"
-    :stars="result?.kind === 'won' ? result.stars : undefined"
     :badge="result?.kind === 'time' && result.newBest ? t('common.newBest') : undefined"
     :icon="result?.kind === 'lost' ? 'restart' : 'trophy'"
   >
@@ -421,21 +412,19 @@ onBeforeUnmount(() => {
         <AppButton variant="primary" block @click="startRun(newRun())">
           {{ t('shapes.result.playAgain') }}
         </AppButton>
-        <AppButton variant="ghost" block @click="toLobby">{{ t('shapes.result.menu') }}</AppButton>
+        <AppButton block @click="toLobby">{{ t('shapes.result.menu') }}</AppButton>
       </template>
       <template v-else-if="result?.kind === 'won'">
-        <AppButton variant="primary" block @click="playLevel(result.level + 1)">
+        <AppButton variant="primary" block @click="playCurrentLevel">
           {{ t('shapes.result.nextLevel') }}
         </AppButton>
-        <AppButton block @click="playLevel(result.level)">{{ t('shapes.result.replay') }}</AppButton>
-        <AppButton variant="ghost" block @click="toLevels">{{ t('shapes.levels.title') }}</AppButton>
       </template>
       <template v-else-if="result?.kind === 'lost'">
-        <AppButton variant="primary" block @click="playLevel(result.level)">
+        <AppButton variant="primary" block @click="playCurrentLevel">
           {{ t('shapes.result.retry') }}
         </AppButton>
-        <AppButton variant="ghost" block @click="toLevels">{{ t('shapes.levels.title') }}</AppButton>
       </template>
+      <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
@@ -455,6 +444,14 @@ onBeforeUnmount(() => {
   );
   min-width: 260px;
   margin: 0 auto;
+}
+
+.board-wrap--levels {
+  width: min(
+    100%,
+    520px,
+    calc(100dvh - 250px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+  );
 }
 
 .menu {

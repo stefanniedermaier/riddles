@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { listMoves } from '../board'
 import { getLevel } from '../levels'
+import { botPlayLevel } from './bot'
 import {
   TIME_LIMIT_MS,
   completeLevel,
@@ -35,11 +36,13 @@ describe('runs', () => {
     const level = createRun('levels', 1, 3)
     const def = getLevel(3)
     expect(level.kinds).toBe(def.kinds)
-    expect(level.level).toEqual({
+    expect(level.level).toMatchObject({
       n: 3,
       movesLeft: def.moves,
-      progress: { collected: [0, 0, 0, 0, 0, 0], specials: 0 },
+      progress: { collected: [0, 0, 0, 0, 0, 0], specials: 0, items: 0 },
     })
+    // Level 3 introduces target tiles.
+    expect(level.level!.field.targets).toEqual(def.layout.targets)
   })
 
   it('starts a level with the same board regardless of the seed', () => {
@@ -81,12 +84,13 @@ describe('runs', () => {
     }
     // Level 1 is easy: a greedy player wins it.
     expect(state).toBe('won')
-    expect(run.score).toBeGreaterThanOrEqual(def.targetScore)
+    const scoreGoal = def.goals[0]!
+    expect(scoreGoal.type).toBe('score')
+    expect(run.score).toBeGreaterThanOrEqual(scoreGoal.type === 'score' ? scoreGoal.target : 0)
     expect(run.level!.movesLeft).toBe(def.moves - moves)
     expect(run.level!.progress.collected.reduce((a, b) => a + b, 0)).toBeGreaterThan(0)
     const done = completeLevel(run)
     expect(done.finalScore).toBe(run.score + run.level!.movesLeft * def.moveBonus)
-    expect(done.stars).toBeGreaterThanOrEqual(1)
   })
 
   it('loses a level when the moves run out', () => {
@@ -108,6 +112,15 @@ describe('runs', () => {
     expect(run.time!.limitMs).toBe(TIME_LIMIT_MS + bonus)
   })
 
+  it('wins obstacle levels with a casual player', () => {
+    // Introduction levels of every obstacle type are won by the tuning bot in most games.
+    for (const level of [3, 5, 7, 9]) {
+      let wins = 0
+      for (let game = 0; game < 6; game++) if (botPlayLevel(level, 500 + game).won) wins++
+      expect(wins, `level ${level}`).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   it('validates saved runs', () => {
     const run = createRun('levels', 1, 2)
     const roundTrip = JSON.parse(JSON.stringify(run)) as unknown
@@ -117,5 +130,14 @@ describe('runs', () => {
     expect(parseRun(null, 'zen')).toBeUndefined()
     const time = createRun('time', 1)
     expect(parseRun({ ...time, time: undefined }, 'time')).toBeUndefined()
+
+    // Levels with crates: crate cells are empty, everything else must hold a piece.
+    const crates = createRun('levels', 1, 7)
+    const json = JSON.parse(JSON.stringify(crates)) as typeof crates
+    expect(parseRun(json, 'levels')).toEqual(crates)
+    const crateCell = crates.level!.field.crates.findIndex((hp) => hp > 0)
+    const broken = { ...json, board: json.board.map((p, i) => (i === crateCell ? json.board[0] : p)) }
+    expect(parseRun(broken, 'levels')).toBeUndefined()
+    expect(parseRun({ ...json, level: { ...json.level!, field: undefined } }, 'levels')).toBeUndefined()
   })
 })

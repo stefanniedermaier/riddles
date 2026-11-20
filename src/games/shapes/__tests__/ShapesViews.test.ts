@@ -14,7 +14,7 @@ const Host = defineComponent({ render: () => h(RouterView) })
 async function mountAt(path: string) {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/', component: { render: () => null } }, ...routes],
+    routes: [{ path: '/', name: 'home', component: { render: () => null } }, ...routes],
   })
   await router.push(path)
   await router.isReady()
@@ -32,24 +32,58 @@ describe('Shapes views', () => {
     localStorage.clear()
     settings.value.locale = 'en'
     settings.value.motion = 'reduced'
-    levelProgress.value = { unlocked: 1, stars: {} }
+    levelProgress.value = { level: 1 }
   })
 
-  it('lobby lists the three modes', async () => {
+  it('lobby lists the modes with the current level and instructions first', async () => {
+    levelProgress.value = { level: 7 }
     const { wrapper } = await mountAt('/shapes')
-    expect(wrapper.text()).toContain('Zen')
-    expect(wrapper.text()).toContain('Time')
-    expect(wrapper.text()).toContain('Levels')
+    const labels = wrapper.findAll('.choice__label').map((el) => el.text())
+    expect(labels).toEqual(['Zen', 'Time', 'Level 7'])
+    // Level 7 > 1 means the player has played: instructions move to the bottom.
+    expect(wrapper.find('.lobby--played').exists()).toBe(true)
     wrapper.unmount()
   })
 
-  it('level select shows unlocked and locked levels', async () => {
-    const { wrapper } = await mountAt('/shapes/levels')
-    const buttons = wrapper.findAll('.level')
-    expect(buttons).toHaveLength(20)
-    expect(buttons[0]!.attributes('disabled')).toBeUndefined()
-    expect(buttons[1]!.attributes('disabled')).toBeDefined()
+  it('lobby shows the instructions on top for new players', async () => {
+    const { wrapper } = await mountAt('/shapes')
+    expect(wrapper.find('.lobby--played').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Level 1')
     wrapper.unmount()
+  })
+
+  it('has no level select any more', async () => {
+    expect(routes.some((route) => route.path === '/shapes/levels')).toBe(false)
+  })
+
+  it('starts the current level and offers Home and the next level after a win', async () => {
+    levelProgress.value = { level: 3 }
+    const { wrapper, router } = await mountAt('/shapes/play/levels?new=1')
+    expect(wrapper.text()).toContain('Level 3')
+    expect(loadRun('levels')!.level!.n).toBe(3)
+    wrapper.unmount() // persists the run
+    // Targets intro level: clear all target tiles by hand, the next move wins.
+    const run = loadRun('levels')!
+    const targets = run.level!.field.targets.map(() => 0)
+    const cleared = { ...run, level: { ...run.level!, field: { ...run.level!.field, targets } } }
+    localStorage.setItem('riddles:shapes:current:levels:v2', JSON.stringify(cleared))
+
+    const second = await mountAt('/shapes/play/levels')
+    const move = listMoves(loadRun('levels')!.board, loadRun('levels')!.level!.field)[0]!
+    second.wrapper.findComponent(ShapesBoard).vm.$emit('swap', move.a, move.b)
+    await flushPromises()
+    const dialog = document.body.textContent ?? ''
+    expect(dialog).toContain('Level complete!')
+    expect(dialog).toContain('Next level')
+    expect(dialog).toContain('Home')
+    expect(dialog).not.toContain('Play again')
+    expect(levelProgress.value.level).toBe(4)
+    const home = [...document.body.querySelectorAll('button')].find((b) => b.textContent?.includes('Home'))!
+    home.click()
+    await flushPromises()
+    expect(second.router.currentRoute.value.path).toBe('/')
+    second.wrapper.unmount()
+    expect(router.currentRoute.value.query.new).toBeUndefined()
   })
 
   it('starts a zen run, plays a move and saves it', async () => {
@@ -96,11 +130,21 @@ describe('Shapes views', () => {
     wrapper.unmount()
   })
 
-  it('shows goals in levels mode', async () => {
-    const { wrapper } = await mountAt('/shapes/play/levels?new=1&level=1')
+  it('shows goals and moves in levels mode', async () => {
+    const { wrapper } = await mountAt('/shapes/play/levels?new=1')
     expect(wrapper.text()).toContain('Level 1')
     expect(wrapper.find('.goals').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Moves')
+    expect(wrapper.find('.moves').text()).toContain('Moves left')
+    wrapper.unmount()
+  })
+
+  it('renders obstacles of a level on the board', async () => {
+    levelProgress.value = { level: 7 } // crates intro
+    const { wrapper } = await mountAt('/shapes/play/levels?new=1')
+    const crates = loadRun('levels')!.level!.field.crates.filter((hp) => hp > 0).length
+    expect(crates).toBeGreaterThan(0)
+    expect(wrapper.findAll('.cell-layer--crate')).toHaveLength(crates)
+    expect(wrapper.findAll('.piece')).toHaveLength(64 - crates)
     wrapper.unmount()
   })
 

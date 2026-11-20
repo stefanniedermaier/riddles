@@ -1,6 +1,7 @@
 import { areaCells, colCells, rowCells } from './board'
 import {
   CELLS,
+  ITEM_KIND,
   SIZE,
   colOf,
   rowOf,
@@ -85,6 +86,11 @@ export function comboFor(
 
   if (sm === 'prism' || so === 'prism') {
     const [prismCell, prism, partner] = sm === 'prism' ? [target, moved, other] : [source, other, moved]
+    if (partner.kind === ITEM_KIND) {
+      // Drop items have no kind to clear – the prism clears the most common kind instead.
+      const kind = mostCommonKind(board)
+      return { cells: [prismCell, ...(kind === null ? [] : cellsOfKind(board, kind))], consumed: [prism.id] }
+    }
     const kindCells = cellsOfKind(board, partner.kind)
     if (partner.special === 'none') {
       return { cells: [prismCell, ...kindCells], consumed: [prism.id] }
