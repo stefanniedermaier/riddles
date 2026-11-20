@@ -12,6 +12,11 @@ updates:
       default-days: 7
       semver-major-days: 14
     open-pull-requests-limit: 5
+    ignore:
+      # TypeScript 7 (native compiler) has no JavaScript API yet, which vue-tsc requires.
+      # Remove once vue-tsc supports TypeScript 7.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
     groups:
       build-and-test-tooling:
         dependency-type: development
