@@ -26,7 +26,6 @@ const saved = Object.fromEntries(games.map((game) => [game.id, game.hasSavedGame
   </AppBar>
 
   <main class="page">
-    <p class="tagline">{{ t('app.tagline') }}</p>
     <InstallButton />
     <ul class="games">
       <li v-for="game in games" :key="game.id">
@@ -52,11 +51,6 @@ const saved = Object.fromEntries(games.map((game) => [game.id, game.hasSavedGame
   font-size: var(--text-xl) !important;
   font-weight: 800 !important;
   letter-spacing: -0.01em;
-}
-
-.tagline {
-  margin-bottom: var(--space-4);
-  color: var(--color-text-muted);
 }
 
 .games {

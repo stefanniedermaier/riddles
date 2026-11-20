@@ -28,6 +28,7 @@ alone – no guessing required.
 | Keyboard                | arrow keys move the cursor, Enter / Space acts like a tap      |
 | Hint                    | explains the next logical step; *Apply* performs it            |
 | Clear                   | removes all crowns and marks (timer keeps running)             |
+| Undo (↶ / Ctrl+Z)       | reverts the last step; a tap, a whole drag stroke, *Clear* and an applied hint are one step each; unlimited (last 500 steps are kept) |
 
 Settings (Settings → Crowns):
 
@@ -38,7 +39,11 @@ Settings (Settings → Crowns):
   crown, or touch one, are drawn in red.
 
 The puzzle is solved as soon as N crowns are on the board without any conflict. The timer
-pauses while the app is in the background.
+pauses while the app is in the background. The result dialog offers *New game*, *Crowns
+menu* and *Home*.
+
+The rules are shown at the top of the Crowns menu for first-time players; once a game has
+been started they move below the difficulty list.
 
 ## Generator
 
@@ -113,7 +118,7 @@ Every hint that shows a step or a mistake counts towards *Hints* in the result d
 
 | Key (prefix `riddles:`) | Content                                                     |
 | ----------------------- | ----------------------------------------------------------- |
-| `crowns:current:v1`     | running game: puzzle, cells (0 empty, 1 ✕, 2 crown), elapsed time, hints used |
+| `crowns:current:v1`     | running game: puzzle, cells (0 empty, 1 ✕, 2 crown), elapsed time, hints used, undo history (changed cells per step; optional for older saves) |
 | `crowns:pool:v1`        | one prefetched puzzle per difficulty                         |
 | `crowns:settings`       | `autoMark`, `showConflicts`                                  |
 | `stats:v1` → `crowns`   | statistics per difficulty (started, solved, best/total time) |

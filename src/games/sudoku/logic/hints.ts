@@ -1,7 +1,7 @@
 /**
  * Hints: point out wrong entries, otherwise explain the next logical placement.
  */
-import { PEERS, popcount } from './board'
+import { geometryOfCells, popcount } from './board'
 import { TECHNIQUE_LEVEL, findNextStep } from './grader'
 import { applyStep, createLogicState } from './techniques'
 import type { CellDigit, Grid, Step } from './types'
@@ -23,7 +23,7 @@ const MAX_STEPS = 400
 
 export function findMistakes(values: readonly number[], solution: readonly number[]): number[] {
   const wrong: number[] = []
-  for (let cell = 0; cell < 81; cell++) {
+  for (let cell = 0; cell < values.length; cell++) {
     if (values[cell] !== 0 && values[cell] !== solution[cell]) wrong.push(cell)
   }
   return wrong
@@ -63,12 +63,13 @@ export function getHint(values: Readonly<Grid>, solution: Readonly<Grid>): Hint 
   }
 
   // Fallback: reveal the empty cell with the fewest open candidates.
+  const geo = geometryOfCells(values.length)
   let best = -1
   let bestCount = 99
-  for (let cell = 0; cell < 81; cell++) {
+  for (let cell = 0; cell < geo.cellCount; cell++) {
     if (values[cell] !== 0) continue
-    let mask = 0x3fe
-    for (const peer of PEERS[cell]!) mask &= ~(1 << values[peer]!)
+    let mask = geo.allDigits
+    for (const peer of geo.peers[cell]!) mask &= ~(1 << values[peer]!)
     const count = popcount(mask)
     if (count < bestCount) {
       best = cell

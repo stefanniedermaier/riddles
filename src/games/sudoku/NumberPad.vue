@@ -1,23 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import { t } from '@/core/i18n'
 
 const props = defineProps<{
   /** counts[d] = how often digit d is on the board. */
   counts: readonly number[]
   notesMode: boolean
+  /** Grid size: 9 (classic) or 6 (mini) – digits 1…size. */
+  size?: number
 }>()
 
 const emit = defineEmits<{ input: [digit: number] }>()
 
-const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+const digits = computed(() => Array.from({ length: props.size ?? 9 }, (_, i) => i + 1))
 
-const remaining = (digit: number): number => Math.max(0, 9 - (props.counts[digit] ?? 0))
+const remaining = (digit: number): number => Math.max(0, (props.size ?? 9) - (props.counts[digit] ?? 0))
 </script>
 
 <template>
-  <div class="pad" :class="{ 'pad--notes': notesMode }">
+  <div class="pad" :class="{ 'pad--notes': notesMode }" :style="{ '--n': digits.length }">
     <button
-      v-for="digit in DIGITS"
+      v-for="digit in digits"
       :key="digit"
       type="button"
       class="pad__key"
@@ -34,7 +38,7 @@ const remaining = (digit: number): number => Math.max(0, 9 - (props.counts[digit
 <style scoped>
 .pad {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
   gap: 4px;
   width: 100%;
 }

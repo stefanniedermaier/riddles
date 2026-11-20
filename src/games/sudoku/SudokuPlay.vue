@@ -11,10 +11,11 @@ import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
+import { returnTo } from '@/core/navigation'
 
 import { describeHint } from './explain'
 import HintPanel from './HintPanel.vue'
-import { isDifficulty, type Difficulty } from './logic/types'
+import { isDifficulty, isMode, type Difficulty, type SudokuMode } from './logic/types'
 import NumberPad from './NumberPad.vue'
 import { sudokuSettings } from './settings'
 import SudokuBoard from './SudokuBoard.vue'
@@ -23,16 +24,23 @@ import { useSudokuGame } from './useSudokuGame'
 const route = useRoute()
 const router = useRouter()
 const sudoku = useSudokuGame()
-const { game, status, notesMode, hint, result, stopwatch, digitCounts } = sudoku
+const { game, status, mode, geo, notesMode, hint, result, stopwatch, digitCounts, canUndo } = sudoku
+
+/** Mode requested by the route (`?mode=mini`); classic otherwise. */
+const routeMode = computed<SudokuMode>(() => (isMode(route.query.mode) ? route.query.mode : 'classic'))
+const playQuery = (playMode: SudokuMode) => (playMode === 'mini' ? { mode: 'mini' } : {})
 
 const menuOpen = ref(false)
 const confirm = ref<'restart' | 'new' | null>(null)
 
 const difficulty = computed<Difficulty>(() => game.value?.puzzle.difficulty ?? 'easy')
-const difficultyLabel = computed(() => t(`difficulty.${difficulty.value}`))
+const difficultyLabel = computed(() => {
+  const label = t(`difficulty.${difficulty.value}`)
+  return mode.value === 'mini' ? `${t('sudoku.modes.miniShort')} · ${label}` : label
+})
 const timeLabel = computed(() => formatDuration(stopwatch.elapsedMs.value))
 
-const hintView = computed(() => (hint.value ? describeHint(hint.value) : null))
+const hintView = computed(() => (hint.value ? describeHint(hint.value, geo.value.size) : null))
 const hintAction = computed(() => {
   switch (hint.value?.kind) {
     case 'mistake':
@@ -47,16 +55,19 @@ const hintAction = computed(() => {
 
 // --- start / resume -------------------------------------------------------
 
-async function startNew(level: Difficulty): Promise<void> {
-  await sudoku.startNew(level)
-  // Drop `?new=` so that a reload resumes the saved game instead of starting another one.
-  if (route.query.new !== undefined) void router.replace({ name: 'sudoku-play' })
+async function startNew(level: Difficulty, playMode: SudokuMode = mode.value): Promise<void> {
+  // Drop `?new=` right away (not after the await), so that a reload resumes the saved game and
+  // a late navigation can never cancel a "back" the player tapped while the puzzle is created.
+  if (route.query.new !== undefined) {
+    void router.replace({ name: 'sudoku-play', query: playQuery(playMode) })
+  }
+  await sudoku.startNew(level, playMode)
 }
 
 onMounted(() => {
   const requested = route.query.new
-  if (isDifficulty(requested)) void startNew(requested)
-  else if (!sudoku.resume()) void router.replace({ name: 'sudoku' })
+  if (isDifficulty(requested)) void startNew(requested, routeMode.value)
+  else if (!sudoku.resume(routeMode.value)) void router.replace({ name: 'sudoku' })
 })
 
 // Pause the clock while a dialog covers the board.
@@ -83,17 +94,22 @@ function onConfirm(): void {
 
 function toLobby(): void {
   menuOpen.value = false
-  void router.replace({ name: 'sudoku' })
+  void returnTo(router, { name: 'sudoku' })
 }
 
 function toHome(): void {
-  void router.replace({ name: 'home' })
+  void returnTo(router, { name: 'home' })
 }
 
 // --- keyboard (desktop) -----------------------------------------------------
 
 function onKeydown(event: KeyboardEvent): void {
   if (status.value !== 'playing' || overlayOpen.value) return
+  if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
+    sudoku.undo()
+    event.preventDefault()
+    return
+  }
   if (event.metaKey || event.ctrlKey || event.altKey) return
   const key = event.key
   let handled = true
@@ -178,6 +194,10 @@ const resultRows = computed(() =>
         />
         <template v-else>
           <div class="tools">
+            <button type="button" class="tool" :disabled="!canUndo" @click="sudoku.undo">
+              <AppIcon name="undo" :size="22" />
+              <span>{{ t('sudoku.play.undo') }}</span>
+            </button>
             <button
               type="button"
               class="tool"
@@ -197,7 +217,12 @@ const resultRows = computed(() =>
               <span>{{ t('sudoku.play.hint') }}</span>
             </button>
           </div>
-          <NumberPad :counts="digitCounts" :notes-mode="notesMode" @input="sudoku.input" />
+          <NumberPad
+            :counts="digitCounts"
+            :notes-mode="notesMode"
+            :size="geo.size"
+            @input="sudoku.input"
+          />
         </template>
       </div>
     </template>
@@ -250,13 +275,18 @@ const resultRows = computed(() =>
 <style scoped>
 .title {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
 }
 
+/* Second line, so long labels like "Mini · Schwer" never get cut off. */
 .title__level {
-  font-size: var(--text-sm);
+  overflow: hidden;
+  font-size: var(--text-xs);
   font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   color: var(--game-sudoku);
 }
 
@@ -307,7 +337,7 @@ const resultRows = computed(() =>
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  min-width: 72px;
+  min-width: 64px;
   min-height: var(--tap-min);
   padding: var(--space-1) var(--space-2);
   border: 0;
@@ -319,8 +349,13 @@ const resultRows = computed(() =>
   cursor: pointer;
 }
 
-.tool:active {
+.tool:active:not(:disabled) {
   background: var(--color-surface-2);
+}
+
+.tool:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .tool--active {

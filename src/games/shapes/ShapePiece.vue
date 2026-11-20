@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type { Special } from './logic/types'
+import { ITEM_KIND, type Special } from './logic/types'
 
 /**
  * One game piece as inline SVG (viewBox 0–100). Every kind has its own colour *and*
@@ -48,7 +48,12 @@ const color = computed(() => `var(--shape-${props.kind})`)
 
 <template>
   <svg class="shape-piece" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-    <template v-if="special === 'prism'">
+    <template v-if="kind === ITEM_KIND">
+      <!-- Drop item: a round token with an arrow pointing down. -->
+      <circle cx="50" cy="50" r="40" class="shape-piece__item" />
+      <path d="M50 26V64M34 50l16 16 16-16" class="shape-piece__item-arrow" />
+    </template>
+    <template v-else-if="special === 'prism'">
       <circle cx="50" cy="50" r="44" class="shape-piece__prism-ring" />
       <path v-for="(d, i) in WEDGES" :key="i" :d="d" :fill="`var(--shape-${i})`" />
       <path :d="SHAPES[5]" transform="translate(32 32) scale(0.36)" fill="#fff" />
@@ -106,6 +111,29 @@ const color = computed(() => `var(--shape-${props.kind})`)
   stroke: rgb(0 0 0 / 45%);
   stroke-width: 3;
   stroke-linejoin: round;
+}
+
+.shape-piece__item {
+  fill: #2d2a3a;
+  stroke: #fff;
+  stroke-width: 6;
+}
+
+.shape-piece__item-arrow {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[data-theme='dark'] .shape-piece__item {
+  fill: #f4f1fa;
+  stroke: #2d2a3a;
+}
+
+:root[data-theme='dark'] .shape-piece__item-arrow {
+  stroke: #2d2a3a;
 }
 
 .shape-piece__prism-ring {

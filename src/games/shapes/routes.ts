@@ -7,12 +7,7 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('./ShapesLobby.vue'),
   },
   {
-    path: '/shapes/levels',
-    name: 'shapes-levels',
-    component: () => import('./LevelSelect.vue'),
-  },
-  {
-    // New run: `?new=1` (levels: `&level=n`); without query the saved run is resumed.
+    // New run: `?new=1` (levels: the current level); without query the saved run is resumed.
     path: '/shapes/play/:mode(zen|time|levels)',
     name: 'shapes-play',
     component: () => import('./ShapesPlayRoute.vue'),

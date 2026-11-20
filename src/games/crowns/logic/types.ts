@@ -1,3 +1,5 @@
+import { parseHistory, type UndoStep } from './history'
+
 export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
@@ -32,6 +34,8 @@ export interface CrownsSave {
   cells: CellState[]
   elapsedMs: number
   hintsUsed: number
+  /** Undo history (optional for saves written before undo existed). */
+  undo?: UndoStep[]
 }
 
 function isIntArray(value: unknown, length: number, max: number): value is number[] {
@@ -64,6 +68,7 @@ export function isCrownsSave(value: unknown): value is CrownsSave {
     isCrownsPuzzle(s.puzzle) &&
     isIntArray(s.cells, s.puzzle.size * s.puzzle.size, 3) &&
     typeof s.elapsedMs === 'number' &&
-    typeof s.hintsUsed === 'number'
+    typeof s.hintsUsed === 'number' &&
+    (s.undo === undefined || parseHistory(s.undo, s.puzzle.size * s.puzzle.size) !== undefined)
   )
 }

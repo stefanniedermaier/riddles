@@ -6,7 +6,9 @@ import { settings } from '@/core/settings'
 import { load } from '@/core/storage'
 import CrownsPlay from '../CrownsPlay.vue'
 import { SAVE_KEY } from '../index'
-import { isCrownsSave } from '../logic/types'
+import { generatePuzzle } from '../logic/generator'
+import { isCrownsSave, type CrownsPuzzle } from '../logic/types'
+import { crownsPool } from '../pool'
 
 function makeRouter() {
   return createRouter({
@@ -58,6 +60,59 @@ describe('CrownsPlay', () => {
     await vi.waitFor(() => expect(document.body.textContent).toContain('Solved!'))
     expect(load(SAVE_KEY, null)).toBeNull()
     wrapper.unmount()
+  })
+
+  it('undoes taps step by step and keeps the history in the save', async () => {
+    const router = makeRouter()
+    await router.push('/crowns/play?new=easy')
+    const wrapper = mount(CrownsPlay, { global: { plugins: [router] }, attachTo: document.body })
+    await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(36), { timeout: 10_000 })
+
+    const board = wrapper.find('.crowns-board')
+    const undoButton = () => wrapper.find('.toolbar__undo')
+    expect(undoButton().attributes('disabled')).toBeDefined()
+
+    await board.trigger('keydown', { key: 'Enter' }) // ✕
+    await board.trigger('keydown', { key: 'Enter' }) // crown
+    const saveNow = () => load(SAVE_KEY, null, (raw) => (isCrownsSave(raw) ? raw : undefined))
+    expect(saveNow()?.cells[0]).toBe(2)
+    expect(saveNow()?.undo).toHaveLength(2)
+
+    await undoButton().trigger('click')
+    expect(saveNow()?.cells[0]).toBe(1)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true }))
+    await flushPromises()
+    expect(saveNow()?.cells[0]).toBe(0)
+    expect(saveNow()?.undo).toHaveLength(0)
+    expect(undoButton().attributes('disabled')).toBeDefined()
+    wrapper.unmount()
+  })
+
+  it('does not jump back into the game when left while a puzzle is generated', async () => {
+    // Hold the generation until the player has left the view.
+    let deliver!: (puzzle: CrownsPuzzle) => void
+    const take = vi
+      .spyOn(crownsPool, 'take')
+      .mockReturnValue(new Promise<CrownsPuzzle>((resolve) => (deliver = resolve)))
+    const router = makeRouter()
+    await router.push('/crowns')
+    await router.push('/crowns/play?new=expert')
+    const wrapper = mount(CrownsPlay, { global: { plugins: [router] } })
+    await vi.waitFor(() => expect(router.currentRoute.value.query.new).toBeUndefined())
+
+    router.back()
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('crowns'))
+    const replace = vi.spyOn(router, 'replace')
+    const push = vi.spyOn(router, 'push')
+    wrapper.unmount()
+
+    // The generation finishes after the player left: no navigation back into the game.
+    deliver(generatePuzzle('easy', 1))
+    await flushPromises()
+    expect(replace).not.toHaveBeenCalled()
+    expect(push).not.toHaveBeenCalled()
+    expect(load(SAVE_KEY, null)).toBeNull()
+    take.mockRestore()
   })
 
   it('redirects to the lobby without a saved game', async () => {

@@ -1,26 +1,49 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
 import { getVariantStats } from '@/core/stats'
 
-import { sudokuPool } from './generate'
-import { DIFFICULTIES, isDifficulty, type Difficulty } from './logic/types'
+import { poolOf } from './generate'
+import {
+  difficultiesOf,
+  isDifficulty,
+  isMode,
+  statVariant,
+  type Difficulty,
+  type SudokuMode,
+} from './logic/types'
+import { sudokuSettings } from './settings'
 import { loadSavedGame } from './useSudokuGame'
 
 const router = useRouter()
-const saved = loadSavedGame()
+
+/** Selected grid (remembered between visits). */
+const mode = computed<SudokuMode>({
+  get: () => (isMode(sudokuSettings.value.lastMode) ? sudokuSettings.value.lastMode : 'classic'),
+  set: (value) => {
+    sudokuSettings.value.lastMode = value
+  },
+})
+const modeOptions = computed(() => [
+  { value: 'classic' as SudokuMode, label: t('sudoku.modes.classic') },
+  { value: 'mini' as SudokuMode, label: t('sudoku.modes.mini') },
+])
+
+const saved = computed(() => loadSavedGame(mode.value))
 const pendingDifficulty = ref<Difficulty | null>(null)
+const playQuery = (playMode: SudokuMode) => (playMode === 'mini' ? { mode: 'mini' } : {})
 
 const items = computed(() =>
-  DIFFICULTIES.map((difficulty) => {
-    const best = getVariantStats('sudoku', difficulty).bestTimeMs
+  difficultiesOf(mode.value).map((difficulty) => {
+    const best = getVariantStats('sudoku', statVariant(mode.value, difficulty)).bestTimeMs
     return {
       id: difficulty,
       label: t(`difficulty.${difficulty}`),
@@ -33,16 +56,16 @@ const items = computed(() =>
 )
 
 function continueGame(): void {
-  void router.push({ name: 'sudoku-play' })
+  void router.push({ name: 'sudoku-play', query: playQuery(mode.value) })
 }
 
 function start(difficulty: Difficulty): void {
-  void router.push({ name: 'sudoku-play', query: { new: difficulty } })
+  void router.push({ name: 'sudoku-play', query: { ...playQuery(mode.value), new: difficulty } })
 }
 
 function onSelect(id: string): void {
   if (!isDifficulty(id)) return
-  if (saved) pendingDifficulty.value = id
+  if (saved.value) pendingDifficulty.value = id
   else start(id)
 }
 
@@ -52,14 +75,17 @@ function confirmReplace(): void {
   if (difficulty) start(difficulty)
 }
 
-// Prepare one puzzle per difficulty in the background so starting is instant.
-onMounted(() => sudokuPool.warm(DIFFICULTIES))
+// Prepare one puzzle per difficulty of the selected grid in the background.
+watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immediate: true })
 </script>
 
 <template>
   <AppBar :title="t('sudoku.name')" back-to="/" />
 
   <main class="page">
+    <SegmentedControl v-model="mode" :options="modeOptions" :label="t('sudoku.modes.label')" />
+    <p v-if="mode === 'mini'" class="mode-info">{{ t('sudoku.modes.miniInfo') }}</p>
+
     <button v-if="saved" type="button" class="continue" @click="continueGame">
       <span class="continue__text">
         <span class="continue__label">{{ t('common.continue') }}</span>
@@ -90,6 +116,12 @@ onMounted(() => sudokuPool.warm(DIFFICULTIES))
 </template>
 
 <style scoped>
+.mode-info {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
 .continue {
   display: flex;
   align-items: center;

@@ -6,6 +6,27 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Sudoku: **Mini 6×6** mode (digits 1–6, 2×3 boxes) with its own difficulties, saves and
+  statistics
+- Sudoku and Crowns: **undo** (unlimited, saved with the game, Ctrl/Cmd+Z)
+- Shapes levels: **obstacles and objectives** – chains, crates (1–2 hits), target tiles and
+  drop items that have to reach the bottom row
+- *Home* button in the result dialogs of all games
+
+### Changed
+
+- Shapes levels are played in a row: each won level unlocks the next one; no level select,
+  stars or replays. Clearer level HUD (moves left, goal cards with progress)
+- Game rules move below the menu once a game has been played (Crowns, Shapes)
+- Home screen without the tagline
+
+### Fixed
+
+- Back button sometimes needed two taps (duplicate history entry after a finished game, and a
+  late navigation after leaving a game while a puzzle was being generated)
+
 ## [0.2.0] – 2026-11-20
 
 ### Added

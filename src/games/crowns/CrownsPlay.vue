@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { formatDuration } from '@/core/format'
+import { returnTo } from '@/core/navigation'
 import { t } from '@/core/i18n'
 import { recordFinish, recordStart } from '@/core/stats'
 import { load, remove, save } from '@/core/storage'
@@ -21,6 +22,7 @@ import { hintText, hintTitle } from './hintText'
 import { DIFFICULTIES, SAVE_KEY, type Difficulty } from './index'
 import { createGeometry } from './logic/geometry'
 import { applyHint, getHint, type Hint } from './logic/hints'
+import { diffCells, pushStep, revertStep } from './logic/history'
 import { blockedCells, countCrowns, findConflicts, isSolved } from './logic/rules'
 import { CROWN, EMPTY, MARK, isCrownsSave, type CellState, type CrownsSave } from './logic/types'
 import { crownsPool } from './pool'
@@ -69,17 +71,28 @@ function onVisibilityChange(): void {
 
 let autosave: ReturnType<typeof setInterval> | undefined
 
+function onKeydown(event: KeyboardEvent): void {
+  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
+    event.preventDefault()
+    undo()
+  }
+}
+
 onMounted(() => {
   document.addEventListener('visibilitychange', onVisibilityChange)
   window.addEventListener('pagehide', persist)
+  window.addEventListener('keydown', onKeydown)
   autosave = setInterval(persist, 5000)
 })
 
 onBeforeUnmount(() => {
+  // Invalidate a puzzle generation that is still running, so it cannot navigate back here.
+  startToken++
   persist()
   clearInterval(autosave)
   document.removeEventListener('visibilitychange', onVisibilityChange)
   window.removeEventListener('pagehide', persist)
+  window.removeEventListener('keydown', onKeydown)
 })
 
 // --- Starting / resuming ------------------------------------------------------------
@@ -92,6 +105,9 @@ async function startNew(difficulty: Difficulty): Promise<void> {
   hint.value = null
   result.value = null
   stopwatch.reset(0)
+  // Drop the ?new= query right away (before waiting for the puzzle), so the play view never
+  // navigates after an await – that could cancel a "back" the user tapped in the meantime.
+  void router.replace({ name: 'crowns-play' })
   const next = await crownsPool.take(difficulty)
   if (token !== startToken) return
   game.value = {
@@ -99,13 +115,12 @@ async function startNew(difficulty: Difficulty): Promise<void> {
     cells: new Array<CellState>(next.size * next.size).fill(EMPTY),
     elapsedMs: 0,
     hintsUsed: 0,
+    undo: [],
   }
   recordStart('crowns', difficulty)
   status.value = 'playing'
   persist()
   stopwatch.start()
-  // Drop the ?new= query so a reload resumes this game instead of starting another one.
-  void router.replace({ name: 'crowns-play' })
 }
 
 function resume(): boolean {
@@ -118,7 +133,13 @@ function resume(): boolean {
   return true
 }
 
-// --- Moves ---------------------------------------------------------------------------
+// --- Moves & undo ---------------------------------------------------------------------
+
+/** Records the change from `before` to the current board as one undo step. */
+function commit(before: readonly CellState[]): void {
+  if (!game.value) return
+  game.value.undo = pushStep(game.value.undo ?? [], diffCells(before, game.value.cells))
+}
 
 function afterMove(): void {
   hint.value = null
@@ -128,15 +149,39 @@ function afterMove(): void {
 
 function onTap(cell: number): void {
   if (!game.value || status.value !== 'playing') return
+  const before = game.value.cells.slice()
   const current = game.value.cells[cell]
   game.value.cells[cell] = current === EMPTY ? MARK : current === MARK ? CROWN : EMPTY
+  commit(before)
   afterMove()
 }
 
+/** Board before the current drag stroke (a whole stroke is one undo step). */
+let strokeBefore: CellState[] | null = null
+
 function onPaint(cell: number, value: CellState): void {
   if (!game.value || status.value !== 'playing') return
+  strokeBefore ??= game.value.cells.slice()
   game.value.cells[cell] = value
   hint.value = null
+}
+
+function onStrokeEnd(): void {
+  if (strokeBefore) commit(strokeBefore)
+  strokeBefore = null
+  afterMove()
+}
+
+const canUndo = computed(() => status.value === 'playing' && (game.value?.undo?.length ?? 0) > 0)
+
+function undo(): void {
+  if (!game.value || !canUndo.value) return
+  const history = game.value.undo ?? []
+  const step = history[history.length - 1]!
+  game.value.cells = revertStep(game.value.cells, step)
+  game.value.undo = history.slice(0, -1)
+  hint.value = null
+  persist()
 }
 
 const confirmClear = ref(false)
@@ -144,7 +189,9 @@ const confirmClear = ref(false)
 function clearBoard(): void {
   confirmClear.value = false
   if (!game.value) return
+  const before = game.value.cells.slice()
   game.value.cells = game.value.cells.map(() => EMPTY)
+  commit(before)
   afterMove()
 }
 
@@ -182,9 +229,14 @@ function playAgain(): void {
   void startNew(difficulty)
 }
 
+function goToMenu(): void {
+  showResult.value = false
+  void returnTo(router, { name: 'crowns' })
+}
+
 function goHome(): void {
   showResult.value = false
-  void router.replace({ name: 'crowns' })
+  void returnTo(router, { name: 'home' })
 }
 
 // --- Hints ------------------------------------------------------------------------------
@@ -203,7 +255,9 @@ function requestHint(): void {
 
 function applyCurrentHint(): void {
   if (!game.value || !hint.value) return
+  const before = game.value.cells.slice()
   game.value.cells = applyHint(game.value.cells, hint.value)
+  commit(before)
   afterMove()
 }
 
@@ -285,7 +339,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
           :solved="status === 'won'"
           @tap="onTap"
           @paint="onPaint"
-          @stroke-end="afterMove"
+          @stroke-end="onStrokeEnd"
         />
       </div>
 
@@ -304,6 +358,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
       </section>
 
       <div v-else class="toolbar">
+        <AppButton
+          class="toolbar__undo"
+          icon="undo"
+          :disabled="!canUndo"
+          :aria-label="t('crowns.play.undo')"
+          :title="t('crowns.play.undo')"
+          @click="undo"
+        />
         <AppButton icon="hint" :disabled="status !== 'playing'" @click="requestHint">
           {{ t('common.hint') }}
         </AppButton>
@@ -336,7 +398,8 @@ if (typeof route.query.new !== 'string' && !resume()) {
   >
     <template #actions>
       <AppButton variant="primary" block @click="playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton variant="ghost" block @click="goHome">{{ t('common.back') }}</AppButton>
+      <AppButton block @click="goToMenu">{{ t('crowns.play.toMenu') }}</AppButton>
+      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
@@ -386,6 +449,12 @@ if (typeof route.query.new !== 'string' && !resume()) {
 .toolbar > * {
   flex: 1;
   max-width: 200px;
+}
+
+.toolbar > .toolbar__undo {
+  flex: none;
+  width: var(--tap-min);
+  padding: 0;
 }
 
 .hint {

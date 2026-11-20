@@ -3,12 +3,13 @@
  */
 import { t } from '@/core/i18n'
 
-import { colOf, rowOf } from './logic/board'
+import type { GridSize } from './logic/board'
 import type { Hint } from './logic/hints'
 import type { Step, Unit } from './logic/types'
 
-export function cellName(cell: number): string {
-  return t('sudoku.units.cell', { row: rowOf(cell) + 1, col: colOf(cell) + 1 })
+/** "R3C5" style cell name; `size` is the grid size (9 classic, 6 mini). */
+export function cellName(cell: number, size: GridSize = 9): string {
+  return t('sudoku.units.cell', { row: Math.floor(cell / size) + 1, col: (cell % size) + 1 })
 }
 
 export function unitName(unit: Unit): string {
@@ -20,23 +21,24 @@ function list(items: string[]): string {
   return `${items.slice(0, -1).join(', ')}${t('sudoku.units.and')}${items[items.length - 1]}`
 }
 
-const cells = (list_: number[]): string => list(list_.map(cellName))
 const units = (list_: Unit[]): string => list(list_.map(unitName))
 const digits = (list_: number[]): string => list(list_.map(String))
 
-export function explainStep(step: Step): string {
+export function explainStep(step: Step, size: GridSize = 9): string {
+  const cellName_ = (cell: number): string => cellName(cell, size)
+  const cells = (list_: number[]): string => list(list_.map(cellName_))
   const digit = step.digits[0] ?? 0
   switch (step.technique) {
     case 'nakedSingle':
       return t('sudoku.hint.explain.nakedSingle', {
-        cell: cellName(step.placements[0]!.cell),
+        cell: cellName_(step.placements[0]!.cell),
         digit,
       })
     case 'hiddenSingle':
       return t('sudoku.hint.explain.hiddenSingle', {
         unit: unitName(step.units[0]!),
         digit,
-        cell: cellName(step.placements[0]!.cell),
+        cell: cellName_(step.placements[0]!.cell),
       })
     case 'pointing':
       return t('sudoku.hint.explain.pointing', {
@@ -75,9 +77,9 @@ export function explainStep(step: Step): string {
       const [pivot, pincer1, pincer2] = step.focusCells as [number, number, number]
       const [a, b, c] = step.digits as [number, number, number]
       return t('sudoku.hint.explain.xyWing', {
-        pivot: cellName(pivot),
-        pincer1: cellName(pincer1),
-        pincer2: cellName(pincer2),
+        pivot: cellName_(pivot),
+        pincer1: cellName_(pincer1),
+        pincer2: cellName_(pincer2),
         a,
         b,
         c,
@@ -97,7 +99,7 @@ export interface HintView {
   wrongCells: number[]
 }
 
-export function describeHint(hint: Hint): HintView {
+export function describeHint(hint: Hint, size: GridSize = 9): HintView {
   switch (hint.kind) {
     case 'mistake':
       return {
@@ -120,7 +122,7 @@ export function describeHint(hint: Hint): HintView {
         lines: [
           {
             text: t('sudoku.hint.reveal', {
-              cell: cellName(hint.placement.cell),
+              cell: cellName(hint.placement.cell, size),
               digit: hint.placement.digit,
             }),
           },
@@ -136,13 +138,13 @@ export function describeHint(hint: Hint): HintView {
       const lines: HintView['lines'] = []
       const focus = new Set<number>(final.focusCells)
       if (hint.key) {
-        lines.push({ label: t('sudoku.hint.first'), text: explainStep(hint.key) })
+        lines.push({ label: t('sudoku.hint.first'), text: explainStep(hint.key, size) })
         for (const cell of hint.key.focusCells) focus.add(cell)
-        lines.push({ label: t('sudoku.hint.then'), text: explainStep(final) })
+        lines.push({ label: t('sudoku.hint.then'), text: explainStep(final, size) })
         const extra = hint.steps.length - 2
         if (extra > 0) lines.push({ text: t('sudoku.hint.moreSteps', { count: extra }) })
       } else {
-        lines.push({ text: explainStep(final) })
+        lines.push({ text: explainStep(final, size) })
       }
       focus.delete(hint.placement.cell)
       const technique = hint.key?.technique ?? final.technique

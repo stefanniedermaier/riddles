@@ -1,5 +1,6 @@
 /**
  * State and actions of a running Sudoku game (used by SudokuPlay.vue).
+ * Works for the classic 9×9 grid and the 6×6 mini grid (`mode`).
  */
 import { computed, onBeforeUnmount, ref, shallowRef } from 'vue'
 
@@ -8,11 +9,21 @@ import { recordFinish, recordStart } from '@/core/stats'
 import { load, remove, save as saveToStorage } from '@/core/storage'
 import { useStopwatch } from '@/core/timer'
 
-import { sudokuPool } from './generate'
-import { SAVE_KEY } from './index'
-import { PEERS } from './logic/board'
+import { poolOf } from './generate'
+import { saveKeyOf } from './index'
+import { geometryOfCells, type Geometry } from './logic/board'
 import { getHint, type Hint } from './logic/hints'
-import { isSudokuSave, type Difficulty, type SudokuPuzzle, type SudokuSave } from './logic/types'
+import {
+  isSudokuSave,
+  modeOfPuzzle,
+  sizeOfMode,
+  statVariant,
+  type Difficulty,
+  type SudokuMode,
+  type SudokuPuzzle,
+  type SudokuSave,
+  type UndoStep,
+} from './logic/types'
 import { sudokuSettings } from './settings'
 
 export type GameStatus = 'idle' | 'loading' | 'playing' | 'won'
@@ -25,8 +36,10 @@ export interface WinResult {
 
 const AUTOSAVE_INTERVAL_MS = 5000
 
-export function loadSavedGame(): SudokuSave | null {
-  return load<SudokuSave | null>(SAVE_KEY, null, (raw) => (isSudokuSave(raw) ? raw : undefined))
+export function loadSavedGame(mode: SudokuMode = 'classic'): SudokuSave | null {
+  return load<SudokuSave | null>(saveKeyOf(mode), null, (raw) =>
+    isSudokuSave(raw) && modeOfPuzzle(raw.puzzle) === mode ? raw : undefined,
+  )
 }
 
 export function useSudokuGame() {
@@ -37,12 +50,15 @@ export function useSudokuGame() {
   const result = ref<WinResult | null>(null)
   const stopwatch = useStopwatch()
 
+  const mode = computed<SudokuMode>(() => (game.value ? modeOfPuzzle(game.value.puzzle) : 'classic'))
+  const geo = computed<Geometry>(() => geometryOfCells(game.value?.values.length ?? 81))
+
   // --- persistence --------------------------------------------------------
 
   function persist(): void {
     if (!game.value || status.value !== 'playing') return
     game.value.elapsedMs = Math.round(stopwatch.elapsedMs.value)
-    saveToStorage(SAVE_KEY, game.value)
+    saveToStorage(saveKeyOf(mode.value), game.value)
   }
 
   const autosave = setInterval(() => {
@@ -65,6 +81,7 @@ export function useSudokuGame() {
   // --- lifecycle ------------------------------------------------------------
 
   function begin(saveState: SudokuSave): void {
+    saveState.history ??= []
     game.value = saveState
     hint.value = null
     result.value = null
@@ -74,32 +91,34 @@ export function useSudokuGame() {
     stopwatch.start()
   }
 
-  async function startNew(difficulty: Difficulty): Promise<void> {
+  async function startNew(difficulty: Difficulty, newMode: SudokuMode = 'classic'): Promise<void> {
     status.value = 'loading'
     stopwatch.pause()
     let puzzle: SudokuPuzzle
     try {
-      puzzle = await sudokuPool.take(difficulty)
+      puzzle = await poolOf(newMode).take(difficulty)
     } catch {
       // Last resort: generate on the main thread.
       const { generatePuzzle } = await import('./logic/generator')
-      puzzle = generatePuzzle(difficulty, randomSeed())
+      puzzle = generatePuzzle(difficulty, randomSeed(), { size: sizeOfMode(newMode) })
     }
-    recordStart('sudoku', difficulty)
+    recordStart('sudoku', statVariant(newMode, puzzle.difficulty))
+    const cells = puzzle.givens.length
     begin({
       puzzle,
       values: puzzle.givens.slice(),
-      notes: new Array<number>(81).fill(0),
+      notes: new Array<number>(cells).fill(0),
       elapsedMs: 0,
       hintsUsed: 0,
       selected: null,
+      history: [],
     })
     persist()
   }
 
-  /** Resumes the stored game; returns `false` if there is none. */
-  function resume(): boolean {
-    const saved = loadSavedGame()
+  /** Resumes the stored game of a mode; returns `false` if there is none. */
+  function resume(resumeMode: SudokuMode = 'classic'): boolean {
+    const saved = loadSavedGame(resumeMode)
     if (!saved) return false
     begin(saved)
     return true
@@ -109,8 +128,9 @@ export function useSudokuGame() {
     if (!game.value) return
     stopwatch.pause()
     const timeMs = Math.round(stopwatch.elapsedMs.value)
-    const { newBestTime } = recordFinish('sudoku', game.value.puzzle.difficulty, { timeMs })
-    remove(SAVE_KEY)
+    const variant = statVariant(mode.value, game.value.puzzle.difficulty)
+    const { newBestTime } = recordFinish('sudoku', variant, { timeMs })
+    remove(saveKeyOf(mode.value))
     result.value = { timeMs, hintsUsed: game.value.hintsUsed, newBest: newBestTime }
     hint.value = null
     status.value = 'won'
@@ -119,6 +139,47 @@ export function useSudokuGame() {
   function checkWin(): void {
     const g = game.value
     if (g && g.values.every((digit, cell) => digit === g.puzzle.solution[cell])) finish()
+  }
+
+  // --- undo ----------------------------------------------------------------
+
+  /**
+   * Runs a board mutation and records it as one undo step (only the cells that changed).
+   * Returns `true` if anything changed.
+   */
+  function mutate(action: (g: SudokuSave) => void): boolean {
+    const g = game.value
+    if (!g) return false
+    const values = g.values.slice()
+    const notes = g.notes.slice()
+    const selected = g.selected
+    action(g)
+    const changes: UndoStep['changes'] = []
+    for (let cell = 0; cell < values.length; cell++) {
+      if (g.values[cell] !== values[cell] || g.notes[cell] !== notes[cell]) {
+        changes.push([cell, values[cell]!, notes[cell]!])
+      }
+    }
+    if (changes.length === 0) return false
+    ;(g.history ??= []).push({ changes, selected })
+    return true
+  }
+
+  const canUndo = computed(() => status.value === 'playing' && (game.value?.history?.length ?? 0) > 0)
+
+  /** Reverts the last board change (entries, notes, erasing, hints, clearing). */
+  function undo(): void {
+    const g = game.value
+    if (!g || status.value !== 'playing') return
+    const step = g.history?.pop()
+    if (!step) return
+    for (const [cell, value, notes] of step.changes) {
+      g.values[cell] = value
+      g.notes[cell] = notes
+    }
+    g.selected = step.selected
+    hint.value = null
+    persist()
   }
 
   // --- input ---------------------------------------------------------------
@@ -130,18 +191,21 @@ export function useSudokuGame() {
     game.value.selected = cell
   }
 
-  function setDigit(cell: number, digit: number): void {
-    const g = game.value
-    if (!g || isGiven(cell)) return
+  function writeDigit(g: SudokuSave, cell: number, digit: number): void {
     if (g.values[cell] === digit) {
       g.values[cell] = 0
-    } else {
-      g.values[cell] = digit
-      g.notes[cell] = 0
-      if (sudokuSettings.value.autoCleanNotes) {
-        for (const peer of PEERS[cell]!) g.notes[peer]! &= ~(1 << digit)
-      }
+      return
     }
+    g.values[cell] = digit
+    g.notes[cell] = 0
+    if (sudokuSettings.value.autoCleanNotes) {
+      for (const peer of geo.value.peers[cell]!) g.notes[peer]! &= ~(1 << digit)
+    }
+  }
+
+  function setDigit(cell: number, digit: number): void {
+    if (!game.value || isGiven(cell)) return
+    mutate((g) => writeDigit(g, cell, digit))
     persist()
     checkWin()
   }
@@ -149,7 +213,9 @@ export function useSudokuGame() {
   function toggleNote(cell: number, digit: number): void {
     const g = game.value
     if (!g || isGiven(cell) || g.values[cell] !== 0) return
-    g.notes[cell]! ^= 1 << digit
+    mutate((state) => {
+      state.notes[cell]! ^= 1 << digit
+    })
     persist()
   }
 
@@ -157,6 +223,7 @@ export function useSudokuGame() {
   function input(digit: number): void {
     const g = game.value
     if (!g || status.value !== 'playing' || g.selected === null) return
+    if (digit < 1 || digit > geo.value.size) return
     hint.value = null
     if (notesMode.value) toggleNote(g.selected, digit)
     else setDigit(g.selected, digit)
@@ -166,25 +233,32 @@ export function useSudokuGame() {
     const g = game.value
     if (!g || status.value !== 'playing' || g.selected === null || isGiven(g.selected)) return
     hint.value = null
-    g.values[g.selected] = 0
-    g.notes[g.selected] = 0
+    const cell = g.selected
+    mutate((state) => {
+      state.values[cell] = 0
+      state.notes[cell] = 0
+    })
     persist()
   }
 
   function moveSelection(dRow: number, dCol: number): void {
     const g = game.value
     if (!g) return
-    const current = g.selected ?? 40
-    const row = (Math.floor(current / 9) + dRow + 9) % 9
-    const col = ((current % 9) + dCol + 9) % 9
-    select(row * 9 + col)
+    const n = geo.value.size
+    const current = g.selected ?? Math.floor(geo.value.cellCount / 2)
+    const row = (Math.floor(current / n) + dRow + n) % n
+    const col = ((current % n) + dCol + n) % n
+    select(row * n + col)
   }
 
+  /** Clears all entries and notes (one undoable step). */
   function restart(): void {
     const g = game.value
     if (!g) return
-    g.values = g.puzzle.givens.slice()
-    g.notes = new Array<number>(81).fill(0)
+    mutate((state) => {
+      state.values = state.puzzle.givens.slice()
+      state.notes = new Array<number>(state.puzzle.givens.length).fill(0)
+    })
     hint.value = null
     persist()
   }
@@ -207,10 +281,12 @@ export function useSudokuGame() {
     if (!g || !current) return
     hint.value = null
     if (current.kind === 'mistake') {
-      for (const cell of current.cells) {
-        g.values[cell] = 0
-        g.notes[cell] = 0
-      }
+      mutate((state) => {
+        for (const cell of current.cells) {
+          state.values[cell] = 0
+          state.notes[cell] = 0
+        }
+      })
       g.selected = current.cells[0] ?? g.selected
       persist()
     } else if (current.kind === 'step' || current.kind === 'reveal') {
@@ -226,7 +302,7 @@ export function useSudokuGame() {
 
   // --- derived ------------------------------------------------------------
 
-  /** How often every digit (index 1–9) is on the board. */
+  /** How often every digit (index 1–size) is on the board. */
   const digitCounts = computed(() => {
     const counts = new Array<number>(10).fill(0)
     for (const digit of game.value?.values ?? []) counts[digit]!++
@@ -236,16 +312,20 @@ export function useSudokuGame() {
   return {
     game,
     status,
+    mode,
+    geo,
     notesMode,
     hint,
     result,
     stopwatch,
     digitCounts,
+    canUndo,
     startNew,
     resume,
     select,
     input,
     erase,
+    undo,
     moveSelection,
     restart,
     requestHint,

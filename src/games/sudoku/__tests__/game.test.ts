@@ -4,7 +4,8 @@ import { defineComponent } from 'vue'
 
 import { getVariantStats, resetStats } from '@/core/stats'
 import { has } from '@/core/storage'
-import { SAVE_KEY } from '../index'
+import { MINI_SAVE_KEY, SAVE_KEY } from '../index'
+import { PEERS } from '../logic/board'
 import { loadSavedGame, useSudokuGame } from '../useSudokuGame'
 
 function mountGame() {
@@ -99,5 +100,131 @@ describe('useSudokuGame', () => {
     api.restart()
     expect(api.game.value!.values).toEqual(game.puzzle.givens)
     wrapper.unmount()
+  })
+
+  it('undoes entries including auto-cleaned peer notes as one step', async () => {
+    const { api, wrapper } = mountGame()
+    await api.startNew('easy')
+    const game = api.game.value!
+    const empties = game.values.flatMap((digit, cell) => (digit === 0 ? [cell] : []))
+    const a = empties.find((cell) => PEERS[cell]!.some((p) => game.values[p] === 0))!
+    const peer = PEERS[a]!.find((cell) => game.values[cell] === 0)!
+    // Note a digit in another empty cell, then place the same digit in a peer of it.
+    const digit = game.puzzle.solution[a]!
+    api.notesMode.value = true
+    api.select(peer)
+    api.input(digit)
+    api.notesMode.value = false
+    const notesBefore = game.notes.slice()
+
+    api.select(a)
+    api.input(digit)
+    expect(game.values[a]).toBe(digit)
+    expect(game.notes[peer]).toBe(0) // auto-cleaned
+    expect(api.canUndo.value).toBe(true)
+
+    api.undo()
+    expect(game.values[a]).toBe(0)
+    expect(game.notes).toEqual(notesBefore)
+
+    api.undo() // the note toggle
+    expect(game.notes[peer]).toBe(0)
+    expect(api.canUndo.value).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('undoes erase, clear-entries and hint application', async () => {
+    const { api, wrapper } = mountGame()
+    await api.startNew('easy')
+    const game = api.game.value!
+    const cell = game.values.indexOf(0)
+    api.select(cell)
+    api.input(game.puzzle.solution[cell]!)
+    api.erase()
+    expect(game.values[cell]).toBe(0)
+    api.undo()
+    expect(game.values[cell]).toBe(game.puzzle.solution[cell])
+
+    api.restart()
+    expect(api.game.value!.values).toEqual(game.puzzle.givens)
+    api.undo()
+    expect(api.game.value!.values[cell]).toBe(game.puzzle.solution[cell])
+
+    const filled = api.game.value!.values.filter((d) => d !== 0).length
+    api.requestHint()
+    api.applyHint()
+    expect(api.game.value!.values.filter((d) => d !== 0).length).toBe(filled + 1)
+    api.undo()
+    expect(api.game.value!.values.filter((d) => d !== 0).length).toBe(filled)
+    wrapper.unmount()
+  })
+
+  it('persists the undo history with the save', async () => {
+    const first = mountGame()
+    await first.api.startNew('easy')
+    const cell = first.api.game.value!.values.indexOf(0)
+    first.api.select(cell)
+    first.api.input(first.api.game.value!.puzzle.solution[cell]!)
+    first.wrapper.unmount()
+
+    const second = mountGame()
+    expect(second.api.resume()).toBe(true)
+    expect(second.api.canUndo.value).toBe(true)
+    second.api.undo()
+    expect(second.api.game.value!.values[cell]).toBe(0)
+    second.wrapper.unmount()
+  })
+
+  it('loads saves of older versions without undo history', async () => {
+    const first = mountGame()
+    await first.api.startNew('easy')
+    first.wrapper.unmount()
+    const raw = JSON.parse(localStorage.getItem('riddles:' + SAVE_KEY)!)
+    delete raw.history
+    localStorage.setItem('riddles:' + SAVE_KEY, JSON.stringify(raw))
+
+    const second = mountGame()
+    expect(second.api.resume()).toBe(true)
+    expect(second.api.canUndo.value).toBe(false)
+    second.wrapper.unmount()
+  })
+
+  it('plays the 6×6 mini mode with its own save and statistics', async () => {
+    const { api, wrapper } = mountGame()
+    await api.startNew('easy', 'mini')
+    const game = api.game.value!
+    expect(api.mode.value).toBe('mini')
+    expect(game.values).toHaveLength(36)
+    expect(has(MINI_SAVE_KEY)).toBe(true)
+    expect(has(SAVE_KEY)).toBe(false)
+    expect(getVariantStats('sudoku', 'mini-easy').started).toBe(1)
+
+    api.input(7) // out of range for 6×6 – ignored
+    for (let cell = 0; cell < 36; cell++) {
+      if (game.values[cell] !== 0) continue
+      api.select(cell)
+      api.input(game.puzzle.solution[cell]!)
+    }
+    expect(api.status.value).toBe('won')
+    expect(has(MINI_SAVE_KEY)).toBe(false)
+    expect(getVariantStats('sudoku', 'mini-easy').finished).toBe(1)
+    expect(getVariantStats('sudoku', 'easy').finished).toBe(0)
+    wrapper.unmount()
+  })
+
+  it('resumes classic and mini games independently', async () => {
+    const classic = mountGame()
+    await classic.api.startNew('easy')
+    classic.wrapper.unmount()
+    const mini = mountGame()
+    await mini.api.startNew('medium', 'mini')
+    mini.wrapper.unmount()
+
+    expect(loadSavedGame('classic')?.values).toHaveLength(81)
+    expect(loadSavedGame('mini')?.values).toHaveLength(36)
+    const resumed = mountGame()
+    expect(resumed.api.resume('mini')).toBe(true)
+    expect(resumed.api.game.value!.puzzle.difficulty).toBe('medium')
+    resumed.wrapper.unmount()
   })
 })

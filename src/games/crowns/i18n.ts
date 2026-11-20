@@ -25,6 +25,8 @@ export const en = {
     rules: 'Rules',
     crownsPlaced: '{placed} / {total} crowns',
     solvedText: 'Every crown is in place.',
+    undo: 'Undo',
+    toMenu: 'Crowns menu',
   },
   settings: {
     autoMark: 'Show blocked cells',
@@ -92,6 +94,8 @@ export const de: Messages<typeof en> = {
     rules: 'Regeln',
     crownsPlaced: '{placed} / {total} Kronen',
     solvedText: 'Alle Kronen sind gesetzt.',
+    undo: 'Rückgängig',
+    toMenu: 'Crowns-Menü',
   },
   settings: {
     autoMark: 'Blockierte Felder zeigen',

@@ -4,34 +4,35 @@
  */
 import type { Rng } from '@/core/rng'
 
-import { ALL_DIGITS, boxOf, colOf, digitsOf, popcount, rowOf } from './board'
+import { digitsOf, geometry, popcount, sizeOfCells, type Geometry, type GridSize } from './board'
 import type { Grid } from './types'
 
 interface SearchState {
+  geo: Geometry
   cells: number[]
   rows: Int32Array
   cols: Int32Array
   boxes: Int32Array
 }
 
-const ROW_OF = Array.from({ length: 81 }, (_, i) => rowOf(i))
-const COL_OF = Array.from({ length: 81 }, (_, i) => colOf(i))
-const BOX_OF = Array.from({ length: 81 }, (_, i) => boxOf(i))
-
 function setup(grid: readonly number[]): SearchState | null {
+  if (grid.length !== 81 && grid.length !== 36) return null
+  const geo = geometry(sizeOfCells(grid.length))
   const state: SearchState = {
+    geo,
     cells: Array.from(grid),
-    rows: new Int32Array(9),
-    cols: new Int32Array(9),
-    boxes: new Int32Array(9),
+    rows: new Int32Array(geo.size),
+    cols: new Int32Array(geo.size),
+    boxes: new Int32Array(geo.size),
   }
-  for (let i = 0; i < 81; i++) {
+  for (let i = 0; i < geo.cellCount; i++) {
     const d = state.cells[i]!
     if (d === 0) continue
+    if (d < 0 || d > geo.size) return null
     const bit = 1 << d
-    const r = ROW_OF[i]!
-    const c = COL_OF[i]!
-    const b = BOX_OF[i]!
+    const r = geo.rowOf[i]!
+    const c = geo.colOf[i]!
+    const b = geo.boxOf[i]!
     if (state.rows[r]! & bit || state.cols[c]! & bit || state.boxes[b]! & bit) return null
     state.rows[r]! |= bit
     state.cols[c]! |= bit
@@ -46,13 +47,14 @@ interface SearchResult {
 }
 
 function search(state: SearchState, limit: number, rng: Rng | undefined, result: SearchResult): void {
-  const { cells, rows, cols, boxes } = state
+  const { geo, cells, rows, cols, boxes } = state
+  const { rowOf: ROW_OF, colOf: COL_OF, boxOf: BOX_OF } = geo
   let best = -1
   let bestMask = 0
   let bestCount = 10
-  for (let i = 0; i < 81; i++) {
+  for (let i = 0; i < geo.cellCount; i++) {
     if (cells[i] !== 0) continue
-    const mask = ALL_DIGITS & ~(rows[ROW_OF[i]!]! | cols[COL_OF[i]!]! | boxes[BOX_OF[i]!]!)
+    const mask = geo.allDigits & ~(rows[ROW_OF[i]!]! | cols[COL_OF[i]!]! | boxes[BOX_OF[i]!]!)
     const count = popcount(mask)
     if (count === 0) return // dead end
     if (count < bestCount) {
@@ -107,14 +109,16 @@ export function solveGrid(grid: readonly number[], rng?: Rng): Grid | null {
   return result.first
 }
 
-/** A random, completely filled valid grid. */
-export function generateSolvedGrid(rng: Rng): Grid {
-  const grid = solveGrid(new Array<number>(81).fill(0), rng)
+/** A random, completely filled valid grid of the given size (default: classic 9×9). */
+export function generateSolvedGrid(rng: Rng, size: GridSize = 9): Grid {
+  const grid = solveGrid(new Array<number>(size * size).fill(0), rng)
   if (!grid) throw new Error('Could not fill an empty grid')
   return grid
 }
 
 /** `true` if the grid is completely and correctly filled. */
 export function isSolvedGrid(grid: readonly number[]): boolean {
-  return grid.length === 81 && grid.every((d) => d >= 1 && d <= 9) && setup(grid) !== null
+  if (grid.length !== 81 && grid.length !== 36) return false
+  const size = sizeOfCells(grid.length)
+  return grid.every((d) => d >= 1 && d <= size) && setup(grid) !== null
 }
