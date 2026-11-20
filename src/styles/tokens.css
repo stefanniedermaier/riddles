@@ -28,6 +28,7 @@
   --game-sudoku: #3a72d6;
   --game-crowns: #d39612;
   --game-links: #12907f;
+  --game-nonogram: #c2410c;
   --game-shapes: #d6457a;
 
   /* Typography */
@@ -93,6 +94,7 @@
   --game-sudoku: #6a9cf0;
   --game-crowns: #f0bd45;
   --game-links: #4fd1bd;
+  --game-nonogram: #fb8c4f;
   --game-shapes: #f0759f;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);

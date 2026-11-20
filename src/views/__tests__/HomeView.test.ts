@@ -15,7 +15,7 @@ describe('HomeView', () => {
     await router.push('/')
     const wrapper = mount(HomeView, { global: { plugins: [router] } })
     const cards = wrapper.findAll('.game-card')
-    expect(cards).toHaveLength(4)
+    expect(cards).toHaveLength(5)
     expect(wrapper.text()).toContain('Sudoku')
     expect(wrapper.text()).toContain('Crowns')
     expect(wrapper.text()).toContain('Links')
