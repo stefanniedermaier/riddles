@@ -5,13 +5,16 @@ import AppBar from '@/components/AppBar.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import GameOrderList from '@/components/GameOrderList.vue'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import { formatDate } from '@/core/format'
 import { t } from '@/core/i18n'
 import { settings, type LocaleSetting, type MotionSetting, type ThemeSetting } from '@/core/settings'
 import { clearAll, exportData, importData, parseExport, type ExportFile } from '@/core/storage'
 import { showToast } from '@/core/toast'
+import { visibleGames } from '@/games/layout'
 import { games } from '@/games/registry'
+import type { GameId } from '@/games/types'
 
 const version = __APP_VERSION__
 const repoUrl = 'https://github.com/stefanniedermaier/riddles'
@@ -32,12 +35,17 @@ const motionOptions = computed(() => [
   { value: 'reduced' as MotionSetting, label: t('settings.motionReduced') },
 ])
 
-const gameSettings = games
-  .filter((game) => game.settingsComponent)
-  .map((game) => ({
-    id: game.id,
-    component: defineAsyncComponent(game.settingsComponent!),
-  }))
+// One async component per game (created once), shown in the user's order for enabled games.
+const settingsComponents = new Map(
+  games
+    .filter((game) => game.settingsComponent)
+    .map((game) => [game.id, defineAsyncComponent(game.settingsComponent!)] as const),
+)
+const gameSettings = computed(() =>
+  visibleGames.value
+    .filter((game) => settingsComponents.has(game.id))
+    .map((game) => ({ id: game.id as GameId, component: settingsComponents.get(game.id)! })),
+)
 
 // --- Export ---------------------------------------------------------------
 
@@ -128,6 +136,11 @@ function resetAll(): void {
           :label="t('settings.motion')"
         />
       </div>
+    </section>
+
+    <h2 class="section-title">{{ t('settings.games') }}</h2>
+    <section class="card">
+      <GameOrderList />
     </section>
 
     <template v-for="game in gameSettings" :key="game.id">

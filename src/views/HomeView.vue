@@ -4,10 +4,10 @@ import AppIcon from '@/components/AppIcon.vue'
 import GameArt from '@/components/GameArt.vue'
 import InstallButton from '@/components/InstallButton.vue'
 import { t } from '@/core/i18n'
-import { games } from '@/games/registry'
+import { visibleGames } from '@/games/layout'
 
 // Read once per visit – storage is not reactive, and the home view remounts on navigation.
-const saved = Object.fromEntries(games.map((game) => [game.id, game.hasSavedGame()]))
+const saved = Object.fromEntries(visibleGames.value.map((game) => [game.id, game.hasSavedGame()]))
 </script>
 
 <template>
@@ -28,7 +28,7 @@ const saved = Object.fromEntries(games.map((game) => [game.id, game.hasSavedGame
   <main class="page">
     <InstallButton />
     <ul class="games">
-      <li v-for="game in games" :key="game.id">
+      <li v-for="game in visibleGames" :key="game.id">
         <RouterLink
           :to="`/${game.id}`"
           class="game-card"

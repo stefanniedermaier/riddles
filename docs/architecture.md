@@ -67,6 +67,11 @@ A game lives entirely in `src/games/<id>/` and connects to the shell through thr
 `src/games/registry.ts` lists all descriptors and routes. The home screen, statistics view
 and settings view are generated from the registry – they contain no game-specific code.
 
+`src/games/layout.ts` holds the player's choice of **which games are shown and in which
+order** (Settings → Games, drag & drop). `visibleGames` drives the home screen, statistics
+and settings sections; games added in an update are appended (enabled) automatically.
+Hidden games keep their saves and statistics.
+
 ## Puzzle generation flow
 
 ```
@@ -96,6 +101,7 @@ incompatible format change instead of crashing the app.
 | ---------------------------- | ------------------------------------------- |
 | `settings`                   | Language, theme, motion                     |
 | `stats:v1`                   | Statistics of all games                     |
+| `gameLayout:v1`              | Order of the games and hidden games         |
 | `<game>:settings`            | Game-specific options                       |
 | `sudoku:current:v1`          | Running Sudoku game                         |
 | `sudoku:pool:v1`             | Pre-generated Sudoku puzzles                |
@@ -103,6 +109,8 @@ incompatible format change instead of crashing the app.
 | `crowns:pool:v1`             | Pre-generated Crowns puzzles                |
 | `links:current:v1`           | Running Links game                          |
 | `links:pool:v1`              | Pre-generated Links puzzles                 |
+| `nonogram:current:v1`        | Running Nonogram game (pool: `nonogram:pool:v1`) |
+| `merge:current:<variant>:v1` | Running Merge game per variant; `merge:records:v1` = highest tiles |
 | `shapes:current:<mode>:v1`   | Running Shapes game per mode (levels: `v2`) |
 | `shapes:progress:v2`         | Current (highest unlocked) level            |
 | `sudoku:mini:current:v1`     | Running Mini-Sudoku game (pool: `sudoku:mini:pool:v1`) |

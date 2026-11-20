@@ -1,5 +1,7 @@
 import * as crowns from '@/games/crowns/i18n'
 import * as links from '@/games/links/i18n'
+import * as merge from '@/games/merge/i18n'
+import * as nonogram from '@/games/nonogram/i18n'
 import * as shapes from '@/games/shapes/i18n'
 import * as sudoku from '@/games/sudoku/i18n'
 
@@ -12,6 +14,8 @@ const enMessages = {
   sudoku: sudoku.en,
   crowns: crowns.en,
   links: links.en,
+  nonogram: nonogram.en,
+  merge: merge.en,
   shapes: shapes.en,
 }
 
@@ -23,6 +27,8 @@ const deMessages: Messages<MessageSchema> = {
   sudoku: sudoku.de,
   crowns: crowns.de,
   links: links.de,
+  nonogram: nonogram.de,
+  merge: merge.de,
   shapes: shapes.de,
 }
 
