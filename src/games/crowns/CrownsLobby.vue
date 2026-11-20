@@ -8,7 +8,7 @@ import ChoiceList from '@/components/ChoiceList.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
-import { getVariantStats } from '@/core/stats'
+import { getStats, getVariantStats } from '@/core/stats'
 import { load } from '@/core/storage'
 import CrownsRules from './CrownsRules.vue'
 import { DIFFICULTIES, SAVE_KEY, sizeLabel, type Difficulty } from './index'
@@ -18,6 +18,9 @@ import { crownsPool } from './pool'
 const router = useRouter()
 
 const saved = load(SAVE_KEY, null, (raw) => (isCrownsSave(raw) ? raw : undefined))
+
+/** First-time players see the rules first; afterwards they move below the menu. */
+const hasPlayed = saved !== null || Object.values(getStats('crowns')).some((s) => s.started > 0)
 
 const savedLabel = computed(() => {
   if (!saved) return ''
@@ -60,7 +63,7 @@ onMounted(() => crownsPool.warm(DIFFICULTIES))
   <AppBar :title="t('crowns.name')" back-to="/" />
 
   <main class="page lobby">
-    <section class="card rules">
+    <section v-if="!hasPlayed" class="card rules">
       <h2 class="rules__title">{{ t('crowns.rules.title') }}</h2>
       <CrownsRules />
     </section>
@@ -74,6 +77,11 @@ onMounted(() => crownsPool.warm(DIFFICULTIES))
 
     <h2 class="section-title">{{ t('crowns.lobby.newGame') }}</h2>
     <ChoiceList :items="items" @select="onSelect" />
+
+    <section v-if="hasPlayed" class="card rules rules--bottom">
+      <h2 class="rules__title">{{ t('crowns.rules.title') }}</h2>
+      <CrownsRules />
+    </section>
   </main>
 
   <ConfirmDialog
@@ -92,6 +100,10 @@ onMounted(() => crownsPool.warm(DIFFICULTIES))
   border-top: 4px solid var(--game-crowns);
 }
 
+.rules--bottom {
+  margin-top: var(--space-5);
+}
+
 .rules__title {
   margin-bottom: var(--space-2);
   font-size: var(--text-md);
@@ -100,6 +112,10 @@ onMounted(() => crownsPool.warm(DIFFICULTIES))
 
 .resume {
   margin-top: var(--space-4);
+}
+
+.resume:first-child {
+  margin-top: 0;
 }
 
 .resume__info {
