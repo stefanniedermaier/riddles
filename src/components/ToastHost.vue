@@ -15,7 +15,8 @@ import { toasts } from '@/core/toast'
   position: fixed;
   left: 50%;
   bottom: max(var(--space-5), env(safe-area-inset-bottom));
-  z-index: 200;
+  /* Below modal dialogs (z-index 100), so a toast never covers dialog buttons. */
+  z-index: 90;
   display: flex;
   flex-direction: column;
   align-items: center;
