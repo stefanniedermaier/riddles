@@ -49,6 +49,16 @@ const de: Messages<typeof en> = {
   home: {
     continue: 'Fortsetzen',
   },
+  install: {
+    button: 'App installieren',
+    hint: 'Vom Home-Bildschirm spielen – auch offline.',
+    iosTitle: 'Zum Home-Bildschirm hinzufügen',
+    iosStep1: 'Tippe in der Browserleiste auf „Teilen“.',
+    iosStep2: 'Scrolle nach unten und wähle „Zum Home-Bildschirm“.',
+    iosStep3: 'Bestätige mit „Hinzufügen“.',
+    iosNote: 'In Safari auf dem iPhone ist „Teilen“ unten, auf dem iPad oben.',
+    done: 'Riddles wurde installiert.',
+  },
   settings: {
     title: 'Einstellungen',
     general: 'Allgemein',

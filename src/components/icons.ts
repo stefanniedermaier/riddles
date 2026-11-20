@@ -50,6 +50,8 @@ export const icons = {
   info: [{ d: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v5M12 8h.01' }],
   external: [{ d: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5' }],
   grid: [{ d: 'M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z' }],
+  share: [{ d: 'M12 15V3.5M8 7.5l4-4 4 4M8 10.5H6v10h12v-10h-2' }],
+  addSquare: [{ d: 'M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM12 8.5v7M8.5 12h7' }],
   lock: [{ d: 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3' }],
   crown: [{ d: 'M5 18h14M5 15L3.5 7l5 4L12 5l3.5 6 5-4L19 15z' }],
 } satisfies Record<string, IconPath[]>

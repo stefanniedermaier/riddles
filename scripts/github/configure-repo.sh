@@ -82,16 +82,19 @@ JSON
   # The TLS certificate only exists after the first deployment.
   optional "https_enforced (rerun after the first deployment if this fails)" api -X PUT "repos/$REPO/pages" -F https_enforced=true
 
-  step "Environment github-pages (deploy from main only)"
+  step "Environment github-pages (deploy from release tags v* only)"
   api -X PUT "repos/$REPO/environments/github-pages" --input - >/dev/null <<'JSON'
 { "deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true } }
 JSON
-  if ! api "repos/$REPO/environments/github-pages/deployment-branch-policies" \
-      --jq '.branch_policies[] | select(.type == "branch") | .name' | grep -qx main; then
-    api -X POST "repos/$REPO/environments/github-pages/deployment-branch-policies" \
-      -f name=main -f type=branch >/dev/null
+  local policies="repos/$REPO/environments/github-pages/deployment-branch-policies"
+  # Remove every policy except the release-tag pattern …
+  api "$policies" --jq '.branch_policies[] | select(.type != "tag" or .name != "v*") | .id' |
+    while read -r id; do api -X DELETE "$policies/$id" >/dev/null; done
+  # … and make sure the release-tag pattern exists.
+  if ! api "$policies" --jq '.branch_policies[] | select(.type == "tag") | .name' | grep -qx 'v\*'; then
+    api -X POST "$policies" -f 'name=v*' -f type=tag >/dev/null
   fi
-  echo "  ✔ environment branch policy: main"
+  echo "  ✔ environment deployment policy: tags v*"
 }
 
 upsert_ruleset() {

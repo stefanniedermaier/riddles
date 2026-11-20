@@ -2,6 +2,7 @@
 import AppBar from '@/components/AppBar.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import GameArt from '@/components/GameArt.vue'
+import InstallButton from '@/components/InstallButton.vue'
 import { t } from '@/core/i18n'
 import { games } from '@/games/registry'
 
@@ -26,6 +27,7 @@ const saved = Object.fromEntries(games.map((game) => [game.id, game.hasSavedGame
 
   <main class="page">
     <p class="tagline">{{ t('app.tagline') }}</p>
+    <InstallButton />
     <ul class="games">
       <li v-for="game in games" :key="game.id">
         <RouterLink

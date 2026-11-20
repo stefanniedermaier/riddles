@@ -47,6 +47,16 @@ const en = {
   home: {
     continue: 'Continue',
   },
+  install: {
+    button: 'Install app',
+    hint: 'Play from your home screen – also offline.',
+    iosTitle: 'Add to Home Screen',
+    iosStep1: 'Tap the Share button in the browser toolbar.',
+    iosStep2: 'Scroll down and choose “Add to Home Screen”.',
+    iosStep3: 'Confirm with “Add”.',
+    iosNote: 'In Safari on iPhone the Share button is at the bottom, on iPad at the top.',
+    done: 'Riddles has been installed.',
+  },
   settings: {
     title: 'Settings',
     general: 'General',

@@ -21,7 +21,7 @@ Relevant threats and mitigations:
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Malicious/compromised npm package in the build      | lockfile from registry only with sha512, `npm ci --ignore-scripts`, registry signature + provenance check, `npm audit`, dependency review, Dependabot with cooldown, `min-release-age` |
 | Compromised GitHub Action / CI token misuse         | actions pinned to commit SHAs, only GitHub-owned actions allowed, read-only default token, no persisted credentials |
-| Tampered deployment                                 | deploy only from protected `main` after all checks; signed build-provenance and SBOM attestations |
+| Tampered deployment                                 | deploy only from signed release tags on `main` after all checks; signed build-provenance and SBOM attestations |
 | Unreviewed or forged changes on `main`              | branch ruleset: pull request required, required status checks, signed commits, linear history, no force-push/deletion |
 | Cross-site scripting / injected scripts             | Vue template escaping, no `v-html`, no `eval`; strict Content-Security-Policy (`script-src 'self'` + hash, `object-src 'none'`, `base-uri 'self'`) |
 | Malicious backup file on import                     | JSON parse only (no code), format/app-id validation, values only written to own `riddles:*` keys, explicit confirmation |
@@ -71,7 +71,7 @@ The GitHub repository settings are documented as code and can be (re-)applied wi
 | Tags `v*` (ruleset)     | signed, immutable (no update, no deletion, no force-push)                                 |
 | Security features       | private vulnerability reporting, Dependabot alerts + security updates, secret scanning + push protection, CodeQL advanced setup (`security-extended` in CI; GitHub's default setup disabled) |
 | Actions                 | only GitHub-owned actions, SHA pinning required, read-only default `GITHUB_TOKEN`, Actions cannot approve PRs, approval required for all external contributors' workflow runs |
-| Environment             | `github-pages` deployable from `main` only                                               |
+| Environment             | `github-pages` deployable from release tags `v*` only                                    |
 | Pages                   | built by GitHub Actions, HTTPS enforced                                                  |
 | Repository              | squash merge only, branches deleted after merge, wiki and projects disabled              |
 
