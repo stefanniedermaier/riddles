@@ -23,6 +23,7 @@ Every puzzle and level is generated on the fly.
   and a difficulty rating based on the logic techniques it requires
 - **Resume** any running game, **statistics** and personal bests
 - **Backup**: export all data as a JSON file and import it on another device
+- **Your selection**: show, hide and reorder games (drag & drop in the settings)
 - **German and English**, light and dark theme, reduced-motion support
 
 ## Install on your phone

@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Settings → Games: show/hide games and change their order by drag & drop (keyboard: arrow
+  keys on the handle); home screen, statistics and game settings follow the selection
+
 ## [0.3.1] – 2026-11-20
 
 ### Fixed

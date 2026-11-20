@@ -14,6 +14,8 @@ all data on the device. Every level is generated on the fly.
 | 04 | [Shapes](04-shapes.md)                       | Match-3 engine, Zen / Time / Levels modes, animations         |
 | 05 | [Documentation & release](05-docs-release.md) | README, docs, license, icons, deployment, QA checklist        |
 | 06 | [Links](06-links.md)                         | Path-connection puzzle (Numberlink genre), added after v0.2.0 |
+| 07 | [Nonogram](07-nonogram.md)                   | Nonogram with line-logic generator, added after v0.3.1        |
+| 08 | [Game management](08-game-management.md)     | Show/hide and reorder games (settings, drag & drop)           |
 
 ## Decisions (from the kick-off wizard)
 

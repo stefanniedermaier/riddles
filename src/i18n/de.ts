@@ -73,6 +73,11 @@ const de: Messages<typeof en> = {
     motionFull: 'An',
     motionReduced: 'Reduziert',
     games: 'Spiele',
+    gamesHint:
+      'Zum Sortieren ziehen. Ausgeblendete Spiele behalten ihre Spielstände und Statistiken.',
+    gameMove: '{game} verschieben (Pfeiltasten)',
+    gameMoved: '{game} ist jetzt an Position {position}.',
+    gameShow: '{game} anzeigen',
     data: 'Deine Daten',
     dataInfo:
       'Alles wird ausschließlich auf diesem Gerät gespeichert. Mit einer Sicherung kannst du es auf ein anderes Gerät übertragen.',

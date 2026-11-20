@@ -7,7 +7,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { formatDuration, formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
 import { getStats, resetStats } from '@/core/stats'
-import { games } from '@/games/registry'
+import { visibleGames } from '@/games/layout'
 import type { GameDescriptor, GameId } from '@/games/types'
 
 interface Row {
@@ -46,7 +46,7 @@ function rowsFor(game: GameDescriptor): Row[] {
     })
 }
 
-const sections = computed(() => games.map((game) => ({ game, rows: rowsFor(game) })))
+const sections = computed(() => visibleGames.value.map((game) => ({ game, rows: rowsFor(game) })))
 
 const resetTarget = ref<GameId | null>(null)
 
