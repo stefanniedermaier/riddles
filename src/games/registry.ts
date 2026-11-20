@@ -1,5 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 
+import { descriptor as arrows } from './arrows'
+import { routes as arrowsRoutes } from './arrows/routes'
 import { descriptor as crowns } from './crowns'
 import { routes as crownsRoutes } from './crowns/routes'
 import { descriptor as links } from './links'
@@ -15,9 +17,9 @@ import { routes as sudokuRoutes } from './sudoku/routes'
 import type { GameDescriptor, GameId } from './types'
 
 /** All games in display order. */
-export const games: readonly GameDescriptor[] = [sudoku, crowns, links, nonogram, shapes, merge]
+export const games: readonly GameDescriptor[] = [sudoku, crowns, links, nonogram, arrows, shapes, merge]
 
-export const gameRoutes: RouteRecordRaw[] = [...sudokuRoutes, ...crownsRoutes, ...linksRoutes, ...nonogramRoutes, ...shapesRoutes, ...mergeRoutes]
+export const gameRoutes: RouteRecordRaw[] = [...sudokuRoutes, ...crownsRoutes, ...linksRoutes, ...nonogramRoutes, ...arrowsRoutes, ...shapesRoutes, ...mergeRoutes]
 
 export function getGame(id: GameId): GameDescriptor {
   const game = games.find((candidate) => candidate.id === id)

@@ -1,3 +1,4 @@
+import * as arrows from '@/games/arrows/i18n'
 import * as crowns from '@/games/crowns/i18n'
 import * as links from '@/games/links/i18n'
 import * as merge from '@/games/merge/i18n'
@@ -16,6 +17,7 @@ const enMessages = {
   links: links.en,
   nonogram: nonogram.en,
   merge: merge.en,
+  arrows: arrows.en,
   shapes: shapes.en,
 }
 
@@ -29,6 +31,7 @@ const deMessages: Messages<MessageSchema> = {
   links: links.de,
   nonogram: nonogram.de,
   merge: merge.de,
+  arrows: arrows.de,
   shapes: shapes.de,
 }
 

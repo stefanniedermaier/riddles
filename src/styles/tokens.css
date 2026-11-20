@@ -30,6 +30,7 @@
   --game-links: #12907f;
   --game-nonogram: #c2410c;
   --game-merge: #0e7490;
+  --game-arrows: #b4235a;
   --game-shapes: #d6457a;
 
   /* Typography */
@@ -97,6 +98,7 @@
   --game-links: #4fd1bd;
   --game-nonogram: #fb8c4f;
   --game-merge: #38bdf8;
+  --game-arrows: #f472b6;
   --game-shapes: #f0759f;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
