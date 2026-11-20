@@ -75,7 +75,7 @@ const selected = ref<number | null>(null)
 const hint = ref<[number, number] | null>(null)
 
 type ResultState =
-  | { kind: 'time'; score: number; best: number; newBest: boolean }
+  | { kind: 'time' | 'zen'; score: number; best: number; newBest: boolean }
   | { kind: 'won'; level: number; score: number; bonus: number; total: number }
   | { kind: 'lost'; level: number; score: number }
 
@@ -109,6 +109,12 @@ const title = computed(() =>
 function persist(): void {
   const current = run.value
   if (!current || finished.value) return
+  if (current.movesMade === 0) {
+    // Untouched runs are not saved, so merely opening a mode does not leave a "Continue"
+    // behind (and an older save of this mode is dropped).
+    clearRun(props.mode)
+    return
+  }
   if (countdown && current.time) {
     saveRun({
       ...current,
@@ -258,6 +264,26 @@ function newGame(): void {
   startRun(newRun(current?.level?.n))
 }
 
+/** Ends an endless Zen run: records the score, removes the save and shows the result. */
+function endZen(): void {
+  const current = run.value
+  if (!current || finished.value) return
+  menuOpen.value = false
+  finished.value = true
+  clearHint()
+  clearRun('zen')
+  const { newBestScore } =
+    current.score > 0
+      ? recordFinish('shapes', 'zen', { score: current.score })
+      : { newBestScore: false }
+  result.value = {
+    kind: 'zen',
+    score: current.score,
+    best: getVariantStats('shapes', 'zen').bestScore ?? current.score,
+    newBest: newBestScore,
+  }
+}
+
 /** Plays the current level (the next one after a win, the same one after a loss). */
 function playCurrentLevel(): void {
   startRun(createRun('levels', 0, levelProgress.value.level))
@@ -277,6 +303,7 @@ const resultRows = computed(() => {
   if (!r) return []
   switch (r.kind) {
     case 'time':
+    case 'zen':
       return [
         { label: t('common.score'), value: formatNumber(r.score), highlight: r.newBest },
         { label: t('common.best'), value: formatNumber(r.best) },
@@ -297,6 +324,8 @@ const resultTitle = computed(() => {
   switch (result.value?.kind) {
     case 'time':
       return t('shapes.result.timeUp')
+    case 'zen':
+      return t('shapes.result.zenEnded')
     case 'won':
       return t('shapes.result.levelComplete')
     case 'lost':
@@ -328,7 +357,7 @@ onMounted(() => {
   }
   if (isNew) {
     recordStart('shapes', props.mode)
-    persist()
+    persist() // clears an older save of this mode; the new run is saved after the first move
     // Drop `?new=1` so that a reload resumes this run instead of starting another one.
     void router.replace({ name: 'shapes-play', params: { mode: props.mode } })
   }
@@ -393,6 +422,9 @@ onBeforeUnmount(() => {
       <AppButton icon="restart" block @click="newGame">
         {{ mode === 'levels' ? t('shapes.pause.restartLevel') : t('shapes.pause.newGame') }}
       </AppButton>
+      <AppButton v-if="mode === 'zen'" icon="check" block @click="endZen">
+        {{ t('shapes.pause.endGame') }}
+      </AppButton>
       <AppButton variant="ghost" icon="back" block @click="toLobby">
         {{ t('shapes.pause.quit') }}
       </AppButton>
@@ -404,11 +436,15 @@ onBeforeUnmount(() => {
     :title="resultTitle"
     :subtitle="result?.kind === 'lost' ? t('shapes.result.levelFailedText') : undefined"
     :rows="resultRows"
-    :badge="result?.kind === 'time' && result.newBest ? t('common.newBest') : undefined"
+    :badge="
+      (result?.kind === 'time' || result?.kind === 'zen') && result.newBest
+        ? t('common.newBest')
+        : undefined
+    "
     :icon="result?.kind === 'lost' ? 'restart' : 'trophy'"
   >
     <template #actions>
-      <template v-if="result?.kind === 'time'">
+      <template v-if="result?.kind === 'time' || result?.kind === 'zen'">
         <AppButton variant="primary" block @click="startRun(newRun())">
           {{ t('shapes.result.playAgain') }}
         </AppButton>

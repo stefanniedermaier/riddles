@@ -4,6 +4,7 @@ import { defineComponent, h } from 'vue'
 import { RouterView, createMemoryHistory, createRouter } from 'vue-router'
 
 import { settings } from '@/core/settings'
+import { getVariantStats, resetStats } from '@/core/stats'
 import { listMoves } from '../logic/board'
 import { routes } from '../routes'
 import ShapesBoard from '../ShapesBoard.vue'
@@ -23,6 +24,20 @@ async function mountAt(path: string) {
   return { wrapper, router }
 }
 
+/** Tries neighbouring swaps until one is valid (invalid swaps don't count as moves). */
+async function playAnyMove(wrapper: Awaited<ReturnType<typeof mountAt>>['wrapper'], mode: 'zen' | 'time' | 'levels') {
+  const before = loadRun(mode)?.movesMade ?? 0
+  for (let cell = 0; cell < 64; cell++) {
+    for (const other of [cell + 1, cell + 8]) {
+      if (other >= 64 || (other === cell + 1 && cell % 8 === 7)) continue
+      wrapper.findComponent(ShapesBoard).vm.$emit('swap', cell, other)
+      await flushPromises()
+      if ((loadRun(mode)?.movesMade ?? 0) > before) return
+    }
+  }
+  throw new Error('no valid move found')
+}
+
 describe('Shapes views', () => {
   afterEach(() => {
     vi.useRealTimers()
@@ -33,6 +48,8 @@ describe('Shapes views', () => {
     settings.value.locale = 'en'
     settings.value.motion = 'reduced'
     levelProgress.value = { level: 1 }
+    resetStats()
+    document.body.innerHTML = ''
   })
 
   it('lobby lists the modes with the current level and instructions first', async () => {
@@ -60,6 +77,8 @@ describe('Shapes views', () => {
     levelProgress.value = { level: 3 }
     const { wrapper, router } = await mountAt('/shapes/play/levels?new=1')
     expect(wrapper.text()).toContain('Level 3')
+    expect(loadRun('levels')).toBeNull() // nothing saved before the first move
+    await playAnyMove(wrapper, 'levels')
     expect(loadRun('levels')!.level!.n).toBe(3)
     wrapper.unmount() // persists the run
     // Targets intro level: clear all target tiles by hand, the next move wins.
@@ -91,11 +110,9 @@ describe('Shapes views', () => {
     expect(wrapper.findAll('.piece')).toHaveLength(64)
     expect(router.currentRoute.value.query.new).toBeUndefined()
 
-    const saved = loadRun('zen')!
-    expect(saved.movesMade).toBe(0)
-    const move = listMoves(saved.board)[0]!
-    wrapper.findComponent(ShapesBoard).vm.$emit('swap', move.a, move.b)
-    await flushPromises()
+    // An untouched run is not saved (no "Continue" for merely opening Zen).
+    expect(loadRun('zen')).toBeNull()
+    await playAnyMove(wrapper, 'zen')
 
     const after = loadRun('zen')!
     expect(after.movesMade).toBe(1)
@@ -109,10 +126,16 @@ describe('Shapes views', () => {
     settings.value.motion = 'full'
     vi.useFakeTimers()
     const { wrapper } = await mountAt('/shapes/play/zen?new=1')
-    const move = listMoves(loadRun('zen')!.board)[0]!
-    wrapper.findComponent(ShapesBoard).vm.$emit('swap', move.a, move.b)
-    await vi.advanceTimersByTimeAsync(5000)
-    await flushPromises()
+    // Try neighbouring swaps (with animations running) until one is valid.
+    search: for (let cell = 0; cell < 64; cell++) {
+      for (const other of [cell + 1, cell + 8]) {
+        if (other >= 64 || (other === cell + 1 && cell % 8 === 7)) continue
+        wrapper.findComponent(ShapesBoard).vm.$emit('swap', cell, other)
+        await vi.advanceTimersByTimeAsync(5000)
+        await flushPromises()
+        if (loadRun('zen')) break search
+      }
+    }
 
     const after = loadRun('zen')!
     expect(after.movesMade).toBe(1)
@@ -141,10 +164,36 @@ describe('Shapes views', () => {
   it('renders obstacles of a level on the board', async () => {
     levelProgress.value = { level: 7 } // crates intro
     const { wrapper } = await mountAt('/shapes/play/levels?new=1')
-    const crates = loadRun('levels')!.level!.field.crates.filter((hp) => hp > 0).length
+    const crates = wrapper.findAll('.cell-layer--crate').length
     expect(crates).toBeGreaterThan(0)
-    expect(wrapper.findAll('.cell-layer--crate')).toHaveLength(crates)
     expect(wrapper.findAll('.piece')).toHaveLength(64 - crates)
+    wrapper.unmount()
+  })
+
+  it('does not keep a save when Zen is left without a move', async () => {
+    const { wrapper } = await mountAt('/shapes/play/zen?new=1')
+    wrapper.unmount()
+    expect(loadRun('zen')).toBeNull()
+    expect(localStorage.getItem('riddles:shapes:current:zen:v1')).toBeNull()
+  })
+
+  it('ends a Zen run from the pause menu, records the score and removes the save', async () => {
+    const { wrapper } = await mountAt('/shapes/play/zen?new=1')
+    await playAnyMove(wrapper, 'zen')
+    const score = loadRun('zen')!.score
+    expect(score).toBeGreaterThan(0)
+
+    await wrapper.find('.app-bar__actions button').trigger('click')
+    const endButton = [...document.querySelectorAll<HTMLButtonElement>('.dialog .app-btn')].find(
+      (button) => button.textContent?.includes('End game'),
+    )
+    expect(endButton).toBeDefined()
+    endButton!.click()
+    await flushPromises()
+
+    expect(loadRun('zen')).toBeNull()
+    expect(document.body.textContent).toContain('Game ended')
+    expect(getVariantStats('shapes', 'zen').bestScore).toBe(score)
     wrapper.unmount()
   })
 

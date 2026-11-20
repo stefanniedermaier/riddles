@@ -77,7 +77,7 @@ the move, ×2 for the first follow-up match caused by falling pieces, ×3 for th
 
 | Mode   | Rules                                                                                         | End                      | Statistics                 |
 | ------ | --------------------------------------------------------------------------------------------- | ------------------------ | -------------------------- |
-| Zen    | Endless, no timer, no game over.                                                              | "New game" in the menu   | high score (counted when a run with points is ended) |
+| Zen    | Endless, no timer, no game over.                                                              | "End game" or "New game" in the pause menu | high score (counted when a run with points is ended) |
 | Time   | 90 s countdown. Each special created gives +2 s, a cascade of depth ≥ 3 gives +1 s.            | time runs out            | high score                 |
 | Levels | Played in order, one level after the other. A move limit and 1–3 goals; remaining moves become bonus points. | goals met / no moves left | levels won, best level score |
 
@@ -197,6 +197,9 @@ With reduced motion the final board is shown immediately.
 A saved run contains the board, score, RNG state, next piece id, number of kinds and the
 mode-specific state, so a reload continues exactly where the player left off. Runs are
 saved after every move, when the app goes to the background and when leaving the screen.
+A run is only saved once it has at least one valid move, so merely opening a mode leaves no
+*Continue* behind (and replaces an older save of that mode). *End game* (Zen) records the
+score, removes the save and shows the result.
 
 **Migration:** the highest unlocked level of the old `shapes:progress:v1` becomes the
 current level; old `v1` progress and level runs (without obstacles) are removed.
