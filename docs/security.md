@@ -54,6 +54,9 @@ gh attestation verify index.html --repo stefanniedermaier/riddles \
   --predicate-type https://cyclonedx.org/bom
 ```
 
+`gh attestation` requires GitHub CLI ≥ 2.49. Alternatively query the API directly:
+`gh api repos/stefanniedermaier/riddles/attestations/sha256:$(sha256sum index.html | cut -d' ' -f1)`.
+
 Locally, an SBOM can be generated with
 `npm sbom --omit=dev --sbom-format=cyclonedx --sbom-type=application`.
 
@@ -66,7 +69,7 @@ The GitHub repository settings are documented as code and can be (re-)applied wi
 | ----------------------- | ---------------------------------------------------------------------------------------- |
 | Branch `main` (ruleset) | PR required (squash only, conversations resolved, stale approvals dismissed), required checks *Supply chain*, *CodeQL*, *Lint, test & build*, *Dependency review*, code-scanning results (no high/critical alerts), signed commits, linear history, no force-push, no deletion, **no bypass** |
 | Tags `v*` (ruleset)     | signed, immutable (no update, no deletion, no force-push)                                 |
-| Security features       | private vulnerability reporting, Dependabot alerts + security updates, secret scanning + push protection |
+| Security features       | private vulnerability reporting, Dependabot alerts + security updates, secret scanning + push protection, CodeQL advanced setup (`security-extended` in CI; GitHub's default setup disabled) |
 | Actions                 | only GitHub-owned actions, SHA pinning required, read-only default `GITHUB_TOKEN`, Actions cannot approve PRs, approval required for all external contributors' workflow runs |
 | Environment             | `github-pages` deployable from `main` only                                               |
 | Pages                   | built by GitHub Actions, HTTPS enforced                                                  |
