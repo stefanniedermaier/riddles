@@ -15,6 +15,7 @@ Every puzzle and level is generated on the fly.
 | **Crowns** | Place one crown in every row, column and coloured region – crowns may not touch, not even diagonally. Grid size grows with difficulty (6×6 to 10×10). |
 | **Links**  | Connect each pair of coloured dots with a line – lines may not cross and every cell must be filled. 5×5 to 11×11, hints, undo, move counter. |
 | **Nonogram** | Fill the grid so every row and column matches its number clues. 5×5 to 15×20, unique and solvable by logic, mistake check, hints, undo. |
+| **Merge**  | Slide the tiles and merge equal numbers – reach 256, 2048 or 4096 on 3×3, 4×4 or 5×5 and keep going for a high score. |
 | **Shapes** | Match-3: swap neighbouring shapes to line up three or more. Zen, Time and Levels modes with special pieces and combos. |
 
 ## Features
@@ -69,7 +70,7 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
 - [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, releasing a version, PWA updates
 - [Privacy](docs/privacy.md) – what is stored and where
 - [Security](docs/security.md) – threat model, supply chain, SBOM & provenance, CRA alignment
-- Games: [Sudoku](docs/games/sudoku.md) · [Crowns](docs/games/crowns.md) · [Links](docs/games/links.md) · [Nonogram](docs/games/nonogram.md) · [Shapes](docs/games/shapes.md)
+- Games: [Sudoku](docs/games/sudoku.md) · [Crowns](docs/games/crowns.md) · [Links](docs/games/links.md) · [Nonogram](docs/games/nonogram.md) · [Shapes](docs/games/shapes.md) · [Merge](docs/games/merge.md)
 - [Implementation plans](plan/README.md) – the original design and decisions
 - [Changelog](CHANGELOG.md)
 

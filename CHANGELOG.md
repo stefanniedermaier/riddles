@@ -8,6 +8,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- New game **Merge**: slide and merge number tiles on 3×3, 4×4 or 5×5 (targets 256 / 2048 /
+  4096, keep playing afterwards), swipe and keyboard control, best score and highest tile
 - New game **Nonogram**: 5×5 to 15×20, every puzzle unique and solvable by line logic,
   optional mistake check, explained hints, undo, statistics
 - Settings → Games: show/hide games and change their order by drag & drop (keyboard: arrow
