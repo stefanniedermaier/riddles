@@ -62,6 +62,11 @@ JSON
     fi
   done
 
+  # The CI workflow runs CodeQL with the stricter security-extended suite ("advanced setup");
+  # GitHub's default setup must be off, otherwise its SARIF uploads are rejected.
+  api -X PATCH "repos/$REPO/code-scanning/default-setup" -f state=not-configured >/dev/null \
+    && echo "  ✔ CodeQL default setup disabled (advanced setup in deploy.yml)"
+
   step "GitHub Actions (GitHub-owned actions only, SHA pinning, read-only token)"
   api -X PUT "repos/$REPO/actions/permissions" -F enabled=true -f allowed_actions=selected >/dev/null
   api -X PUT "repos/$REPO/actions/permissions/selected-actions" \
