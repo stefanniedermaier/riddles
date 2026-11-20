@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Shapes: opening a mode without playing no longer leaves a permanent *Continue* on the home
+  screen; Zen can be ended from the pause menu (*End game* records the score)
+
 ## [0.3.0] – 2026-11-20
 
 ### Security
