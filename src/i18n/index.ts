@@ -1,4 +1,5 @@
 import * as crowns from '@/games/crowns/i18n'
+import * as links from '@/games/links/i18n'
 import * as shapes from '@/games/shapes/i18n'
 import * as sudoku from '@/games/sudoku/i18n'
 
@@ -10,6 +11,7 @@ const enMessages = {
   ...en,
   sudoku: sudoku.en,
   crowns: crowns.en,
+  links: links.en,
   shapes: shapes.en,
 }
 
@@ -20,6 +22,7 @@ const deMessages: Messages<MessageSchema> = {
   ...de,
   sudoku: sudoku.de,
   crowns: crowns.de,
+  links: links.de,
   shapes: shapes.de,
 }
 

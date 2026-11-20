@@ -13,6 +13,7 @@ all data on the device. Every level is generated on the fly.
 | 03 | [Crowns](03-crowns.md)                       | Region puzzle (one crown per row/column/region), generator, UI |
 | 04 | [Shapes](04-shapes.md)                       | Match-3 engine, Zen / Time / Levels modes, animations         |
 | 05 | [Documentation & release](05-docs-release.md) | README, docs, license, icons, deployment, QA checklist        |
+| 06 | [Links](06-links.md)                         | Path-connection puzzle (Numberlink genre), added after v0.2.0 |
 
 ## Decisions (from the kick-off wizard)
 

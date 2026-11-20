@@ -43,6 +43,22 @@ defineProps<{ game: GameId }>()
         stroke-linejoin="round"
       />
     </template>
+    <template v-else-if="game === 'links'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <g fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 15h34v14" stroke="#e2445c" />
+        <path d="M15 27v22h20" stroke="#3a72d6" />
+        <path d="M27 39h22" stroke="#2f9e6e" opacity=".9" />
+      </g>
+      <g>
+        <circle cx="15" cy="15" r="5.5" fill="#e2445c" />
+        <circle cx="49" cy="29" r="5.5" fill="#e2445c" />
+        <circle cx="15" cy="27" r="5.5" fill="#3a72d6" />
+        <circle cx="35" cy="49" r="5.5" fill="#3a72d6" />
+        <circle cx="27" cy="39" r="5.5" fill="#2f9e6e" />
+        <circle cx="49" cy="39" r="5.5" fill="#2f9e6e" />
+      </g>
+    </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <circle cx="19" cy="19" r="8" fill="#e2445c" />
