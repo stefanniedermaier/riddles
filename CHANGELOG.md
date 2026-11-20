@@ -8,6 +8,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- New game **Nonogram**: 5×5 to 15×20, every puzzle unique and solvable by line logic,
+  optional mistake check, explained hints, undo, statistics
 - Settings → Games: show/hide games and change their order by drag & drop (keyboard: arrow
   keys on the handle); home screen, statistics and game settings follow the selection
 

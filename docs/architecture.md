@@ -109,6 +109,7 @@ incompatible format change instead of crashing the app.
 | `crowns:pool:v1`             | Pre-generated Crowns puzzles                |
 | `links:current:v1`           | Running Links game                          |
 | `links:pool:v1`              | Pre-generated Links puzzles                 |
+| `nonogram:current:v1`        | Running Nonogram game (pool: `nonogram:pool:v1`) |
 | `shapes:current:<mode>:v1`   | Running Shapes game per mode (levels: `v2`) |
 | `shapes:progress:v2`         | Current (highest unlocked) level            |
 | `sudoku:mini:current:v1`     | Running Mini-Sudoku game (pool: `sudoku:mini:pool:v1`) |

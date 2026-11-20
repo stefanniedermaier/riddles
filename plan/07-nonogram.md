@@ -11,7 +11,7 @@ empty cell. Genre name *Nonogram*; artwork and puzzles are original and generate
 | Easy       | 5×5                | 55–65 %                | simple line overlaps       |
 | Medium     | 10×10              | 50–60 %                | full single-line solving   |
 | Hard       | 15×15              | 45–55 %                | line solving, more passes  |
-| Expert     | 20×15 (landscape-fitting: 15 cols × 20 rows on phones if needed) | 45–55 % | line solving, many passes |
+| Expert     | 15×20 (portrait – 20 columns plus clues do not fit 360 px) | 45–55 % | line solving, many passes |
 
 Every puzzle has exactly one solution and is solvable by **line logic alone** (repeatedly
 deducing cells that are fixed in every arrangement of a single row/column) – no guessing.

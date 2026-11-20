@@ -4,7 +4,11 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/nonogram',
     name: 'nonogram',
-    component: () => import('@/views/ComingSoon.vue'),
-    props: { title: 'Nonogram' },
+    component: () => import('./NonogramLobby.vue'),
+  },
+  {
+    path: '/nonogram/play',
+    name: 'nonogram-play',
+    component: () => import('./NonogramPlay.vue'),
   },
 ]
