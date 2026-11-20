@@ -11,7 +11,7 @@ import {
 } from '../layout'
 import type { GameId } from '../types'
 
-const known: GameId[] = ['sudoku', 'crowns', 'links', 'nonogram', 'shapes', 'merge']
+const known: GameId[] = ['sudoku', 'crowns', 'links', 'nonogram', 'arrows', 'shapes', 'merge']
 
 describe('game layout', () => {
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('game layout', () => {
   it('drops unknown/duplicate ids and appends games added in an update (enabled)', () => {
     const stored = { order: ['shapes', 'tetris', 'shapes', 'sudoku'], disabled: ['crowns', 'tetris'] }
     expect(normalizeLayout(stored, known)).toEqual({
-      order: ['shapes', 'sudoku', 'crowns', 'links', 'nonogram', 'merge'],
+      order: ['shapes', 'sudoku', 'crowns', 'links', 'nonogram', 'arrows', 'merge'],
       disabled: ['crowns'],
     })
   })
@@ -49,12 +49,13 @@ describe('game layout', () => {
       'crowns',
       'links',
       'nonogram',
+      'arrows',
       'merge',
       'sudoku',
     ])
     setGameEnabled('links', false)
-    expect(visibleGames.value.map((game) => game.id)).toEqual(['shapes', 'crowns', 'nonogram', 'merge', 'sudoku'])
+    expect(visibleGames.value.map((game) => game.id)).toEqual(['shapes', 'crowns', 'nonogram', 'arrows', 'merge', 'sudoku'])
     setGameEnabled('links', true)
-    expect(visibleGames.value).toHaveLength(6)
+    expect(visibleGames.value).toHaveLength(7)
   })
 })

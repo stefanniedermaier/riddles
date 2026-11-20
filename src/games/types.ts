@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 
-export type GameId = 'sudoku' | 'crowns' | 'links' | 'nonogram' | 'shapes' | 'merge'
+export type GameId = 'sudoku' | 'crowns' | 'links' | 'nonogram' | 'shapes' | 'merge' | 'arrows'
 
 /**
  * What the app shell needs to know about a game. Each game exports one from

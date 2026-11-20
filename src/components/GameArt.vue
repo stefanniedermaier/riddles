@@ -94,6 +94,15 @@ defineProps<{ game: GameId }>()
         <text x="44.5" y="48.5" font-size="8" fill="var(--color-surface)">128</text>
       </g>
     </template>
+    <template v-else-if="game === 'arrows'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <g fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 14h22l-6-6M36 14l-6 6" stroke="var(--game-arrows)" />
+        <path d="M14 26v16h16v-6M30 36l-5 5M30 36l5 5" stroke="#3a72d6" transform="rotate(180 30 36)" />
+        <path d="M44 24v26M44 50l-6-6M44 50l6-6" stroke="#2f9e6e" />
+        <path d="M14 50h14M14 50l6-6M14 50l6 6" stroke="#e0a21b" />
+      </g>
+    </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <circle cx="19" cy="19" r="8" fill="#e2445c" />

@@ -8,6 +8,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- New game **Arrows**: tap arrows in the right order so they slide off the board (6×6 to
+  12×12, always solvable, 3 lives, hints, statistics)
 - New game **Merge**: slide and merge number tiles on 3×3, 4×4 or 5×5 (targets 256 / 2048 /
   4096, keep playing afterwards), swipe and keyboard control, best score and highest tile
 - New game **Nonogram**: 5×5 to 15×20, every puzzle unique and solvable by line logic,
