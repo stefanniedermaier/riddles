@@ -13,6 +13,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 - GitHub Actions pinned to commit SHAs, least-privilege permissions
 - Dependabot for npm and GitHub Actions with release cooldown; `min-release-age` and
   `engine-strict` in `.npmrc`
+- CycloneDX SBOM (`/sbom.cdx.json`) and signed build-provenance/SBOM attestations per deployment
+- Strict Content-Security-Policy and `no-referrer` policy in the production build
+- SECURITY.md with private vulnerability reporting, security documentation incl. voluntary
+  CRA alignment, issue/PR templates, CODEOWNERS
+- Repository configuration as code (`scripts/github/configure-repo.sh`, `.github/rulesets/`)
 
 ## [0.1.0] – 2026-11-20
 

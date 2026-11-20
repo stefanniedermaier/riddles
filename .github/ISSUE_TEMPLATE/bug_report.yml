@@ -1,0 +1,37 @@
+name: 🐞 Bug report
+description: Something does not work as expected (not for security issues).
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security problem?** Please use [private vulnerability reporting](https://github.com/stefanniedermaier/riddles/security/advisories/new) instead.
+  - type: dropdown
+    id: game
+    attributes:
+      label: Area
+      options: [Sudoku, Crowns, Shapes, App / settings / installation]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: 1. … 2. … 3. …
+  - type: input
+    id: version
+    attributes:
+      label: App version (Settings → About)
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device, OS and browser
+      placeholder: e.g. iPhone 15, iOS 20, installed to home screen

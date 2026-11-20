@@ -1,0 +1,10 @@
+# Default owner of everything in this repository.
+* @stefanniedermaier
+
+# Security-relevant configuration – changes need particular care.
+/.github/ @stefanniedermaier
+/scripts/ @stefanniedermaier
+/.npmrc @stefanniedermaier
+/package-lock.json @stefanniedermaier
+/vite.config.ts @stefanniedermaier
+/SECURITY.md @stefanniedermaier

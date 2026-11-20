@@ -63,9 +63,16 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
 - [Development](docs/development.md) – setup, testing, conventions, adding a game or translation
 - [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, PWA updates
 - [Privacy](docs/privacy.md) – what is stored and where
+- [Security](docs/security.md) – threat model, supply chain, SBOM & provenance, CRA alignment
 - Games: [Sudoku](docs/games/sudoku.md) · [Crowns](docs/games/crowns.md) · [Shapes](docs/games/shapes.md)
 - [Implementation plans](plan/README.md) – the original design and decisions
 - [Changelog](CHANGELOG.md)
+
+## Security
+
+Please report vulnerabilities privately – see [SECURITY.md](SECURITY.md). Every deployment
+only happens after supply-chain, CodeQL and test gates pass, ships an SBOM and is covered by
+signed build-provenance attestations ([details](docs/security.md)).
 
 ## Originality
 

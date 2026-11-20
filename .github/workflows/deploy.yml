@@ -3,7 +3,8 @@ name: CI & Deploy
 # Deployment only happens when ALL gates pass:
 #   supply-chain  – lockfile provenance/integrity/licenses, registry signatures, npm audit
 #   codeql        – static security analysis of the source code
-#   verify        – lint, type-check, unit tests, reproducible build
+#   verify        – lint, type-check, unit tests, reproducible build, SBOM, signed
+#                   build-provenance and SBOM attestations
 # Pull requests additionally run dependency-review for newly added/updated packages.
 #
 # Third-party actions are pinned to full commit SHAs (tag in the comment); Dependabot
@@ -111,6 +112,10 @@ jobs:
     name: Lint, test & build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # Sigstore signing of attestations (main only)
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -132,6 +137,26 @@ jobs:
       # The build must not modify tracked files (e.g. lockfile drift, stale generated assets).
       - name: Ensure clean working tree
         run: git diff --exit-code && test -z "$(git status --porcelain)"
+
+      # Software bill of materials of everything shipped to users, published with the site
+      # at /riddles/sbom.cdx.json.
+      - name: Generate SBOM (CycloneDX)
+        run: npm sbom --omit=dev --sbom-format=cyclonedx --sbom-type=application > dist/sbom.cdx.json
+
+      # Signed (Sigstore) attestations: which commit and workflow built each deployed file,
+      # and which SBOM belongs to it. Verify with `gh attestation verify <file> -R <repo>`.
+      - name: Attest build provenance
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: 'dist/**'
+
+      - name: Attest SBOM
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-path: 'dist/**'
+          sbom-path: dist/sbom.cdx.json
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
