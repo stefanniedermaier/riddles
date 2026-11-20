@@ -43,4 +43,6 @@
 ## 5. Versioning
 
 SemVer; version shown in Settings → About (injected from `package.json` at build time).
+Deployment is triggered by a signed tag `vX.Y.Z` that matches `package.json` and has a
+changelog section (see docs/deployment.md#releasing-a-new-version).
 v0.1.0 = first complete release with all three games.

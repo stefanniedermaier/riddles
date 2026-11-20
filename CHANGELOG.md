@@ -6,6 +6,16 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- *Install app* button on the home screen (native install dialog on Android/Chromium,
+  step-by-step instructions on iOS/iPadOS); hidden when the app is already installed
+
+### Changed
+
+- Deployment is driven by the version number: only a signed tag `vX.Y.Z` (matching
+  `package.json` and the changelog, on `main`) deploys and creates a GitHub Release with SBOM
+
 ### Fixed
 
 - Crowns: crowns and marks no longer change the cell size and distort the board

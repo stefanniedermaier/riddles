@@ -31,7 +31,8 @@ Every puzzle and level is generated on the fly.
 | **iPhone / iPad**     | Open the link in **Safari** → *Share* → **Add to Home Screen**                         |
 | **Android**           | Open the link in **Chrome** → menu (⋮) → **Install app** / *Add to Home screen*        |
 
-After the first start the app works without an internet connection. When a new version
+On Android (and desktop Chrome/Edge) the home screen also shows an **Install app** button;
+on iPhone/iPad it explains the steps. After the first start the app works without an internet connection. When a new version
 is published, the app shows an *Update* button.
 
 ## Development
@@ -53,6 +54,7 @@ npm run dev        # http://localhost:5173/riddles/ (also reachable from your ph
 | `npm run build`      | Type-check and production build into `dist/`        |
 | `npm run preview`    | Serve the production build (incl. service worker)   |
 | `npm run icons`      | Regenerate app icons from `public/logo.svg`         |
+| `npm run release:check` | Tag/version/changelog consistency before tagging a release |
 | `npm run check:deps` / `audit:ci` | Supply-chain checks (lockfile, licenses, signatures, audit) |
 
 Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
@@ -61,7 +63,7 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
 
 - [Architecture](docs/architecture.md) – structure, core modules, how games plug in, storage keys
 - [Development](docs/development.md) – setup, testing, conventions, adding a game or translation
-- [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, PWA updates
+- [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, releasing a version, PWA updates
 - [Privacy](docs/privacy.md) – what is stored and where
 - [Security](docs/security.md) – threat model, supply chain, SBOM & provenance, CRA alignment
 - Games: [Sudoku](docs/games/sudoku.md) · [Crowns](docs/games/crowns.md) · [Shapes](docs/games/shapes.md)
