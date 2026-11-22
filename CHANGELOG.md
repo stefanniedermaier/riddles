@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] – 2026-11-22
+
 ### Added
 
 - New game **Blocks**: place three pieces at a time on an 8×8 board and clear full rows and
