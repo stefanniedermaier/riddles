@@ -10,7 +10,7 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 - **Check** button in Sudoku, Nonogram and Crowns: highlights wrong entries and counts each
   mistake once; mistakes are shown in the result
-- Settings button inside every game (lobby and play view; the clock pauses while it is open)
+- Settings button on every game's start page (not shown while a game is running)
 - Settings → Game settings: pick a game, then change its options (deep link `?game=<id>`)
 - Arrows: option *Colour by direction*
 - Shapes: juice splashes, rocket beams and bomb shockwaves; points fly to the score

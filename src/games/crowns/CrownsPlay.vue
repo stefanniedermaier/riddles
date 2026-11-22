@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } f
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
-import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -46,14 +45,6 @@ type Status = 'loading' | 'playing' | 'won'
 const status = ref<Status>('loading')
 const game = ref<CrownsSave | null>(null)
 const stopwatch = useStopwatch(0)
-
-// The clock stops while the settings dialog covers the board.
-const settingsOpen = ref(false)
-watch(settingsOpen, (open) => {
-  if (status.value !== 'playing') return
-  if (open) stopwatch.pause()
-  else stopwatch.start()
-})
 
 const puzzle = computed(() => game.value?.puzzle ?? null)
 const geo = computed(() => (puzzle.value ? createGeometry(puzzle.value.size, puzzle.value.regions) : null))
@@ -353,7 +344,6 @@ if (typeof route.query.new !== 'string' && !resume()) {
 <template>
   <AppBar :title="title" back-to="/crowns">
     <template #actions>
-      <GameSettingsButton game="crowns" @open="settingsOpen = true" @close="settingsOpen = false" />
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
         <AppIcon name="clock" :size="18" />
         {{ formatDuration(stopwatch.elapsedMs.value) }}

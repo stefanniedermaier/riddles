@@ -79,7 +79,7 @@ const en = {
     motionReduced: 'Reduced',
     games: 'Games',
     gameSettings: 'Game settings',
-    gameSettingsHint: 'Choose a game to change its options. You can also open them from inside a game.',
+    gameSettingsHint: 'Choose a game to change its options. You can also open them on each game’s start page.',
     gamesHint: 'Drag to change the order. Hidden games keep their saved games and statistics.',
     gameMove: 'Move {game} (arrow keys)',
     gameMoved: '{game} moved to position {position}.',

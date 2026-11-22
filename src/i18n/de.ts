@@ -82,7 +82,7 @@ const de: Messages<typeof en> = {
     games: 'Spiele',
     gameSettings: 'Spiel-Einstellungen',
     gameSettingsHint:
-      'Wähle ein Spiel, um seine Optionen zu ändern. Du findest sie auch direkt im Spiel.',
+      'Wähle ein Spiel, um seine Optionen zu ändern. Du findest sie auch auf der Startseite jedes Spiels.',
     gamesHint:
       'Zum Sortieren ziehen. Ausgeblendete Spiele behalten ihre Spielstände und Statistiken.',
     gameMove: '{game} verschieben (Pfeiltasten)',

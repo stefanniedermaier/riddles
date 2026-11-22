@@ -8,33 +8,22 @@ import AppDialog from './AppDialog.vue'
 import AppIcon from './AppIcon.vue'
 
 /**
- * App bar button that opens the settings of one game in a dialog, so options can be
- * changed without leaving the game. Renders nothing for games without settings.
+ * App bar button for the game lobby that opens the settings of one game in a dialog.
+ * Renders nothing for games without settings. Not shown while a game is running.
  */
 const props = defineProps<{ game: GameId }>()
-const emit = defineEmits<{ open: []; close: [] }>()
 
 const panel = computed(() => settingsPanelOf(props.game))
 const open = ref(false)
 const title = computed(() => t('common.gameSettings', { game: t(`${props.game}.name`) }))
-
-function show(): void {
-  open.value = true
-  emit('open')
-}
-
-function hide(): void {
-  open.value = false
-  emit('close')
-}
 </script>
 
 <template>
   <template v-if="panel">
-    <button type="button" class="icon-btn" :aria-label="title" :title="title" @click="show">
+    <button type="button" class="icon-btn" :aria-label="title" :title="title" @click="open = true">
       <AppIcon name="settings" />
     </button>
-    <AppDialog :open="open" :title="title" @close="hide">
+    <AppDialog :open="open" :title="title" @close="open = false">
       <div class="game-settings">
         <component :is="panel" />
       </div>

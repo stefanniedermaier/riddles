@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
-import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -39,7 +38,6 @@ const routeMode = computed<SudokuMode>(() => (isMode(route.query.mode) ? route.q
 const playQuery = (playMode: SudokuMode) => (playMode === 'mini' ? { mode: 'mini' } : {})
 
 const menuOpen = ref(false)
-const settingsOpen = ref(false)
 const confirm = ref<'restart' | 'new' | null>(null)
 
 const difficulty = computed<Difficulty>(() => game.value?.puzzle.difficulty ?? 'easy')
@@ -80,7 +78,7 @@ onMounted(() => {
 })
 
 // Pause the clock while a dialog covers the board.
-const overlayOpen = computed(() => menuOpen.value || settingsOpen.value || confirm.value !== null)
+const overlayOpen = computed(() => menuOpen.value || confirm.value !== null)
 watch(overlayOpen, (open) => {
   if (status.value !== 'playing') return
   if (open) stopwatch.pause()
@@ -159,7 +157,6 @@ const resultRows = computed(() =>
       </h1>
     </template>
     <template #actions>
-      <GameSettingsButton game="sudoku" @open="settingsOpen = true" @close="settingsOpen = false" />
       <span v-if="status === 'playing'" class="timer tabular" :aria-label="t('common.time')">
         <AppIcon name="clock" :size="16" />
         {{ timeLabel }}
