@@ -8,6 +8,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- New game **Blocks**: place three pieces at a time on an 8×8 board and clear full rows and
+  columns; combos, board-clear bonus, drag & drop with preview, tap-to-place and keyboard
 - **Check** button in Sudoku, Nonogram and Crowns: highlights wrong entries and counts each
   mistake once; mistakes are shown in the result
 - Settings button on every game's start page (not shown while a game is running)

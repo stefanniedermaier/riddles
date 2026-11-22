@@ -110,6 +110,26 @@ defineProps<{ game: GameId }>()
         <path d="M29 28.5l-7.5 5.5 7.5 5.5z" />
       </g>
     </template>
+    <template v-else-if="game === 'blocks'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- A 4×4 board: a full row about to clear and a piece on its way. -->
+      <g opacity=".14" fill="var(--game-blocks)">
+        <rect v-for="i in 16" :key="i" :x="9 + ((i - 1) % 4) * 12" :y="9 + Math.floor((i - 1) / 4) * 12" width="10" height="10" rx="2" />
+      </g>
+      <g stroke="rgb(0 0 0 / 18%)" stroke-width="1">
+        <rect x="9" y="33" width="10" height="10" rx="2" fill="#3b82f6" />
+        <rect x="21" y="33" width="10" height="10" rx="2" fill="#3b82f6" />
+        <rect x="33" y="33" width="10" height="10" rx="2" fill="#22c55e" />
+        <rect x="45" y="33" width="10" height="10" rx="2" fill="#22c55e" />
+        <rect x="9" y="45" width="10" height="10" rx="2" fill="#ef4444" />
+        <rect x="45" y="45" width="10" height="10" rx="2" fill="#a855f7" />
+        <rect x="33" y="45" width="10" height="10" rx="2" fill="#a855f7" />
+        <rect x="21" y="9" width="10" height="10" rx="2" fill="#f97316" />
+        <rect x="33" y="9" width="10" height="10" rx="2" fill="#f97316" />
+        <rect x="33" y="21" width="10" height="10" rx="2" fill="#f97316" />
+      </g>
+      <path d="M8 38h48" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".7" />
+    </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <!-- Strawberry, orange, leaf and grapes – the fruit-garden pieces of the game. -->

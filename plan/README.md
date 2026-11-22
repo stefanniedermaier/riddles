@@ -19,6 +19,7 @@ all data on the device. Every level is generated on the fly.
 | 09 | [Merge](09-merge.md)                         | Sliding number game (3×3, 4×4, 5×5)                           |
 | 10 | [Arrows](10-arrows.md)                       | Ordering puzzle: tap arrows so they slide out                 |
 | 11 | [Game plugins](11-game-plugins.md)           | Game API (one module list) done; repos / plugins in backlog   |
+| 12 | [Blocks](12-blocks.md)                       | Block-placing puzzle: three pieces, clear rows and columns     |
 
 ## Decisions (from the kick-off wizard)
 
