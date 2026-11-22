@@ -34,7 +34,7 @@ Pages, and all state lives in the browser's `localStorage`.
 | `src/components/`       | Shared UI components (app bar, buttons, dialogs, icons …)       |
 | `src/views/`            | Home, settings, statistics, not-found                           |
 | `src/i18n/`             | Shell texts (`en.ts`, `de.ts`) and the merged message catalogue |
-| `src/games/`            | One folder per game + `registry.ts` + `types.ts`                |
+| `src/games/`            | One folder per game + `modules.ts` (the list) + `registry.ts`   |
 | `src/styles/`           | Design tokens (CSS custom properties) and base styles           |
 | `public/`               | Logo, favicon and generated PWA icons                           |
 
@@ -56,7 +56,9 @@ Pages, and all state lives in the browser's `localStorage`.
 
 ## How a game plugs in
 
-A game lives entirely in `src/games/<id>/` and connects to the shell through three files:
+A game lives entirely in `src/games/<id>/`. Its `module.ts` is the **game API**: a
+`GameModule` (`src/games/module.ts`) created with `defineGame({ id, descriptor, routes,
+messages })`, built from three files:
 
 | File         | Exports                                                                                       |
 | ------------ | --------------------------------------------------------------------------------------------- |
@@ -64,8 +66,20 @@ A game lives entirely in `src/games/<id>/` and connects to the shell through thr
 | `routes.ts`  | `routes: RouteRecordRaw[]` – usually a lobby (`/<id>`) and a play view (`/<id>/play`)          |
 | `i18n.ts`    | `en` and `de` message objects; merged under the namespace `<id>`                               |
 
-`src/games/registry.ts` lists all descriptors and routes. The home screen, statistics view
-and settings view are generated from the registry – they contain no game-specific code.
+`src/games/modules.ts` is the **only list of games**. Everything else is derived from it:
+
+```
+games/<id>/module.ts ──▶ games/modules.ts ──┬─▶ GameId type
+                                            ├─▶ registry.ts (descriptors, routes) ──▶ router, views
+                                            └─▶ i18n/index.ts (texts, typed keys)  ──▶ t()
+```
+
+The home screen, statistics and settings views are generated from the registry – they
+contain no game-specific code. Message keys stay fully typed (`t('sudoku.name')`), and
+`defineGame` rejects German texts whose keys differ from the English ones. The text
+catalogue is built on first use, because game descriptors import `t` (building it while
+the modules load would be an import cycle). `src/games/__tests__/modules.test.ts` checks
+that ids are unique, match the descriptors and that routes stay under `/<id>`.
 
 `src/games/layout.ts` holds the player's choice of **which games are shown and in which
 order** (Settings → Games, drag & drop). `visibleGames` drives the home screen, statistics
@@ -112,6 +126,7 @@ incompatible format change instead of crashing the app.
 | `nonogram:current:v1`        | Running Nonogram game (pool: `nonogram:pool:v1`) |
 | `arrows:current:v1`          | Running Arrows game (pool: `arrows:pool:v1`, settings: `arrows:settings`) |
 | `merge:current:<variant>:v1` | Running Merge game per variant; `merge:records:v1` = highest tiles |
+| `blocks:current:v1`          | Running Blocks game                         |
 | `shapes:current:<mode>:v1`   | Running Shapes game per mode (levels: `v2`) |
 | `shapes:progress:v2`         | Current (highest unlocked) level            |
 | `sudoku:mini:current:v1`     | Running Mini-Sudoku game (pool: `sudoku:mini:pool:v1`) |

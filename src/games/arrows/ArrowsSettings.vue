@@ -7,6 +7,11 @@ import { arrowsSettings } from './settings'
 <template>
   <div>
     <ToggleRow
+      v-model="arrowsSettings.colorByDirection"
+      :label="t('arrows.settings.colorByDirection')"
+      :description="t('arrows.settings.colorByDirectionDesc')"
+    />
+    <ToggleRow
       v-model="arrowsSettings.showBlockedPath"
       :label="t('arrows.settings.showBlockedPath')"
       :description="t('arrows.settings.showBlockedPathDesc')"

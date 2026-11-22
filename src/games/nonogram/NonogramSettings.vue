@@ -7,9 +7,9 @@ import { nonogramSettings } from './settings'
 <template>
   <div>
     <ToggleRow
-      v-model="nonogramSettings.checkMistakes"
-      :label="t('nonogram.settings.checkMistakes')"
-      :description="t('nonogram.settings.checkMistakesDesc')"
+      v-model="nonogramSettings.instantMistakes"
+      :label="t('nonogram.settings.instantMistakes')"
+      :description="t('nonogram.settings.instantMistakesDesc')"
     />
     <ToggleRow
       v-model="nonogramSettings.highlightLines"

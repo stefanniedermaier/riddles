@@ -48,6 +48,66 @@ const finished = ref(false)
 
 const animator = useBoardAnimator(motionEnabled)
 const displayScore = ref(initial?.score ?? 0)
+
+// ---------------------------------------------------------------------------
+// Points flying from the cleared pieces to the score
+
+interface Flight {
+  id: number
+  x: number
+  y: number
+  dx: number
+  dy: number
+  text: string
+}
+
+const FLY_MS = 650
+const boardWrap = ref<HTMLElement | null>(null)
+const flights = ref<Flight[]>([])
+const scoreBump = ref(0)
+let flightId = 1
+/** Changes with every new run, so points of an old run never land in a new one. */
+let runToken = 0
+
+/** Adds points to the shown score without overtaking the real one. */
+function addShownScore(points: number): void {
+  const cap = run.value?.score ?? 0
+  if (displayScore.value >= cap) return
+  displayScore.value = Math.min(cap, displayScore.value + points)
+  scoreBump.value++
+}
+
+function flyPoints(score: number, cells: number[]): void {
+  if (score <= 0) return
+  const board = boardWrap.value?.getBoundingClientRect()
+  const target = document.querySelector('[data-score-target]')?.getBoundingClientRect()
+  if (!motionEnabled.value || !board || !target || board.width === 0 || cells.length === 0) {
+    addShownScore(score)
+    return
+  }
+  const cell = board.width / 8
+  const row = cells.reduce((sum, c) => sum + Math.floor(c / 8), 0) / cells.length
+  const col = cells.reduce((sum, c) => sum + (c % 8), 0) / cells.length
+  const x = board.left + (col + 0.5) * cell
+  const y = board.top + (row + 0.5) * cell
+  const id = flightId++
+  const token = runToken
+  flights.value = [
+    ...flights.value,
+    {
+      id,
+      x,
+      y,
+      dx: target.left + target.width / 2 - x,
+      dy: target.top + target.height / 2 - y,
+      text: `+${formatNumber(score)}`,
+    },
+  ]
+  setTimeout(() => {
+    flights.value = flights.value.filter((flight) => flight.id !== id)
+    if (token === runToken) addShownScore(score)
+  }, FLY_MS)
+}
 if (initial) animator.show(initial.board, initial.level?.field)
 
 // ---------------------------------------------------------------------------
@@ -170,12 +230,14 @@ async function onSwap(a: number, b: number): Promise<void> {
   }
 
   await animator.play(outcome.result.phases, outcome.result.board, {
-    onClear: (score) => {
-      displayScore.value += score
-    },
+    onClear: (score, cells) => flyPoints(score, cells),
     onShuffle: () => showToast(t('shapes.board.shuffled')),
   }, run.value?.level?.field)
-  displayScore.value = run.value?.score ?? 0
+  // Points still in the air land a moment later; then the shown score is exact again.
+  const token = runToken
+  setTimeout(() => {
+    if (token === runToken && !finished.value) displayScore.value = run.value?.score ?? 0
+  }, FLY_MS + 50)
 
   if (outcome.levelState === 'won') finishLevel(true)
   else if (outcome.levelState === 'lost') finishLevel(false)
@@ -224,6 +286,8 @@ function finishLevel(won: boolean): void {
 
 /** Replaces the current run (new game, next level, retry). */
 function startRun(next: ShapesRun): void {
+  runToken++
+  flights.value = []
   run.value = next
   finished.value = false
   result.value = null
@@ -398,11 +462,12 @@ onBeforeUnmount(() => {
       :bonus-key="bonusKey"
       :moves-left="run.level?.movesLeft"
       :goals="goals"
+      :score-bump="scoreBump"
     />
-    <div class="board-wrap" :class="{ 'board-wrap--levels': mode === 'levels' }">
+    <div ref="boardWrap" class="board-wrap" :class="{ 'board-wrap--levels': mode === 'levels' }">
       <ShapesBoard
         :pieces="animator.pieces.value"
-        :popups="animator.popups.value"
+        :effects="animator.effects.value"
         :field="animator.field.value"
         :selected="selected"
         :hint="hint"
@@ -411,6 +476,21 @@ onBeforeUnmount(() => {
         @select="selected = $event"
         @interact="scheduleHint"
       />
+    </div>
+    <div class="flights" aria-hidden="true">
+      <span
+        v-for="flight in flights"
+        :key="flight.id"
+        class="flight tabular"
+        :style="{
+          left: `${flight.x}px`,
+          top: `${flight.y}px`,
+          '--dx': `${flight.dx}px`,
+          '--dy': `${flight.dy}px`,
+        }"
+      >
+        {{ flight.text }}
+      </span>
     </div>
   </main>
 
@@ -470,6 +550,42 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   padding-top: var(--space-2);
+}
+
+.flights {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.flight {
+  position: absolute;
+  padding: 2px 9px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, #ffd84a, #ff9a1f);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
+  color: #3a1d00;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  animation: flight 0.65s cubic-bezier(0.5, 0, 0.75, 0.6) forwards;
+}
+
+@keyframes flight {
+  0% {
+    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 0;
+  }
+  18% {
+    transform: translate(-50%, -90%) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.7);
+    opacity: 0.85;
+  }
 }
 
 .board-wrap {

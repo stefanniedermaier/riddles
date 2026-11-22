@@ -6,6 +6,28 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- New game **Blocks**: place three pieces at a time on an 8×8 board and clear full rows and
+  columns; combos, board-clear bonus, drag & drop with preview, tap-to-place and keyboard
+- **Check** button in Sudoku, Nonogram and Crowns: highlights wrong entries and counts each
+  mistake once; mistakes are shown in the result
+- Settings button on every game's start page (not shown while a game is running)
+- Settings → Game settings: pick a game, then change its options (deep link `?game=<id>`)
+- Arrows: option *Colour by direction*
+- Shapes: juice splashes, rocket beams and bomb shockwaves; points fly to the score
+
+### Changed
+
+- Shapes: new fruit-and-garden pieces (strawberry, orange, lemon, leaf, flower, grapes) in
+  more saturated colours, rocket / bomb / rainbow-ball specials, wooden crates, acorn items
+- Mistakes are no longer shown right away in Nonogram and Crowns (instant mode is an option,
+  off by default)
+- Arrows: all arrows share one colour by default (colours per direction gave the order away)
+- Icons: Links endpoints aligned, Arrows icon redrawn without overlapping arrows
+- Games plug in through one module list (`src/games/modules.ts`): registry, routes, texts
+  and the `GameId` type are derived from it
+
 ## [0.4.0] – 2026-11-20
 
 ### Added

@@ -46,13 +46,13 @@ defineProps<{ game: GameId }>()
     <template v-else-if="game === 'links'">
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <g fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 15h34v14" stroke="#e2445c" />
+        <path d="M15 15h34v12" stroke="#e2445c" />
         <path d="M15 27v22h20" stroke="#3a72d6" />
         <path d="M27 39h22" stroke="#2f9e6e" opacity=".9" />
       </g>
       <g>
         <circle cx="15" cy="15" r="5.5" fill="#e2445c" />
-        <circle cx="49" cy="29" r="5.5" fill="#e2445c" />
+        <circle cx="49" cy="27" r="5.5" fill="#e2445c" />
         <circle cx="15" cy="27" r="5.5" fill="#3a72d6" />
         <circle cx="35" cy="49" r="5.5" fill="#3a72d6" />
         <circle cx="27" cy="39" r="5.5" fill="#2f9e6e" />
@@ -96,19 +96,62 @@ defineProps<{ game: GameId }>()
     </template>
     <template v-else-if="game === 'arrows'">
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
-      <g fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 14h22l-6-6M36 14l-6 6" stroke="var(--game-arrows)" />
-        <path d="M14 26v16h16v-6M30 36l-5 5M30 36l5 5" stroke="#3a72d6" transform="rotate(180 30 36)" />
-        <path d="M44 24v26M44 50l-6-6M44 50l6-6" stroke="#2f9e6e" />
-        <path d="M14 50h14M14 50l6-6M14 50l6 6" stroke="#e0a21b" />
+      <!-- Four arrows on a grid that never cross: one colour, like on the board. -->
+      <g fill="none" stroke="var(--game-arrows)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 14h22" />
+        <path d="M50 48V20" />
+        <path d="M14 26v24h16" />
+        <path d="M40 34H28" />
       </g>
+      <g fill="var(--game-arrows)" stroke="var(--game-arrows)" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M33 8.5l7.5 5.5-7.5 5.5z" />
+        <path d="M44.5 21l5.5-7.5 5.5 7.5z" />
+        <path d="M29 44.5l7.5 5.5-7.5 5.5z" />
+        <path d="M29 28.5l-7.5 5.5 7.5 5.5z" />
+      </g>
+    </template>
+    <template v-else-if="game === 'blocks'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- A 4×4 board: a full row about to clear and a piece on its way. -->
+      <g opacity=".14" fill="var(--game-blocks)">
+        <rect v-for="i in 16" :key="i" :x="9 + ((i - 1) % 4) * 12" :y="9 + Math.floor((i - 1) / 4) * 12" width="10" height="10" rx="2" />
+      </g>
+      <g stroke="rgb(0 0 0 / 18%)" stroke-width="1">
+        <rect x="9" y="33" width="10" height="10" rx="2" fill="#3b82f6" />
+        <rect x="21" y="33" width="10" height="10" rx="2" fill="#3b82f6" />
+        <rect x="33" y="33" width="10" height="10" rx="2" fill="#22c55e" />
+        <rect x="45" y="33" width="10" height="10" rx="2" fill="#22c55e" />
+        <rect x="9" y="45" width="10" height="10" rx="2" fill="#ef4444" />
+        <rect x="45" y="45" width="10" height="10" rx="2" fill="#a855f7" />
+        <rect x="33" y="45" width="10" height="10" rx="2" fill="#a855f7" />
+        <rect x="21" y="9" width="10" height="10" rx="2" fill="#f97316" />
+        <rect x="33" y="9" width="10" height="10" rx="2" fill="#f97316" />
+        <rect x="33" y="21" width="10" height="10" rx="2" fill="#f97316" />
+      </g>
+      <path d="M8 38h48" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".7" />
     </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
-      <circle cx="19" cy="19" r="8" fill="#e2445c" />
-      <path d="M45 10l9 16H36z" fill="#f08a24" stroke="#f08a24" stroke-width="2" stroke-linejoin="round" />
-      <path d="M19 36l9 9-9 9-9-9z" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="2" stroke-linejoin="round" />
-      <rect x="37" y="37" width="16" height="16" rx="3" fill="#3a72d6" />
+      <!-- Strawberry, orange, leaf and grapes – the fruit-garden pieces of the game. -->
+      <path d="M20 31C13 29 8 22 9 16c1-4 6-5 11-4 5-1 10 0 11 4 1 6-4 13-11 15z" fill="#f0213f" />
+      <path d="M13 12.5q3.5-4 7-1.5 3.5-2.5 7 1.5-3.5 2-7 1-3.5 1-7-1z" fill="#2fa84f" />
+      <g fill="#ffe7a1">
+        <circle cx="16" cy="18" r="1" /><circle cx="22" cy="18" r="1" /><circle cx="19" cy="23" r="1" />
+      </g>
+      <circle cx="44" cy="22" r="11" fill="#d96400" />
+      <circle cx="43" cy="21" r="9.8" fill="#ff8a00" />
+      <path d="M45 11q3-6 10-4-3 6-10 4z" fill="#2fa84f" />
+      <circle cx="39.5" cy="17.5" r="2.4" fill="#fff" opacity=".55" />
+      <g transform="rotate(32 20 44)">
+        <path d="M20 32c9 5 10 17 0 24-10-7-9-19 0-24z" fill="#22b34c" />
+        <path d="M20 34v21" stroke="#157a32" stroke-width="1.6" stroke-linecap="round" />
+      </g>
+      <g>
+        <circle cx="38" cy="42" r="5" fill="#6c1fc0" /><circle cx="37.4" cy="41.4" r="4" fill="#9b40f2" />
+        <circle cx="48" cy="42" r="5" fill="#6c1fc0" /><circle cx="47.4" cy="41.4" r="4" fill="#9b40f2" />
+        <circle cx="43" cy="50" r="5" fill="#6c1fc0" /><circle cx="42.4" cy="49.4" r="4" fill="#9b40f2" />
+        <path d="M43 37v-4" stroke="#7a4a1f" stroke-width="2" stroke-linecap="round" />
+      </g>
     </template>
   </svg>
 </template>

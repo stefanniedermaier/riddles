@@ -76,15 +76,16 @@ The dev server listens on all interfaces (`--host`), so you can open
 3. Use it with `t('path.to.key')`; placeholders use `{name}` and `t(key, { name })`.
 
 To add a language, add a new message object typed with `Messages<…>` in each i18n file,
-register it in `src/i18n/index.ts` and `core/i18n.ts` (`Locale`, `detectLocale`), and add
+add it to `GameModule.messages` (`src/games/module.ts`), `src/i18n/index.ts` and `core/i18n.ts` (`Locale`, `detectLocale`), and add
 an option in the settings view.
 
 ## Adding a game
 
-1. Create `src/games/<id>/` with `index.ts` (descriptor), `routes.ts`, `i18n.ts`.
-2. Add the id to `GameId` in `src/games/types.ts`.
-3. Register descriptor and routes in `src/games/registry.ts`, the messages in
-   `src/i18n/index.ts`, an accent colour `--game-<id>` in `tokens.css` and artwork in
+1. Create `src/games/<id>/` with `index.ts` (descriptor), `routes.ts`, `i18n.ts` and
+   `module.ts` (`export default defineGame({ id: '<id>', descriptor, routes, messages })`).
+2. Add the module to `gameModules` in `src/games/modules.ts` – this registers the id
+   (`GameId`), the routes, the statistics/settings entries and the texts.
+3. Add an accent colour `--game-<id>` in `tokens.css` and artwork in
    `components/GameArt.vue`.
 4. Put rules and generators into `logic/` with tests; heavy generation into a worker
    (`core/worker.ts`) behind a puzzle pool (`core/pool.ts`).

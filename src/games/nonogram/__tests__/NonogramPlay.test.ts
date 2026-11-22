@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { toasts } from '@/core/toast'
 import { SAVE_KEY } from '../index'
 import { generatePuzzle } from '../logic/generator'
 import { isNonogramSave, type NonogramPuzzle } from '../logic/types'
@@ -42,7 +43,7 @@ describe('NonogramPlay', () => {
     resetStats()
     settings.value.locale = 'en'
     settings.value.motion = 'reduced'
-    nonogramSettings.value.checkMistakes = true
+    nonogramSettings.value.instantMistakes = true
   })
   afterEach(() => {
     document.body.innerHTML = ''
@@ -103,8 +104,8 @@ describe('NonogramPlay', () => {
     wrapper.unmount()
   })
 
-  it('does not count or show mistakes when checking is off', async () => {
-    nonogramSettings.value.checkMistakes = false
+  it('only shows and counts mistakes on "Check" when instant mode is off', async () => {
+    nonogramSettings.value.instantMistakes = false
     const puzzle = generatePuzzle('easy', 11)
     const { wrapper } = await start(puzzle)
     const board = wrapper.findComponent({ name: 'NonogramBoard' })
@@ -113,6 +114,24 @@ describe('NonogramPlay', () => {
     board.vm.$emit('end')
     await flushPromises()
     expect(saved()!.mistakes).toBe(0)
+    expect(wrapper.findAll('.cell--wrong')).toHaveLength(0)
+
+    const check = wrapper.find('.toolbar button[aria-label="Check"]')
+    await check.trigger('click')
+    await flushPromises()
+    expect(saved()!.mistakes).toBe(1)
+    expect(wrapper.findAll('.cell--wrong')).toHaveLength(1)
+    expect(toasts[0]?.text).toContain('1 mistake found')
+
+    // Checking again without changes does not count the same mistake twice.
+    await check.trigger('click')
+    await flushPromises()
+    expect(saved()!.mistakes).toBe(1)
+
+    // Clearing the wrong mark removes the highlight.
+    board.vm.$emit('start', wrongCell)
+    board.vm.$emit('end')
+    await flushPromises()
     expect(wrapper.findAll('.cell--wrong')).toHaveLength(0)
     wrapper.unmount()
   })

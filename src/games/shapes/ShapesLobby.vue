@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
@@ -59,7 +60,11 @@ function select(id: string): void {
 </script>
 
 <template>
-  <AppBar :title="t('shapes.name')" back-to="/" />
+  <AppBar :title="t('shapes.name')" back-to="/">
+    <template #actions>
+      <GameSettingsButton game="shapes" />
+    </template>
+  </AppBar>
   <main class="page lobby" :class="{ 'lobby--played': hasPlayed }">
     <section class="intro" :aria-label="t('shapes.lobby.howToTitle')">
       <h2 v-if="hasPlayed" class="section-title">{{ t('shapes.lobby.howToTitle') }}</h2>

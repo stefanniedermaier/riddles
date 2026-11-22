@@ -1,22 +1,23 @@
 # Shapes
 
 Shapes is a match-3 game on an 8×8 board. Swap two neighbouring pieces so that three or
-more pieces of the same shape line up in a row or column. They disappear, the pieces above
+more pieces of the same kind line up in a row or column. They disappear, the pieces above
 fall down and new pieces drop in from the top.
 
-The pieces are original geometric shapes. Each kind has its own colour **and** outline,
-so the game is playable without colour vision:
+The pieces are original fruit-and-garden illustrations (inline SVG, `ShapePiece.vue`). Each
+kind has its own saturated colour **and** silhouette, so the game is playable without colour
+vision:
 
-| Kind | Shape    | Colour |
-| ---- | -------- | ------ |
-| 0    | Circle   | red    |
-| 1    | Triangle | orange |
-| 2    | Square   | yellow |
-| 3    | Diamond  | green  |
-| 4    | Hexagon  | blue   |
-| 5    | Star     | purple |
+| Kind | Piece      | Colour |
+| ---- | ---------- | ------ |
+| 0    | Strawberry | red    |
+| 1    | Orange     | orange |
+| 2    | Lemon      | yellow |
+| 3    | Leaf       | green  |
+| 4    | Flower     | blue   |
+| 5    | Grapes     | purple |
 
-Levels 1–5 use five kinds (circle to hexagon), everything else uses all six.
+Levels 1–5 use five kinds (strawberry to flower), everything else uses all six.
 
 ## Controls
 
@@ -34,10 +35,10 @@ After 8 seconds without input a possible move pulses gently (can be switched off
 
 | Created by                       | Special | Marking         | Effect when cleared                                   |
 | -------------------------------- | ------- | --------------- | ----------------------------------------------------- |
-| 4 in a line (horizontal)         | Line    | ◄━► arrow bar   | clears its whole **row**                              |
-| 4 in a line (vertical)           | Line    | vertical bar    | clears its whole **column**                           |
-| L or T shape (crossing lines)    | Burst   | white ring      | clears the surrounding 3×3 area                        |
-| 5 or more in a line              | Prism   | six-colour disc | see below – never part of a regular match              |
+| 4 in a line (horizontal)         | Line    | rocket (→)      | clears its whole **row**                              |
+| 4 in a line (vertical)           | Line    | rocket (↑)      | clears its whole **column**                           |
+| L or T shape (crossing lines)    | Burst   | bomb            | clears the surrounding 3×3 area                        |
+| 5 or more in a line              | Prism   | rainbow ball    | see below – never part of a regular match              |
 
 The special appears where the moved piece landed (or, for cascades, at the crossing point of
 an L/T or the middle of the line). It keeps the kind of the match, so line and burst pieces
@@ -181,7 +182,10 @@ created specials, triggered specials, score, cascade depth, obstacles afterwards
 (Zen, Time) the engine behaves exactly as before obstacles existed. `animator.ts` plays them one after another
 with CSS transform transitions. Piece ids are used as Vue keys and the rendered list is
 sorted by id, so DOM elements are never re-ordered and transitions are not interrupted.
-With reduced motion the final board is shown immediately.
+Clears additionally show short board effects (juice splashes in the colour of the kind, a
+beam for rockets, a shockwave for bombs, a rainbow ring for the prism), and the points of
+every clear fly from the cleared cells to the score, which bumps when they land.
+With reduced motion the final board is shown immediately, without effects or flying points.
 
 ## Storage keys
 

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import GameArt from '@/components/GameArt.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import GameOrderList from '@/components/GameOrderList.vue'
 import SegmentedControl from '@/components/SegmentedControl.vue'
@@ -13,7 +15,7 @@ import { settings, type LocaleSetting, type MotionSetting, type ThemeSetting } f
 import { clearAll, exportData, importData, parseExport, type ExportFile } from '@/core/storage'
 import { showToast } from '@/core/toast'
 import { visibleGames } from '@/games/layout'
-import { games } from '@/games/registry'
+import { settingsPanelOf } from '@/games/settingsPanels'
 import type { GameId } from '@/games/types'
 
 const version = __APP_VERSION__
@@ -35,17 +37,48 @@ const motionOptions = computed(() => [
   { value: 'reduced' as MotionSetting, label: t('settings.motionReduced') },
 ])
 
-// One async component per game (created once), shown in the user's order for enabled games.
-const settingsComponents = new Map(
-  games
-    .filter((game) => game.settingsComponent)
-    .map((game) => [game.id, defineAsyncComponent(game.settingsComponent!)] as const),
-)
-const gameSettings = computed(() =>
+// --- Game settings: pick a game, then change its options -------------------
+
+const route = useRoute()
+
+/** Shown games that have options, in the player's order. */
+const configurableGames = computed(() =>
   visibleGames.value
-    .filter((game) => settingsComponents.has(game.id))
-    .map((game) => ({ id: game.id as GameId, component: settingsComponents.get(game.id)! })),
+    .map((game) => ({ id: game.id as GameId, panel: settingsPanelOf(game.id) }))
+    .filter((game) => game.panel !== null),
 )
+
+const selectedGame = ref<GameId | null>(null)
+const selectedPanel = computed(
+  () => configurableGames.value.find((game) => game.id === selectedGame.value)?.panel ?? null,
+)
+
+// Preselect the game from `?game=<id>` (deep link), otherwise the first one.
+watch(
+  [configurableGames, () => route.query.game],
+  ([list, requested]) => {
+    const ids = list.map((game) => game.id)
+    if (typeof requested === 'string' && ids.includes(requested as GameId)) {
+      selectedGame.value = requested as GameId
+    } else if (!selectedGame.value || !ids.includes(selectedGame.value)) {
+      selectedGame.value = ids[0] ?? null
+    }
+  },
+  { immediate: true },
+)
+
+// Keep the chosen game visible in the horizontally scrolling picker (without scrolling the
+// page itself, so `scrollIntoView` is not used).
+async function revealSelectedGame(): Promise<void> {
+  await nextTick()
+  const tab = document.getElementById(`game-tab-${selectedGame.value}`)
+  const picker = tab?.parentElement
+  if (!tab || !picker) return
+  picker.scrollLeft = tab.offsetLeft - picker.offsetLeft - (picker.clientWidth - tab.offsetWidth) / 2
+}
+
+watch(selectedGame, revealSelectedGame)
+onMounted(revealSelectedGame)
 
 // --- Export ---------------------------------------------------------------
 
@@ -143,10 +176,35 @@ function resetAll(): void {
       <GameOrderList />
     </section>
 
-    <template v-for="game in gameSettings" :key="game.id">
-      <h2 class="section-title">{{ t(`${game.id}.name`) }}</h2>
+    <template v-if="configurableGames.length">
+      <h2 class="section-title">{{ t('settings.gameSettings') }}</h2>
       <section class="card">
-        <component :is="game.component" />
+        <p class="muted info game-settings__hint">{{ t('settings.gameSettingsHint') }}</p>
+        <div class="game-picker" role="tablist" :aria-label="t('settings.gameSettings')">
+          <button
+            v-for="game in configurableGames"
+            :id="`game-tab-${game.id}`"
+            :key="game.id"
+            type="button"
+            role="tab"
+            class="game-picker__item"
+            :class="{ 'game-picker__item--active': selectedGame === game.id }"
+            :aria-selected="selectedGame === game.id"
+            aria-controls="game-settings-panel"
+            @click="selectedGame = game.id"
+          >
+            <GameArt :game="game.id" class="game-picker__art" />
+            <span>{{ t(`${game.id}.name`) }}</span>
+          </button>
+        </div>
+        <div
+          id="game-settings-panel"
+          role="tabpanel"
+          class="game-settings__panel"
+          :aria-labelledby="selectedGame ? `game-tab-${selectedGame}` : undefined"
+        >
+          <component :is="selectedPanel" v-if="selectedPanel" :key="selectedGame ?? ''" />
+        </div>
       </section>
     </template>
 
@@ -228,6 +286,50 @@ function resetAll(): void {
 
 .about {
   gap: var(--space-2);
+}
+
+.game-settings__hint {
+  padding: var(--space-3) var(--space-4) 0;
+}
+
+.game-picker {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding: var(--space-3) var(--space-4);
+  scrollbar-width: none;
+}
+
+.game-picker__item {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 68px;
+  padding: var(--space-2) var(--space-1);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.game-picker__item--active {
+  border-color: var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.game-picker__art {
+  width: 40px;
+  height: 40px;
+}
+
+.game-settings__panel {
+  border-top: 1px solid var(--color-border);
 }
 
 .about__link {

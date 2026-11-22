@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -80,7 +81,11 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
 </script>
 
 <template>
-  <AppBar :title="t('sudoku.name')" back-to="/" />
+  <AppBar :title="t('sudoku.name')" back-to="/">
+    <template #actions>
+      <GameSettingsButton game="sudoku" />
+    </template>
+  </AppBar>
 
   <main class="page">
     <SegmentedControl v-model="mode" :options="modeOptions" :label="t('sudoku.modes.label')" />

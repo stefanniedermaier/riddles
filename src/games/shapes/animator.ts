@@ -25,19 +25,30 @@ export interface DisplayPiece {
   durationMs: number
 }
 
-export interface ScorePopup {
+/**
+ * A short visual effect on the board:
+ * - `pop`: juice splash where a piece was cleared (in the colour of its kind)
+ * - `line-h` / `line-v`: rocket beam along a row or column
+ * - `burst`: bomb shockwave
+ * - `prism`: rainbow flash
+ */
+export interface BoardEffect {
   id: number
+  type: 'pop' | 'line-h' | 'line-v' | 'burst' | 'prism'
   row: number
   col: number
-  text: string
+  kind: number
 }
 
 export const SWAP_MS = 160
-export const CLEAR_MS = 230
+export const CLEAR_MS = 260
 export const FALL_BASE_MS = 110
 export const FALL_ROW_MS = 55
 export const SHUFFLE_MS = 380
-export const POPUP_MS = 900
+/** Lifetime of a board effect. */
+export const EFFECT_MS = 650
+/** At most this many juice splashes per clear (big combos would flood the DOM). */
+const MAX_POPS = 24
 
 const wait = (ms: number) =>
   ms > 0 ? new Promise<void>((resolve) => setTimeout(resolve, ms)) : Promise.resolve()
@@ -53,8 +64,11 @@ const nextPaint = () =>
   })
 
 export interface PlayCallbacks {
-  /** Called when a clear phase starts (score / goal counters can tick up). */
-  onClear?: (score: number) => void
+  /**
+   * Called when a clear phase starts (score / goal counters can tick up). `cells` are the
+   * cleared cells (used to let the points fly from there to the score).
+   */
+  onClear?: (score: number, cells: number[]) => void
   /** Called when the board had to be shuffled. */
   onShuffle?: () => void
   /** Called when drop items reached the bottom. */
@@ -65,9 +79,9 @@ export function useBoardAnimator(motion: Ref<boolean>) {
   const pieces = ref<DisplayPiece[]>([])
   /** Obstacles as currently shown (levels only). */
   const field = shallowRef<Field | null>(null)
-  const popups = ref<ScorePopup[]>([])
+  const effects = ref<BoardEffect[]>([])
   const animating = ref(false)
-  let popupId = 1
+  let effectId = 1
 
   function display(board: Board, durationFor: (id: number) => number = () => 0): DisplayPiece[] {
     const list: DisplayPiece[] = []
@@ -110,15 +124,14 @@ export function useBoardAnimator(motion: Ref<boolean>) {
     })
   }
 
-  function addPopup(cells: number[], score: number): void {
-    if (score <= 0 || cells.length === 0) return
-    const row = cells.reduce((sum, cell) => sum + rowOf(cell), 0) / cells.length
-    const col = cells.reduce((sum, cell) => sum + colOf(cell), 0) / cells.length
-    const id = popupId++
-    popups.value = [...popups.value, { id, row, col, text: `+${score}` }]
+  function addEffects(list: Omit<BoardEffect, 'id'>[]): void {
+    if (list.length === 0) return
+    const added = list.map((effect) => ({ ...effect, id: effectId++ }))
+    const ids = new Set(added.map((effect) => effect.id))
+    effects.value = [...effects.value, ...added]
     setTimeout(() => {
-      popups.value = popups.value.filter((popup) => popup.id !== id)
-    }, POPUP_MS)
+      effects.value = effects.value.filter((effect) => !ids.has(effect.id))
+    }, EFFECT_MS)
   }
 
   async function playPhase(phase: Phase, callbacks: PlayCallbacks): Promise<void> {
@@ -135,11 +148,23 @@ export function useBoardAnimator(motion: Ref<boolean>) {
       case 'clear': {
         const clearing = new Set(phase.cells.map((cell) => pieceAt(cell)?.id))
         const firing = new Set(phase.triggered.map((cell) => pieceAt(cell)?.id))
+        const fired: Omit<BoardEffect, 'id'>[] = []
+        for (const cell of phase.triggered) {
+          const piece = pieceAt(cell)
+          if (piece && piece.special !== 'none') {
+            fired.push({ type: piece.special, row: rowOf(cell), col: colOf(cell), kind: piece.kind })
+          }
+        }
+        const pops: Omit<BoardEffect, 'id'>[] = []
+        for (const cell of phase.cells.slice(0, MAX_POPS)) {
+          const piece = pieceAt(cell)
+          if (piece) pops.push({ type: 'pop', row: rowOf(cell), col: colOf(cell), kind: piece.kind })
+        }
+        addEffects([...fired, ...pops])
         pieces.value = pieces.value.map((p) =>
           clearing.has(p.id) ? { ...p, clearing: true, firing: firing.has(p.id) } : p,
         )
-        callbacks.onClear?.(phase.score)
-        addPopup(phase.cells, phase.score)
+        callbacks.onClear?.(phase.score, phase.cells)
         if (phase.field) field.value = phase.field
         await wait(CLEAR_MS)
         pieces.value = display(phase.board)
@@ -206,7 +231,7 @@ export function useBoardAnimator(motion: Ref<boolean>) {
         for (const phase of phases) await playPhase(phase, callbacks)
       } else {
         for (const phase of phases) {
-          if (phase.type === 'clear') callbacks.onClear?.(phase.score)
+          if (phase.type === 'clear') callbacks.onClear?.(phase.score, phase.cells)
           if (phase.type === 'collect') callbacks.onCollect?.(phase.cells.length)
           if (phase.type === 'shuffle') callbacks.onShuffle?.()
         }
@@ -218,5 +243,5 @@ export function useBoardAnimator(motion: Ref<boolean>) {
     }
   }
 
-  return { pieces, popups, animating, field, show, play }
+  return { pieces, effects, animating, field, show, play }
 }

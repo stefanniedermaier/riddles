@@ -2,14 +2,15 @@
 import { computed, ref } from 'vue'
 
 import { t } from '@/core/i18n'
-import type { DisplayPiece, ScorePopup } from './animator'
+import type { BoardEffect, DisplayPiece } from './animator'
 import { CELLS, SIZE, areAdjacent, cellAt, type Field } from './logic/types'
 import ObstacleArt from './ObstacleArt.vue'
 import ShapePiece from './ShapePiece.vue'
 
 const props = defineProps<{
   pieces: DisplayPiece[]
-  popups: ScorePopup[]
+  /** Short visual effects (juice splashes, rocket beams, bomb waves). */
+  effects: BoardEffect[]
   /** Selected cell (tap-tap input). */
   selected: number | null
   /** Two cells of a suggested move. */
@@ -107,10 +108,17 @@ const hintIds = computed(() => {
   )
 })
 
-function popupStyle(popup: ScorePopup) {
+/** Eight juice drops per splash, evenly spread with a little jitter. */
+const DROPS = Array.from({ length: 8 }, (_, i) => ({
+  angle: i * 45 + (i % 2 ? 12 : -8),
+  distance: i % 2 ? 0.75 : 1,
+}))
+
+function effectStyle(effect: BoardEffect) {
   return {
-    left: `${((popup.col + 0.5) / SIZE) * 100}%`,
-    top: `${((popup.row + 0.5) / SIZE) * 100}%`,
+    left: `${((effect.col + 0.5) / SIZE) * 100}%`,
+    top: `${((effect.row + 0.5) / SIZE) * 100}%`,
+    '--fx-color': `var(--fx-${effect.kind < 0 ? 'item' : effect.kind})`,
   }
 }
 
@@ -190,20 +198,41 @@ function isSelected(piece: DisplayPiece): boolean {
     </TransitionGroup>
 
     <div
-      v-for="popup in popups"
-      :key="`p${popup.id}`"
-      class="popup tabular"
-      :style="popupStyle(popup)"
+      v-for="effect in effects"
+      :key="`fx${effect.id}`"
+      class="fx"
+      :class="`fx--${effect.type}`"
+      :style="effectStyle(effect)"
+      aria-hidden="true"
     >
-      {{ popup.text }}
+      <template v-if="effect.type === 'pop'">
+        <span class="fx__ring" />
+        <span
+          v-for="(drop, i) in DROPS"
+          :key="i"
+          class="fx__drop"
+          :style="{ '--angle': `${drop.angle}deg`, '--dist': drop.distance }"
+        />
+      </template>
+      <span v-else-if="effect.type === 'line-h' || effect.type === 'line-v'" class="fx__beam" />
+      <span v-else class="fx__wave" />
     </div>
   </div>
 </template>
 
 <style scoped>
 .board {
-  --board-a: var(--color-surface);
-  --board-b: var(--color-surface-2);
+  /* A light garden-green checkerboard. */
+  --board-a: color-mix(in srgb, #6cc35a 9%, var(--color-surface));
+  --board-b: color-mix(in srgb, #6cc35a 20%, var(--color-surface-2));
+  /* Effect colours per kind (match the fruit colours in ShapePiece). */
+  --fx-0: #f0213f;
+  --fx-1: #ff8a00;
+  --fx-2: #ffd21a;
+  --fx-3: #22b34c;
+  --fx-4: #2f7dff;
+  --fx-5: #9b40f2;
+  --fx-item: #c9853d;
 
   position: relative;
   width: 100%;
@@ -257,7 +286,8 @@ function isSelected(piece: DisplayPiece): boolean {
   /* Percentage padding refers to the board width: 12.5% × 0.07 = 7% of one cell. */
   padding: calc(12.5% * 0.07);
   transition-property: transform;
-  transition-timing-function: cubic-bezier(0.3, 0.7, 0.4, 1);
+  /* Slight overshoot: pieces land with a small bounce. */
+  transition-timing-function: cubic-bezier(0.3, 0.9, 0.35, 1.12);
   will-change: transform;
   pointer-events: none;
 }
@@ -273,6 +303,7 @@ function isSelected(piece: DisplayPiece): boolean {
 
 .piece--selected .piece__inner {
   transform: scale(1.14);
+  animation: selected-wiggle 0.6s ease-in-out infinite;
   filter: drop-shadow(0 0 4px var(--color-accent)) drop-shadow(0 2px 4px rgb(0 0 0 / 25%));
 }
 
@@ -281,26 +312,182 @@ function isSelected(piece: DisplayPiece): boolean {
 }
 
 .piece--clearing .piece__inner {
-  transform: scale(0.15) rotate(25deg);
-  opacity: 0;
+  animation: piece-pop var(--clear-ms, 260ms) var(--ease-out) forwards;
 }
 
 .piece--firing .piece__inner {
-  filter: brightness(1.6);
+  filter: brightness(1.5) drop-shadow(0 0 6px #fff);
 }
 
-.popup {
+/* --- Effects ------------------------------------------------------------------- */
+
+.fx {
   position: absolute;
-  z-index: 2;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  background: var(--color-text);
-  color: var(--color-bg);
-  font-size: var(--text-sm);
-  font-weight: 800;
+  z-index: 3;
+  width: 12.5%;
+  height: 12.5%;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  animation: popup-rise 0.9s var(--ease-out) forwards;
+}
+
+.fx__ring {
+  position: absolute;
+  inset: 10%;
+  border: 3px solid var(--fx-color);
+  border-radius: 50%;
+  animation: fx-ring 0.45s var(--ease-out) forwards;
+}
+
+.fx__drop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16%;
+  height: 16%;
+  margin: -8% 0 0 -8%;
+  border-radius: 50%;
+  background: var(--fx-color);
+  animation: fx-drop 0.55s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+
+.fx--line-h,
+.fx--line-v {
+  z-index: 4;
+}
+
+.fx__beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #fff 20%, #fff8c4 50%, #fff 80%, transparent);
+  box-shadow:
+    0 0 10px 3px rgb(255 220 120 / 80%),
+    0 0 24px 6px rgb(255 140 0 / 45%);
+}
+
+.fx--line-h .fx__beam {
+  width: 800%;
+  height: 34%;
+  animation: fx-beam-h 0.5s var(--ease-out) forwards;
+}
+
+.fx--line-v .fx__beam {
+  width: 34%;
+  height: 800%;
+  background: linear-gradient(180deg, transparent, #fff 20%, #fff8c4 50%, #fff 80%, transparent);
+  animation: fx-beam-v 0.5s var(--ease-out) forwards;
+}
+
+.fx--burst,
+.fx--prism {
+  z-index: 4;
+}
+
+.fx__wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 95%) 0 20%, rgb(255 190 60 / 80%) 40%, rgb(255 80 0 / 0%) 70%);
+  animation: fx-wave 0.5s var(--ease-out) forwards;
+}
+
+.fx--prism .fx__wave {
+  width: 900%;
+  height: 900%;
+  background: conic-gradient(#f0213f, #ff8a00, #ffd21a, #22b34c, #2f7dff, #9b40f2, #f0213f);
+  mask: radial-gradient(circle, transparent 30%, #000 32%, #000 40%, transparent 42%);
+  animation: fx-prism 0.6s var(--ease-out) forwards;
+}
+
+@keyframes piece-pop {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  35% {
+    transform: scale(1.3) rotate(-6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.1) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fx-ring {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes fx-drop {
+  from {
+    transform: rotate(var(--angle)) translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--angle)) translateY(calc(-260% * var(--dist))) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes fx-beam-h {
+  from {
+    transform: translate(-50%, -50%) scaleX(0.05);
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scaleX(1) scaleY(0.4);
+    opacity: 0;
+  }
+}
+
+@keyframes fx-beam-v {
+  from {
+    transform: translate(-50%, -50%) scaleY(0.05);
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scaleY(1) scaleX(0.4);
+    opacity: 0;
+  }
+}
+
+@keyframes fx-wave {
+  from {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes fx-prism {
+  from {
+    transform: translate(-50%, -50%) scale(0.1) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1) rotate(120deg);
+    opacity: 0;
+  }
 }
 
 @keyframes hint-pulse {
@@ -313,18 +500,16 @@ function isSelected(piece: DisplayPiece): boolean {
   }
 }
 
-@keyframes popup-rise {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -30%) scale(0.8);
-  }
-  20% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+@keyframes selected-wiggle {
+  0%,
   100% {
-    opacity: 0;
-    transform: translate(-50%, -140%) scale(1);
+    transform: scale(1.14) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.14) rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.14) rotate(5deg);
   }
 }
 
@@ -333,7 +518,11 @@ function isSelected(piece: DisplayPiece): boolean {
   filter: drop-shadow(0 0 5px var(--color-accent));
 }
 
-:root[data-motion='reduced'] .popup {
+:root[data-motion='reduced'] .piece--selected .piece__inner {
+  animation: none;
+}
+
+:root[data-motion='reduced'] .fx {
   display: none;
 }
 </style>

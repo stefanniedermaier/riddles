@@ -120,7 +120,7 @@ Every hint that shows a step or a mistake counts towards *Hints* in the result d
 | ----------------------- | ----------------------------------------------------------- |
 | `crowns:current:v1`     | running game: puzzle, cells (0 empty, 1 ✕, 2 crown), elapsed time, hints used, undo history (changed cells per step; optional for older saves) |
 | `crowns:pool:v1`        | one prefetched puzzle per difficulty                         |
-| `crowns:settings`       | `autoMark`, `showConflicts`                                  |
+| `crowns:settings`       | `autoMark`, `instantConflicts`                                |
 | `stats:v1` → `crowns`   | statistics per difficulty (started, solved, best/total time) |
 
 The running game is saved after every move, every few seconds, and when the app goes to the

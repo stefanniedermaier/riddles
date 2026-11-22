@@ -1,10 +1,13 @@
 import type { Component } from 'vue'
 
-export type GameId = 'sudoku' | 'crowns' | 'links' | 'nonogram' | 'shapes' | 'merge' | 'arrows'
+import type { GameId } from './modules'
+
+/** Id of a game, derived from the module list in `modules.ts`. */
+export type { GameId }
 
 /**
  * What the app shell needs to know about a game. Each game exports one from
- * `src/games/<id>/index.ts`; `registry.ts` collects them.
+ * `src/games/<id>/index.ts`; its `module.ts` bundles it with routes and texts.
  *
  * Display name and tagline come from the i18n keys `<id>.name` and `<id>.tagline`.
  */

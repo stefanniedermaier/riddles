@@ -31,8 +31,8 @@ export const en = {
   settings: {
     autoMark: 'Show blocked cells',
     autoMarkDesc: 'A dot marks cells that cannot hold a crown because of crowns you placed.',
-    showConflicts: 'Show conflicts',
-    showConflictsDesc: 'Crowns that break a rule turn red.',
+    instantConflicts: 'Show conflicts right away',
+    instantConflictsDesc: 'Crowns that break a rule turn red at once. Otherwise only “Check” shows mistakes.',
   },
   unit: {
     row: 'row {n}',
@@ -101,8 +101,8 @@ export const de: Messages<typeof en> = {
     autoMark: 'Blockierte Felder zeigen',
     autoMarkDesc:
       'Ein Punkt kennzeichnet Felder, auf die wegen deiner gesetzten Kronen keine Krone mehr passt.',
-    showConflicts: 'Konflikte zeigen',
-    showConflictsDesc: 'Kronen, die gegen eine Regel verstoßen, werden rot.',
+    instantConflicts: 'Konflikte sofort zeigen',
+    instantConflictsDesc: 'Kronen, die gegen eine Regel verstoßen, werden sofort rot. Sonst zeigt nur „Kontrollieren“ Fehler.',
   },
   unit: {
     row: 'Zeile {n}',

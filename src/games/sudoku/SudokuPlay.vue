@@ -12,6 +12,8 @@ import ResultDialog from '@/components/ResultDialog.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
 import { returnTo } from '@/core/navigation'
+import { checkMessage } from '@/core/check'
+import { showToast } from '@/core/toast'
 
 import { describeHint } from './explain'
 import HintPanel from './HintPanel.vue'
@@ -24,7 +26,12 @@ import { useSudokuGame } from './useSudokuGame'
 const route = useRoute()
 const router = useRouter()
 const sudoku = useSudokuGame()
-const { game, status, mode, geo, notesMode, hint, result, stopwatch, digitCounts, canUndo } = sudoku
+const { game, status, mode, geo, notesMode, hint, result, stopwatch, digitCounts, canUndo, checkedWrong } =
+  sudoku
+
+function check(): void {
+  showToast(checkMessage(sudoku.check()))
+}
 
 /** Mode requested by the route (`?mode=mini`); classic otherwise. */
 const routeMode = computed<SudokuMode>(() => (isMode(route.query.mode) ? route.query.mode : 'classic'))
@@ -134,6 +141,7 @@ const resultRows = computed(() =>
     ? [
         { label: t('common.difficulty'), value: difficultyLabel.value },
         { label: t('common.time'), value: formatDuration(result.value.timeMs), highlight: result.value.newBest },
+        { label: t('common.mistakes'), value: String(result.value.mistakes) },
         { label: t('common.hints'), value: String(result.value.hintsUsed) },
       ]
     : [],
@@ -179,7 +187,7 @@ const resultRows = computed(() =>
           :highlight-same-digits="sudokuSettings.highlightSameDigits"
           :focus-cells="hintView?.focusCells"
           :target-cell="hintView?.targetCell"
-          :wrong-cells="hintView?.wrongCells"
+          :wrong-cells="hintView?.wrongCells ?? checkedWrong"
           @select="sudoku.select"
         />
       </div>
@@ -211,6 +219,10 @@ const resultRows = computed(() =>
             <button type="button" class="tool" @click="sudoku.erase">
               <AppIcon name="eraser" :size="22" />
               <span>{{ t('sudoku.play.erase') }}</span>
+            </button>
+            <button type="button" class="tool" :title="t('common.check')" @click="check">
+              <AppIcon name="inspect" :size="22" />
+              <span>{{ t('common.checkShort') }}</span>
             </button>
             <button type="button" class="tool" @click="sudoku.requestHint">
               <AppIcon name="hint" :size="22" />
@@ -329,6 +341,7 @@ const resultRows = computed(() =>
 
 .tools {
   display: flex;
+  gap: 2px;
   justify-content: space-around;
 }
 
@@ -337,9 +350,11 @@ const resultRows = computed(() =>
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  min-width: 64px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 80px;
   min-height: var(--tap-min);
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1) 2px;
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;

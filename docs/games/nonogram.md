@@ -80,7 +80,7 @@ Hard 3.0 / 17 ms, Expert 5.3 / 23 ms.
 | ------------------------- | ------------------------------------------------------------------------ |
 | `nonogram:current:v1`     | running game: puzzle, marks (0 unknown, 1 filled, 2 cross), elapsed time, hints, mistakes, undo history (changed cells per step) |
 | `nonogram:pool:v1`        | one prefetched puzzle per difficulty                                      |
-| `nonogram:settings`       | `checkMistakes`, `highlightLines`                                         |
+| `nonogram:settings`       | `instantMistakes`, `highlightLines`                                         |
 | `stats:v1` → `nonogram`   | statistics per difficulty (started, solved, best/total time)              |
 
 The running game is saved after every change, every few seconds, and when the app goes to

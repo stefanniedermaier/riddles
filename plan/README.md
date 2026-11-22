@@ -18,6 +18,8 @@ all data on the device. Every level is generated on the fly.
 | 08 | [Game management](08-game-management.md)     | Show/hide and reorder games (settings, drag & drop)           |
 | 09 | [Merge](09-merge.md)                         | Sliding number game (3×3, 4×4, 5×5)                           |
 | 10 | [Arrows](10-arrows.md)                       | Ordering puzzle: tap arrows so they slide out                 |
+| 11 | [Game plugins](11-game-plugins.md)           | Game API (one module list) done; repos / plugins in backlog   |
+| 12 | [Blocks](12-blocks.md)                       | Block-placing puzzle: three pieces, clear rows and columns     |
 
 ## Decisions (from the kick-off wizard)
 
@@ -30,7 +32,7 @@ all data on the device. Every level is generated on the fly.
 | App / game names   | **Riddles** with **Sudoku**, **Crowns** (row/column/region puzzle), **Shapes** (match-3)     |
 | Sudoku             | 4 difficulties (Easy/Medium/Hard/Expert), unique solution, notes/candidates, explained hints |
 | Crowns             | Difficulty determines size: Easy 6×6, Medium 7×7–8×8, Hard 9×9, Expert 10×10; logic-graded  |
-| Shapes             | Modes: Zen (endless), Time, Levels with goals; geometric SVG pieces (colour + shape)         |
+| Shapes             | Modes: Zen (endless), Time, Levels with goals; fruit & garden SVG pieces (colour + shape)        |
 | Persistence        | Resume running games, statistics & best values, JSON export/import – all local              |
 | Presentation       | Dark mode (system + manual), animations (respect "reduce motion")                           |
 | Not in scope (v1)  | Daily puzzle, sound effects, vibration, undo/redo, instant error highlighting in Sudoku      |
@@ -68,7 +70,16 @@ layouts are original; nothing is copied from commercial titles.
 | M5        | Docs, icons, polish, QA (plan 05)         | M2–M4      |
 
 M2–M4 are independent of each other: each game lives in its own folder and only plugs into
-the shell through `src/games/registry.ts`, its own `routes.ts` and its own `i18n.ts`.
+the shell through its own `module.ts` (descriptor, routes, texts) listed in `src/games/modules.ts`.
+
+## Backlog
+
+Ideas that are evaluated but deliberately postponed:
+
+| Idea                                   | Notes                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------- |
+| Games as workspace packages            | Plan 11, option B – only if games should be versioned or published   |
+| External games from a URL (plugins)    | Plan 11, option C – only with an iframe sandbox and a small SDK; wait for a concrete external game |
 
 ## Definition of done (per milestone)
 

@@ -55,8 +55,10 @@ export interface NonogramSave {
   cells: CellMark[]
   elapsedMs: number
   hintsUsed: number
-  /** Wrong marks made while mistake checking was on. */
+  /** Wrong marks counted (right away in instant mode, otherwise by "Check"). */
   mistakes: number
+  /** Wrong cells found by the last "Check" (highlighted while they are still wrong). */
+  checked?: number[]
   undo: UndoStep[]
 }
 
@@ -107,6 +109,7 @@ export function isNonogramSave(value: unknown): value is NonogramSave {
     typeof s.elapsedMs === 'number' &&
     typeof s.hintsUsed === 'number' &&
     typeof s.mistakes === 'number' &&
+    (s.checked === undefined || (Array.isArray(s.checked) && s.checked.every(Number.isInteger))) &&
     Array.isArray(s.undo) &&
     s.undo.every(
       (step) =>

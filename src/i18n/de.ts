@@ -39,6 +39,13 @@ const de: Messages<typeof en> = {
     solved: 'Gelöst!',
     gameOver: 'Spiel vorbei',
     saved: 'Gespeichertes Spiel',
+    check: 'Kontrollieren',
+    checkShort: 'Prüfen',
+    checkOk: 'Bisher keine Fehler.',
+    checkOne: '1 Fehler gefunden – er ist markiert.',
+    checkMany: '{count} Fehler gefunden – sie sind markiert.',
+    mistakes: 'Fehler',
+    gameSettings: 'Einstellungen: {game}',
   },
   difficulty: {
     easy: 'Leicht',
@@ -73,6 +80,9 @@ const de: Messages<typeof en> = {
     motionFull: 'An',
     motionReduced: 'Reduziert',
     games: 'Spiele',
+    gameSettings: 'Spiel-Einstellungen',
+    gameSettingsHint:
+      'Wähle ein Spiel, um seine Optionen zu ändern. Du findest sie auch auf der Startseite jedes Spiels.',
     gamesHint:
       'Zum Sortieren ziehen. Ausgeblendete Spiele behalten ihre Spielstände und Statistiken.',
     gameMove: '{game} verschieben (Pfeiltasten)',

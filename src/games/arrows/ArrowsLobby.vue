@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -65,7 +66,11 @@ onMounted(() => arrowsPool.warm(DIFFICULTIES))
 </script>
 
 <template>
-  <AppBar :title="t('arrows.name')" back-to="/" />
+  <AppBar :title="t('arrows.name')" back-to="/">
+    <template #actions>
+      <GameSettingsButton game="arrows" />
+    </template>
+  </AppBar>
 
   <main class="page lobby">
     <section v-if="!hasPlayed" class="card rules">

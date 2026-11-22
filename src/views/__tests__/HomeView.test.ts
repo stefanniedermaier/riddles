@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { gameLayout, normalizeLayout } from '@/games/layout'
 import HomeView from '../HomeView.vue'
+import { games } from '@/games/registry'
 
 describe('HomeView', () => {
   it('shows one card per game', async () => {
@@ -16,7 +17,7 @@ describe('HomeView', () => {
     await router.push('/')
     const wrapper = mount(HomeView, { global: { plugins: [router] } })
     const cards = wrapper.findAll('.game-card')
-    expect(cards).toHaveLength(7)
+    expect(cards).toHaveLength(games.length)
     expect(wrapper.text()).toContain('Sudoku')
     expect(wrapper.text()).toContain('Crowns')
     expect(wrapper.text()).toContain('Links')
@@ -30,7 +31,7 @@ describe('HomeView', () => {
     await router.push('/')
     const wrapper = mount(HomeView, { global: { plugins: [router] } })
     const titles = wrapper.findAll('.game-card__name').map((el) => el.text())
-    expect(titles).toEqual(['Shapes', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Merge'])
+    expect(titles).toEqual(['Shapes', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Merge', 'Blocks'])
     gameLayout.value = normalizeLayout(null)
   })
 })
