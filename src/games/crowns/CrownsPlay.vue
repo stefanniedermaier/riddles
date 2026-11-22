@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } f
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -16,12 +17,21 @@ import { recordFinish, recordStart } from '@/core/stats'
 import { load, remove, save } from '@/core/storage'
 import { motionEnabled } from '@/core/theme'
 import { useStopwatch } from '@/core/timer'
+import { checkMessage } from '@/core/check'
+import { showToast } from '@/core/toast'
 import CrownsBoard, { type BoardHighlight } from './CrownsBoard.vue'
 import CrownsRules from './CrownsRules.vue'
 import { hintText, hintTitle } from './hintText'
 import { DIFFICULTIES, SAVE_KEY, type Difficulty } from './index'
 import { createGeometry } from './logic/geometry'
-import { applyHint, getHint, type Hint } from './logic/hints'
+import {
+  applyHint,
+  getHint,
+  isWrongCell,
+  solutionCells,
+  wrongCells,
+  type Hint,
+} from './logic/hints'
 import { diffCells, pushStep, revertStep } from './logic/history'
 import { blockedCells, countCrowns, findConflicts, isSolved } from './logic/rules'
 import { CROWN, EMPTY, MARK, isCrownsSave, type CellState, type CrownsSave } from './logic/types'
@@ -37,14 +47,29 @@ const status = ref<Status>('loading')
 const game = ref<CrownsSave | null>(null)
 const stopwatch = useStopwatch(0)
 
+// The clock stops while the settings dialog covers the board.
+const settingsOpen = ref(false)
+watch(settingsOpen, (open) => {
+  if (status.value !== 'playing') return
+  if (open) stopwatch.pause()
+  else stopwatch.start()
+})
+
 const puzzle = computed(() => game.value?.puzzle ?? null)
 const geo = computed(() => (puzzle.value ? createGeometry(puzzle.value.size, puzzle.value.regions) : null))
 
 const conflicts = computed(() =>
-  game.value && geo.value && crownsSettings.value.showConflicts
+  game.value && geo.value && crownsSettings.value.instantConflicts
     ? findConflicts(geo.value, game.value.cells)
     : null,
 )
+/** Cells found by the last "Check" that are still wrong. */
+const wrong = computed(() => {
+  const g = game.value
+  if (!g?.checked?.length) return null
+  const solution = solutionCells(g.puzzle)
+  return new Set(g.checked.filter((cell) => isWrongCell(solution, g.cells, cell)))
+})
 const blocked = computed(() =>
   game.value && geo.value && crownsSettings.value.autoMark
     ? blockedCells(geo.value, game.value.cells)
@@ -219,6 +244,7 @@ const resultRows = computed(() => {
     { label: t('common.difficulty'), value: t(`difficulty.${p.difficulty}`) },
     { label: t('common.size'), value: t('crowns.sizeLabel', { size: p.size }) },
     { label: t('common.time'), value: formatDuration(result.value.timeMs), highlight: result.value.newBest },
+    { label: t('common.mistakes'), value: String(game.value.mistakes ?? 0) },
     { label: t('common.hints'), value: String(game.value.hintsUsed) },
   ]
 })
@@ -237,6 +263,24 @@ function goToMenu(): void {
 function goHome(): void {
   showResult.value = false
   void returnTo(router, { name: 'home' })
+}
+
+// --- Check ------------------------------------------------------------------------------
+
+/**
+ * Highlights wrong crowns and marks and counts the ones an earlier check has not counted
+ * yet (checking twice without changes does not count a mistake twice).
+ */
+function check(): void {
+  const g = game.value
+  if (!g || status.value !== 'playing') return
+  hint.value = null
+  const found = wrongCells(g.puzzle, g.cells)
+  const counted = new Set(wrong.value ?? [])
+  g.mistakes = (g.mistakes ?? 0) + found.filter((cell) => !counted.has(cell)).length
+  g.checked = found
+  persist()
+  showToast(checkMessage(found.length))
 }
 
 // --- Hints ------------------------------------------------------------------------------
@@ -309,6 +353,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
 <template>
   <AppBar :title="title" back-to="/crowns">
     <template #actions>
+      <GameSettingsButton game="crowns" @open="settingsOpen = true" @close="settingsOpen = false" />
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
         <AppIcon name="clock" :size="18" />
         {{ formatDuration(stopwatch.elapsedMs.value) }}
@@ -333,6 +378,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
           :regions="game.puzzle.regions"
           :cells="game.cells"
           :conflicts="conflicts"
+          :wrong="wrong"
           :blocked="blocked"
           :highlight="highlight"
           :disabled="status !== 'playing'"
@@ -365,6 +411,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
           :aria-label="t('crowns.play.undo')"
           :title="t('crowns.play.undo')"
           @click="undo"
+        />
+        <AppButton
+          class="toolbar__undo"
+          icon="inspect"
+          :disabled="status !== 'playing'"
+          :aria-label="t('common.check')"
+          :title="t('common.check')"
+          @click="check"
         />
         <AppButton icon="hint" :disabled="status !== 'playing'" @click="requestHint">
           {{ t('common.hint') }}

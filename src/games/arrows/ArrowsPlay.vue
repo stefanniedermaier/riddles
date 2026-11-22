@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -36,6 +37,14 @@ const LEAVE_MS = 280
 const status = ref<Status>('loading')
 const game = ref<ArrowsSave | null>(null)
 const stopwatch = useStopwatch(0)
+
+// The clock stops while the settings dialog covers the board.
+const settingsOpen = ref(false)
+watch(settingsOpen, (open) => {
+  if (status.value !== 'playing') return
+  if (open) stopwatch.pause()
+  else stopwatch.start()
+})
 const leaving = ref<LeavingArrow[]>([])
 const bump = ref<Bump | null>(null)
 const highlight = ref<number | null>(null)
@@ -287,6 +296,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
 <template>
   <AppBar :title="t('arrows.name')" back-to="/arrows">
     <template #actions>
+      <GameSettingsButton game="arrows" @open="settingsOpen = true" @close="settingsOpen = false" />
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
         <AppIcon name="clock" :size="18" />
         {{ formatDuration(stopwatch.elapsedMs.value) }}

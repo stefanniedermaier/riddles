@@ -11,6 +11,8 @@ export const icons = {
   back: [{ d: 'M15 5l-7 7 7 7' }],
   close: [{ d: 'M6 6l12 12M18 6L6 18' }],
   check: [{ d: 'M5 12.5l4.5 4.5L19 7.5' }],
+  /** Magnifier with a tick: "check my entries". */
+  inspect: [{ d: 'M10.5 3.5a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM15.5 15.5L21 21' }, { d: 'M7.5 10.5l2 2 3.5-4' }],
   plus: [{ d: 'M12 5v14M5 12h14' }],
   home: [{ d: 'M4 11l8-7 8 7M6 9.5V20h12V9.5' }],
   settings: [

@@ -89,7 +89,7 @@ Generation time (Node, 40 seeds per difficulty):
 | ----------------------- | ----------------------------------------------------------------------- |
 | `arrows:current:v1`     | running attempt: puzzle, removed arrow ids, hearts, taps, elapsed time, hints – saved only after the first tap |
 | `arrows:pool:v1`        | one prefetched puzzle per difficulty                                     |
-| `arrows:settings`       | `showBlockedPath`                                                        |
+| `arrows:settings`       | `showBlockedPath`, `colorByDirection`                                    |
 | `stats:v1` → `arrows`   | per difficulty: started (first tap of every attempt), solved, best/total time |
 
 ## Files

@@ -183,7 +183,7 @@ describe('Shapes views', () => {
     const score = loadRun('zen')!.score
     expect(score).toBeGreaterThan(0)
 
-    await wrapper.find('.app-bar__actions button').trigger('click')
+    await wrapper.find('.app-bar__actions button[aria-label="Pause"]').trigger('click')
     const endButton = [...document.querySelectorAll<HTMLButtonElement>('.dialog .app-btn')].find(
       (button) => button.textContent?.includes('End game'),
     )

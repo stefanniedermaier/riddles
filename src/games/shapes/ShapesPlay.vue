@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -71,6 +72,8 @@ function onTimeUp(): void {
 // UI state
 
 const menuOpen = ref(false)
+/** The in-game settings dialog is open (pauses like the menu). */
+const settingsOpen = ref(false)
 const selected = ref<number | null>(null)
 const hint = ref<[number, number] | null>(null)
 
@@ -85,6 +88,7 @@ const locked = computed(
   () =>
     animator.animating.value ||
     menuOpen.value ||
+    settingsOpen.value ||
     result.value !== null ||
     timeUpPending.value ||
     finished.value,
@@ -340,10 +344,10 @@ const resultTitle = computed(() => {
 
 // The timer runs only while actually playing.
 watch(
-  [menuOpen, result, finished],
+  [menuOpen, settingsOpen, result, finished],
   () => {
     if (!countdown) return
-    if (menuOpen.value || result.value || finished.value) countdown.pause()
+    if (menuOpen.value || settingsOpen.value || result.value || finished.value) countdown.pause()
     else countdown.start()
   },
   { immediate: false },
@@ -376,6 +380,7 @@ onBeforeUnmount(() => {
 <template>
   <AppBar :title="title" :back-to="{ name: 'shapes' }">
     <template #actions>
+      <GameSettingsButton game="shapes" @open="settingsOpen = true" @close="settingsOpen = false" />
       <button
         v-if="run"
         type="button"

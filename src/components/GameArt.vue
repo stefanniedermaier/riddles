@@ -46,13 +46,13 @@ defineProps<{ game: GameId }>()
     <template v-else-if="game === 'links'">
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <g fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 15h34v14" stroke="#e2445c" />
+        <path d="M15 15h34v12" stroke="#e2445c" />
         <path d="M15 27v22h20" stroke="#3a72d6" />
         <path d="M27 39h22" stroke="#2f9e6e" opacity=".9" />
       </g>
       <g>
         <circle cx="15" cy="15" r="5.5" fill="#e2445c" />
-        <circle cx="49" cy="29" r="5.5" fill="#e2445c" />
+        <circle cx="49" cy="27" r="5.5" fill="#e2445c" />
         <circle cx="15" cy="27" r="5.5" fill="#3a72d6" />
         <circle cx="35" cy="49" r="5.5" fill="#3a72d6" />
         <circle cx="27" cy="39" r="5.5" fill="#2f9e6e" />
@@ -96,11 +96,18 @@ defineProps<{ game: GameId }>()
     </template>
     <template v-else-if="game === 'arrows'">
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
-      <g fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 14h22l-6-6M36 14l-6 6" stroke="var(--game-arrows)" />
-        <path d="M14 26v16h16v-6M30 36l-5 5M30 36l5 5" stroke="#3a72d6" transform="rotate(180 30 36)" />
-        <path d="M44 24v26M44 50l-6-6M44 50l6-6" stroke="#2f9e6e" />
-        <path d="M14 50h14M14 50l6-6M14 50l6 6" stroke="#e0a21b" />
+      <!-- Four arrows on a grid that never cross: one colour, like on the board. -->
+      <g fill="none" stroke="var(--game-arrows)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 14h22" />
+        <path d="M50 48V20" />
+        <path d="M14 26v24h16" />
+        <path d="M40 34H28" />
+      </g>
+      <g fill="var(--game-arrows)" stroke="var(--game-arrows)" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M33 8.5l7.5 5.5-7.5 5.5z" />
+        <path d="M44.5 21l5.5-7.5 5.5 7.5z" />
+        <path d="M29 44.5l7.5 5.5-7.5 5.5z" />
+        <path d="M29 28.5l-7.5 5.5 7.5 5.5z" />
       </g>
     </template>
     <template v-else>

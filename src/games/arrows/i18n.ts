@@ -52,6 +52,8 @@ export const en = {
   settings: {
     showBlockedPath: 'Show what blocks an arrow',
     showBlockedPathDesc: 'After a bump, the way up to the blocking arrow lights up briefly.',
+    colorByDirection: 'Colour by direction',
+    colorByDirectionDesc: 'Every direction gets its own colour. Makes the puzzle easier.',
   },
 }
 
@@ -106,5 +108,7 @@ export const de: Messages<typeof en> = {
   settings: {
     showBlockedPath: 'Zeigen, was einen Pfeil blockiert',
     showBlockedPathDesc: 'Nach einem Anstoßen leuchtet der Weg bis zum blockierenden Pfeil kurz auf.',
+    colorByDirection: 'Farbe je Richtung',
+    colorByDirectionDesc: 'Jede Richtung bekommt eine eigene Farbe. Macht das Rätsel leichter.',
   },
 }

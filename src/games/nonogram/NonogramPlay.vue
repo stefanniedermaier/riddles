@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } f
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -16,6 +17,7 @@ import { recordFinish, recordStart } from '@/core/stats'
 import { load, remove, save } from '@/core/storage'
 import { motionEnabled } from '@/core/theme'
 import { useStopwatch } from '@/core/timer'
+import { checkMessage } from '@/core/check'
 import { showToast } from '@/core/toast'
 import { DIFFICULTIES, SAVE_KEY, type Difficulty } from './index'
 import { applyHint, getHint, type Hint } from './logic/hints'
@@ -25,6 +27,7 @@ import {
   applyStroke,
   beginStroke,
   isSolved,
+  isWrong,
   lineSatisfied,
   moveStroke,
   newMistakes,
@@ -46,6 +49,14 @@ type Status = 'loading' | 'playing' | 'won'
 const status = ref<Status>('loading')
 const game = ref<NonogramSave | null>(null)
 const stopwatch = useStopwatch(0)
+
+// The clock stops while the settings dialog covers the board.
+const settingsOpen = ref(false)
+watch(settingsOpen, (open) => {
+  if (status.value !== 'playing') return
+  if (open) stopwatch.pause()
+  else stopwatch.start()
+})
 const tool = ref<Tool>('fill')
 const stroke = shallowRef<Stroke | null>(null)
 const focusCell = ref<number | null>(null)
@@ -59,11 +70,17 @@ const shownCells = computed<CellMark[]>(() => {
   return game.value.cells
 })
 
-const wrong = computed(() =>
-  puzzle.value && nonogramSettings.value.checkMistakes
-    ? new Set(wrongCells(puzzle.value, shownCells.value))
-    : null,
-)
+/**
+ * Cells shown as mistakes: every wrong mark in instant mode, otherwise the marks found by
+ * the last "Check" that are still wrong.
+ */
+const wrong = computed(() => {
+  const p = puzzle.value
+  if (!p || !game.value) return null
+  if (nonogramSettings.value.instantMistakes) return new Set(wrongCells(p, shownCells.value))
+  const checked = game.value.checked ?? []
+  return checked.length ? new Set(checked.filter((cell) => isWrong(p, shownCells.value, cell))) : null
+})
 const rowsDone = computed(() =>
   puzzle.value
     ? puzzle.value.rowClues.map((_, index) => lineSatisfied(puzzle.value!, shownCells.value, { kind: 'row', index }))
@@ -174,7 +191,7 @@ function commit(next: CellMark[], countMistakes = true): void {
   const before = game.value.cells
   const step = diffCells(before, next)
   if (step.length === 0) return
-  if (countMistakes && nonogramSettings.value.checkMistakes) {
+  if (countMistakes && nonogramSettings.value.instantMistakes) {
     game.value.mistakes += newMistakes(game.value.puzzle, before, next)
   }
   game.value.undo = pushStep(game.value.undo, step)
@@ -221,6 +238,24 @@ function restart(): void {
   confirmRestart.value = false
   if (!game.value) return
   commit(game.value.cells.map(() => UNKNOWN), false)
+}
+
+// --- Check -----------------------------------------------------------------------------
+
+/**
+ * Highlights the wrong marks and counts the ones an earlier check has not counted yet
+ * (checking twice without changes does not count a mistake twice).
+ */
+function check(): void {
+  const g = game.value
+  if (!g || status.value !== 'playing') return
+  hint.value = null
+  const found = wrongCells(g.puzzle, g.cells)
+  const counted = new Set((g.checked ?? []).filter((cell) => isWrong(g.puzzle, g.cells, cell)))
+  g.mistakes += found.filter((cell) => !counted.has(cell)).length
+  g.checked = found
+  persist()
+  showToast(checkMessage(found.length))
 }
 
 // --- Hints -----------------------------------------------------------------------------
@@ -351,6 +386,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
 <template>
   <AppBar :title="title" back-to="/nonogram">
     <template #actions>
+      <GameSettingsButton game="nonogram" @open="settingsOpen = true" @close="settingsOpen = false" />
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
         <AppIcon name="clock" :size="18" />
         {{ formatDuration(stopwatch.elapsedMs.value) }}
@@ -376,7 +412,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
             <dt class="visually-hidden">{{ t('common.difficulty') }}</dt>
             <dd class="hud__level">{{ levelLabel }}</dd>
           </div>
-          <div v-if="nonogramSettings.checkMistakes">
+          <div>
             <dt>{{ t('nonogram.play.mistakes') }}</dt>
             <dd>{{ game.mistakes }}</dd>
           </div>
@@ -453,6 +489,15 @@ if (typeof route.query.new !== 'string' && !resume()) {
             {{ t('nonogram.play.cross') }}
           </button>
         </div>
+        <AppButton
+          v-if="!nonogramSettings.instantMistakes"
+          class="toolbar__icon"
+          icon="inspect"
+          :disabled="status !== 'playing'"
+          :aria-label="t('common.check')"
+          :title="t('common.check')"
+          @click="check"
+        />
         <AppButton
           class="toolbar__icon"
           icon="hint"

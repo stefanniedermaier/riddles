@@ -36,6 +36,10 @@ export interface CrownsSave {
   hintsUsed: number
   /** Undo history (optional for saves written before undo existed). */
   undo?: UndoStep[]
+  /** Mistakes found by "Check" (optional for older saves). */
+  mistakes?: number
+  /** Wrong cells found by the last "Check" (highlighted while they are still wrong). */
+  checked?: number[]
 }
 
 function isIntArray(value: unknown, length: number, max: number): value is number[] {
@@ -69,6 +73,8 @@ export function isCrownsSave(value: unknown): value is CrownsSave {
     isIntArray(s.cells, s.puzzle.size * s.puzzle.size, 3) &&
     typeof s.elapsedMs === 'number' &&
     typeof s.hintsUsed === 'number' &&
+    (s.mistakes === undefined || typeof s.mistakes === 'number') &&
+    (s.checked === undefined || (Array.isArray(s.checked) && s.checked.every(Number.isInteger))) &&
     (s.undo === undefined || parseHistory(s.undo, s.puzzle.size * s.puzzle.size) !== undefined)
   )
 }

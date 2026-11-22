@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, triggerRe
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -49,6 +50,14 @@ const MAX_UNDO = 300
 const status = ref<Status>('loading')
 const game = ref<LinksSave | null>(null)
 const stopwatch = useStopwatch(0)
+
+// The clock stops while the settings dialog covers the board.
+const settingsOpen = ref(false)
+watch(settingsOpen, (open) => {
+  if (status.value !== 'playing') return
+  if (open) stopwatch.pause()
+  else stopwatch.start()
+})
 const stroke = shallowRef<Stroke | null>(null)
 const flash = ref<number | null>(null)
 
@@ -302,6 +311,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
 <template>
   <AppBar :title="title" back-to="/links">
     <template #actions>
+      <GameSettingsButton game="links" @open="settingsOpen = true" @close="settingsOpen = false" />
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
         <AppIcon name="clock" :size="18" />
         {{ formatDuration(stopwatch.elapsedMs.value) }}

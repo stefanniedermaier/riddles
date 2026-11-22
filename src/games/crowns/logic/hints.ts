@@ -62,3 +62,16 @@ export function applyHint(cells: readonly CellState[], hint: Hint): CellState[] 
   }
   return next
 }
+
+/** Whether a cell contradicts the solution: a crown off the solution or a mark on it. */
+export function isWrongCell(solution: ReadonlySet<number>, cells: readonly CellState[], cell: number): boolean {
+  return (cells[cell] === CROWN && !solution.has(cell)) || (cells[cell] === MARK && solution.has(cell))
+}
+
+/** All cells that contradict the solution (used by "Check"). */
+export function wrongCells(puzzle: CrownsPuzzle, cells: readonly CellState[]): number[] {
+  const solution = solutionCells(puzzle)
+  const wrong: number[] = []
+  for (let cell = 0; cell < cells.length; cell++) if (isWrongCell(solution, cells, cell)) wrong.push(cell)
+  return wrong
+}

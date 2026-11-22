@@ -86,6 +86,10 @@ export interface SudokuSave {
   selected: number | null
   /** Undo stack, oldest first (missing in saves of older versions). */
   history?: UndoStep[]
+  /** Mistakes found by "Check" (optional for older saves). */
+  mistakes?: number
+  /** Wrong cells found by the last "Check" (highlighted while they are still wrong). */
+  checked?: number[]
 }
 
 export interface Unit {
@@ -167,6 +171,8 @@ export function isSudokuSave(value: unknown): value is SudokuSave {
     isGrid(s.notes, length, 0x3fe) &&
     typeof s.elapsedMs === 'number' &&
     typeof s.hintsUsed === 'number' &&
+    (s.mistakes === undefined || typeof s.mistakes === 'number') &&
+    (s.checked === undefined || (Array.isArray(s.checked) && s.checked.every(Number.isInteger))) &&
     (s.selected === null ||
       (Number.isInteger(s.selected) && s.selected! >= 0 && s.selected! < length)) &&
     (s.history === undefined ||

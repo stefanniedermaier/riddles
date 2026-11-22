@@ -12,9 +12,9 @@ import { crownsSettings } from './settings'
       :description="t('crowns.settings.autoMarkDesc')"
     />
     <ToggleRow
-      v-model="crownsSettings.showConflicts"
-      :label="t('crowns.settings.showConflicts')"
-      :description="t('crowns.settings.showConflictsDesc')"
+      v-model="crownsSettings.instantConflicts"
+      :label="t('crowns.settings.instantConflicts')"
+      :description="t('crowns.settings.instantConflictsDesc')"
     />
   </div>
 </template>

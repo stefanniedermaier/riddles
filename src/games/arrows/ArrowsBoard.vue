@@ -6,6 +6,7 @@ import { resolvedTheme } from '@/core/theme'
 import { headOf, rayCells } from './logic/analysis'
 import { DELTAS, type Arrow, type Direction } from './logic/types'
 import { arrowColor } from './palette'
+import { arrowsSettings } from './settings'
 
 export interface LeavingArrow {
   id: number
@@ -88,7 +89,7 @@ const drawn = computed<DrawnArrow[]>(() =>
     const distance = props.size + arrow.cells.length + 1
     return {
       id: arrow.id,
-      color: arrowColor(resolvedTheme.value, arrow.dir),
+      color: arrowColor(resolvedTheme.value, arrow.dir, arrowsSettings.value.colorByDirection),
       points: body.map((pt) => `${pt.x},${pt.y}`).join(' '),
       head: `M${tip.x},${tip.y}L${b1.x},${b1.y}L${b2.x},${b2.y}Z`,
       dx: d.x * distance,

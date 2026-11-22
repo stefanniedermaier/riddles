@@ -53,8 +53,8 @@ export const en = {
     mistakes: 'Mistakes',
   },
   settings: {
-    checkMistakes: 'Show mistakes',
-    checkMistakesDesc: 'Wrong marks turn red right away and are counted.',
+    instantMistakes: 'Show mistakes right away',
+    instantMistakesDesc: 'Wrong marks turn red at once and are counted. Otherwise only “Check” reveals them.',
     highlightLines: 'Highlight row and column',
     highlightLinesDesc: 'Tints the row and column of the cell you touch.',
   },
@@ -112,8 +112,8 @@ export const de: Messages<typeof en> = {
     mistakes: 'Fehler',
   },
   settings: {
-    checkMistakes: 'Fehler anzeigen',
-    checkMistakesDesc: 'Falsche Markierungen werden sofort rot und gezählt.',
+    instantMistakes: 'Fehler sofort anzeigen',
+    instantMistakesDesc: 'Falsche Markierungen werden sofort rot und gezählt. Sonst zeigt sie nur „Kontrollieren“.',
     highlightLines: 'Zeile und Spalte hervorheben',
     highlightLinesDesc: 'Tönt Zeile und Spalte des berührten Feldes ein.',
   },

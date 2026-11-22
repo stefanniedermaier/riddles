@@ -12,7 +12,7 @@ import { useStopwatch } from '@/core/timer'
 import { poolOf } from './generate'
 import { saveKeyOf } from './index'
 import { geometryOfCells, type Geometry } from './logic/board'
-import { getHint, type Hint } from './logic/hints'
+import { findMistakes, getHint, type Hint } from './logic/hints'
 import {
   isSudokuSave,
   modeOfPuzzle,
@@ -31,6 +31,7 @@ export type GameStatus = 'idle' | 'loading' | 'playing' | 'won'
 export interface WinResult {
   timeMs: number
   hintsUsed: number
+  mistakes: number
   newBest: boolean
 }
 
@@ -131,7 +132,12 @@ export function useSudokuGame() {
     const variant = statVariant(mode.value, game.value.puzzle.difficulty)
     const { newBestTime } = recordFinish('sudoku', variant, { timeMs })
     remove(saveKeyOf(mode.value))
-    result.value = { timeMs, hintsUsed: game.value.hintsUsed, newBest: newBestTime }
+    result.value = {
+      timeMs,
+      hintsUsed: game.value.hintsUsed,
+      mistakes: game.value.mistakes ?? 0,
+      newBest: newBestTime,
+    }
     hint.value = null
     status.value = 'won'
   }
@@ -300,6 +306,31 @@ export function useSudokuGame() {
     hint.value = null
   }
 
+  // --- check ---------------------------------------------------------------
+
+  /** Cells found by the last "Check" that are still wrong (shown in red). */
+  const checkedWrong = computed<number[]>(() => {
+    const g = game.value
+    if (!g?.checked?.length) return []
+    return g.checked.filter((cell) => g.values[cell] !== 0 && g.values[cell] !== g.puzzle.solution[cell])
+  })
+
+  /**
+   * Highlights wrong entries and counts the ones an earlier check has not counted yet.
+   * Returns the number of wrong entries on the board.
+   */
+  function check(): number {
+    const g = game.value
+    if (!g || status.value !== 'playing') return 0
+    hint.value = null
+    const found = findMistakes(g.values, g.puzzle.solution)
+    const counted = new Set(checkedWrong.value)
+    g.mistakes = (g.mistakes ?? 0) + found.filter((cell) => !counted.has(cell)).length
+    g.checked = found
+    persist()
+    return found.length
+  }
+
   // --- derived ------------------------------------------------------------
 
   /** How often every digit (index 1–size) is on the board. */
@@ -320,6 +351,8 @@ export function useSudokuGame() {
     stopwatch,
     digitCounts,
     canUndo,
+    checkedWrong,
+    check,
     startNew,
     resume,
     select,

@@ -21,6 +21,8 @@ const props = defineProps<{
   regions: readonly number[]
   cells: readonly CellState[]
   conflicts?: readonly boolean[] | null
+  /** Cells revealed as wrong by "Check" (crowns off the solution, marks on it). */
+  wrong?: ReadonlySet<number> | null
   blocked?: readonly boolean[] | null
   highlight?: BoardHighlight | null
   disabled?: boolean
@@ -233,6 +235,7 @@ function onKeydown(event: KeyboardEvent): void {
         'cell--tint': highlight?.tint.has(cell - 1),
         'cell--focus': highlight?.focus.has(cell - 1),
         'cell--cursor': focusCell === cell - 1,
+        'cell--wrong': wrong?.has(cell - 1),
       }"
       :style="cellStyle(cell - 1)"
     >
@@ -330,8 +333,19 @@ function onKeydown(event: KeyboardEvent): void {
   animation: crown-pop var(--dur-med) var(--ease-out);
 }
 
-.cell__crown--conflict {
+.cell__crown--conflict,
+.cell--wrong .cell__crown,
+.cell--wrong .cell__mark {
   color: var(--color-error);
+}
+
+.cell--wrong .cell__mark {
+  opacity: 1;
+  stroke-width: 2.2;
+}
+
+.cell--wrong {
+  box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--color-error) 18%, transparent);
 }
 
 .cell__mark {
