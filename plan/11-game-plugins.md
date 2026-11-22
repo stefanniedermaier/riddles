@@ -1,6 +1,8 @@
 # 11 – Games as separate packages / plugins (evaluation)
 
-**Status:** evaluation, no decision yet. Nothing in this plan is implemented.
+**Status:** option A is implemented (one module list, see `docs/architecture.md` →
+*How a game plugs in*). Options B and C are **deferred – backlog idea**: revisit when there
+is a concrete external game.
 
 **Question:** Should every game move to its own repository and be installable on its own,
 with Riddles as a base app that installs the standard games by choice and further games
@@ -11,7 +13,8 @@ from a GitHub repository URL?
 - One repository, one Vite build, one static deployment (GitHub Pages), one service worker
   that precaches everything (~0.5 MB for the whole app, all seven games included).
 - A game plugs in through three files (`index.ts` descriptor, `routes.ts`, `i18n.ts`) and
-  `src/games/registry.ts`. Game chunks are already lazy-loaded per route.
+  `src/games/registry.ts` (before option A: plus the `GameId` union and `src/i18n/index.ts`).
+  Game chunks are already lazy-loaded per route.
 - Games depend on shared code: `core/` (rng, storage, timer, stats, i18n, worker RPC, pool,
   toast), `components/` (AppBar, dialogs, buttons, GameSettingsButton …), design tokens.
 - Players can already hide games (Settings → Games); hidden games cost nothing at runtime.

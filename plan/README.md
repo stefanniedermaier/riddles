@@ -18,7 +18,7 @@ all data on the device. Every level is generated on the fly.
 | 08 | [Game management](08-game-management.md)     | Show/hide and reorder games (settings, drag & drop)           |
 | 09 | [Merge](09-merge.md)                         | Sliding number game (3×3, 4×4, 5×5)                           |
 | 10 | [Arrows](10-arrows.md)                       | Ordering puzzle: tap arrows so they slide out                 |
-| 11 | [Game plugins](11-game-plugins.md)           | Evaluation: separate repos / runtime-installed games          |
+| 11 | [Game plugins](11-game-plugins.md)           | Game API (one module list) done; repos / plugins in backlog   |
 
 ## Decisions (from the kick-off wizard)
 
@@ -69,7 +69,16 @@ layouts are original; nothing is copied from commercial titles.
 | M5        | Docs, icons, polish, QA (plan 05)         | M2–M4      |
 
 M2–M4 are independent of each other: each game lives in its own folder and only plugs into
-the shell through `src/games/registry.ts`, its own `routes.ts` and its own `i18n.ts`.
+the shell through its own `module.ts` (descriptor, routes, texts) listed in `src/games/modules.ts`.
+
+## Backlog
+
+Ideas that are evaluated but deliberately postponed:
+
+| Idea                                   | Notes                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------- |
+| Games as workspace packages            | Plan 11, option B – only if games should be versioned or published   |
+| External games from a URL (plugins)    | Plan 11, option C – only with an iframe sandbox and a small SDK; wait for a concrete external game |
 
 ## Definition of done (per milestone)
 

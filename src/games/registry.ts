@@ -1,25 +1,12 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-import { descriptor as arrows } from './arrows'
-import { routes as arrowsRoutes } from './arrows/routes'
-import { descriptor as crowns } from './crowns'
-import { routes as crownsRoutes } from './crowns/routes'
-import { descriptor as links } from './links'
-import { routes as linksRoutes } from './links/routes'
-import { descriptor as merge } from './merge'
-import { routes as mergeRoutes } from './merge/routes'
-import { descriptor as nonogram } from './nonogram'
-import { routes as nonogramRoutes } from './nonogram/routes'
-import { descriptor as shapes } from './shapes'
-import { routes as shapesRoutes } from './shapes/routes'
-import { descriptor as sudoku } from './sudoku'
-import { routes as sudokuRoutes } from './sudoku/routes'
+import { gameModules } from './modules'
 import type { GameDescriptor, GameId } from './types'
 
-/** All games in display order. */
-export const games: readonly GameDescriptor[] = [sudoku, crowns, links, nonogram, arrows, shapes, merge]
+/** All games in default display order. */
+export const games: readonly GameDescriptor[] = gameModules.map((module) => module.descriptor)
 
-export const gameRoutes: RouteRecordRaw[] = [...sudokuRoutes, ...crownsRoutes, ...linksRoutes, ...nonogramRoutes, ...arrowsRoutes, ...shapesRoutes, ...mergeRoutes]
+export const gameRoutes: RouteRecordRaw[] = gameModules.flatMap((module) => module.routes)
 
 export function getGame(id: GameId): GameDescriptor {
   const game = games.find((candidate) => candidate.id === id)

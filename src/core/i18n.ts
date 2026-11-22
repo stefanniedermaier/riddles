@@ -6,7 +6,7 @@
  */
 import { computed, ref, watchEffect } from 'vue'
 
-import { messages, type MessageKey } from '@/i18n'
+import { getMessages, type MessageKey } from '@/i18n'
 import { settings } from './settings'
 
 export type Locale = 'en' | 'de'
@@ -42,6 +42,7 @@ export type MessageParams = Record<string, string | number>
 
 /** Translates `key`, replacing `{name}` placeholders with `params.name`. */
 export function t(key: MessageKey, params?: MessageParams): string {
+  const messages = getMessages()
   const text = lookup(messages[locale.value], key) ?? lookup(messages.en, key) ?? key
   if (!params) return text
   return text.replace(/\{(\w+)\}/g, (match, name: string) =>

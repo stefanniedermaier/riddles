@@ -23,6 +23,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
   off by default)
 - Arrows: all arrows share one colour by default (colours per direction gave the order away)
 - Icons: Links endpoints aligned, Arrows icon redrawn without overlapping arrows
+- Games plug in through one module list (`src/games/modules.ts`): registry, routes, texts
+  and the `GameId` type are derived from it
 
 ## [0.4.0] – 2026-11-20
 
