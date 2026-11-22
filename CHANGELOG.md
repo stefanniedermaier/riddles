@@ -6,6 +6,24 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Check** button in Sudoku, Nonogram and Crowns: highlights wrong entries and counts each
+  mistake once; mistakes are shown in the result
+- Settings button inside every game (lobby and play view; the clock pauses while it is open)
+- Settings → Game settings: pick a game, then change its options (deep link `?game=<id>`)
+- Arrows: option *Colour by direction*
+- Shapes: juice splashes, rocket beams and bomb shockwaves; points fly to the score
+
+### Changed
+
+- Shapes: new fruit-and-garden pieces (strawberry, orange, lemon, leaf, flower, grapes) in
+  more saturated colours, rocket / bomb / rainbow-ball specials, wooden crates, acorn items
+- Mistakes are no longer shown right away in Nonogram and Crowns (instant mode is an option,
+  off by default)
+- Arrows: all arrows share one colour by default (colours per direction gave the order away)
+- Icons: Links endpoints aligned, Arrows icon redrawn without overlapping arrows
+
 ## [0.4.0] – 2026-11-20
 
 ### Added

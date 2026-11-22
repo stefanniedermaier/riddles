@@ -3,7 +3,7 @@ import type { Messages } from '@/i18n/types'
 /** English texts of the Shapes game (namespace `shapes`). */
 export const en = {
   name: 'Shapes',
-  tagline: 'Swap shapes and match three or more.',
+  tagline: 'Swap fruit and match three or more.',
   modes: {
     zen: 'Zen',
     time: 'Time',
@@ -15,7 +15,7 @@ export const en = {
     levels: 'Reach the goals before you run out of moves. Each level unlocks the next.',
   },
   lobby: {
-    howTo: 'Swipe a shape – or tap two neighbours – to swap them. Line up three or more of the same shape.',
+    howTo: 'Swipe a piece – or tap two neighbours – to swap them. Line up three or more of the same kind. Bigger matches build rockets, bombs and rainbow balls.',
     howToTitle: 'How to play',
     howToLevels:
       'Levels add obstacles: break chains and crates, clear the marked tiles and bring the drop items down to the bottom row – an item can always be swapped one row down.',
@@ -39,24 +39,24 @@ export const en = {
     specials: 'Create {count} specials',
     targets: 'Clear all {count} marked tiles',
     crates: 'Break all {count} crates',
-    chains: 'Free all {count} chained shapes',
+    chains: 'Free all {count} chained pieces',
     items: 'Bring {count} items to the bottom',
     progress: '{current} of {target}',
     done: 'done',
   },
   kinds: {
-    k0: 'circles',
-    k1: 'triangles',
-    k2: 'squares',
-    k3: 'diamonds',
-    k4: 'hexagons',
-    k5: 'stars',
+    k0: 'strawberries',
+    k1: 'oranges',
+    k2: 'lemons',
+    k3: 'leaves',
+    k4: 'flowers',
+    k5: 'grapes',
   },
   specials: {
-    lineH: 'row clearer',
-    lineV: 'column clearer',
-    burst: 'burst',
-    prism: 'prism',
+    lineH: 'row rocket',
+    lineV: 'column rocket',
+    burst: 'bomb',
+    prism: 'rainbow ball',
   },
   pause: {
     title: 'Paused',
@@ -83,14 +83,14 @@ export const en = {
     idleHintInfo: 'Highlights a possible move after a few seconds without input.',
   },
   board: {
-    label: 'Game board, 8 by 8 shapes',
+    label: 'Game board, 8 by 8 pieces',
     shuffled: 'No moves left – shuffled!',
   },
 }
 
 export const de: Messages<typeof en> = {
   name: 'Shapes',
-  tagline: 'Tausche Formen und bilde Reihen aus drei oder mehr.',
+  tagline: 'Tausche Früchte und bilde Reihen aus drei oder mehr.',
   modes: {
     zen: 'Zen',
     time: 'Zeit',
@@ -103,7 +103,7 @@ export const de: Messages<typeof en> = {
   },
   lobby: {
     howTo:
-      'Wische über eine Form – oder tippe zwei Nachbarn an – um sie zu tauschen. Bilde Reihen aus drei oder mehr gleichen Formen.',
+      'Wische über einen Stein – oder tippe zwei Nachbarn an – um sie zu tauschen. Bilde Reihen aus drei oder mehr gleichen. Größere Reihen ergeben Raketen, Bomben und Regenbogenkugeln.',
     howToTitle: 'So geht’s',
     howToLevels:
       'In den Leveln gibt es Hindernisse: Sprenge Ketten und Kisten, räume die markierten Felder ab und bringe die Fallgegenstände in die unterste Reihe – ein Gegenstand lässt sich jederzeit eine Reihe nach unten tauschen.',
@@ -127,24 +127,24 @@ export const de: Messages<typeof en> = {
     specials: '{count} Spezialsteine bilden',
     targets: 'Alle {count} markierten Felder abräumen',
     crates: 'Alle {count} Kisten zerstören',
-    chains: 'Alle {count} angeketteten Formen befreien',
+    chains: 'Alle {count} angeketteten Steine befreien',
     items: '{count} Gegenstände nach unten bringen',
     progress: '{current} von {target}',
     done: 'erledigt',
   },
   kinds: {
-    k0: 'Kreise',
-    k1: 'Dreiecke',
-    k2: 'Quadrate',
-    k3: 'Rauten',
-    k4: 'Sechsecke',
-    k5: 'Sterne',
+    k0: 'Erdbeeren',
+    k1: 'Orangen',
+    k2: 'Zitronen',
+    k3: 'Blätter',
+    k4: 'Blumen',
+    k5: 'Trauben',
   },
   specials: {
-    lineH: 'Reihenräumer',
-    lineV: 'Spaltenräumer',
-    burst: 'Explosion',
-    prism: 'Prisma',
+    lineH: 'Reihen-Rakete',
+    lineV: 'Spalten-Rakete',
+    burst: 'Bombe',
+    prism: 'Regenbogenkugel',
   },
   pause: {
     title: 'Pause',
@@ -171,7 +171,7 @@ export const de: Messages<typeof en> = {
     idleHintInfo: 'Zeigt nach einigen Sekunden ohne Eingabe einen möglichen Zug.',
   },
   board: {
-    label: 'Spielfeld mit 8 mal 8 Formen',
+    label: 'Spielfeld mit 8 mal 8 Steinen',
     shuffled: 'Keine Züge mehr – neu gemischt!',
   },
 }

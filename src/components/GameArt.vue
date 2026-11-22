@@ -112,10 +112,26 @@ defineProps<{ game: GameId }>()
     </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
-      <circle cx="19" cy="19" r="8" fill="#e2445c" />
-      <path d="M45 10l9 16H36z" fill="#f08a24" stroke="#f08a24" stroke-width="2" stroke-linejoin="round" />
-      <path d="M19 36l9 9-9 9-9-9z" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="2" stroke-linejoin="round" />
-      <rect x="37" y="37" width="16" height="16" rx="3" fill="#3a72d6" />
+      <!-- Strawberry, orange, leaf and grapes – the fruit-garden pieces of the game. -->
+      <path d="M20 31C13 29 8 22 9 16c1-4 6-5 11-4 5-1 10 0 11 4 1 6-4 13-11 15z" fill="#f0213f" />
+      <path d="M13 12.5q3.5-4 7-1.5 3.5-2.5 7 1.5-3.5 2-7 1-3.5 1-7-1z" fill="#2fa84f" />
+      <g fill="#ffe7a1">
+        <circle cx="16" cy="18" r="1" /><circle cx="22" cy="18" r="1" /><circle cx="19" cy="23" r="1" />
+      </g>
+      <circle cx="44" cy="22" r="11" fill="#d96400" />
+      <circle cx="43" cy="21" r="9.8" fill="#ff8a00" />
+      <path d="M45 11q3-6 10-4-3 6-10 4z" fill="#2fa84f" />
+      <circle cx="39.5" cy="17.5" r="2.4" fill="#fff" opacity=".55" />
+      <g transform="rotate(32 20 44)">
+        <path d="M20 32c9 5 10 17 0 24-10-7-9-19 0-24z" fill="#22b34c" />
+        <path d="M20 34v21" stroke="#157a32" stroke-width="1.6" stroke-linecap="round" />
+      </g>
+      <g>
+        <circle cx="38" cy="42" r="5" fill="#6c1fc0" /><circle cx="37.4" cy="41.4" r="4" fill="#9b40f2" />
+        <circle cx="48" cy="42" r="5" fill="#6c1fc0" /><circle cx="47.4" cy="41.4" r="4" fill="#9b40f2" />
+        <circle cx="43" cy="50" r="5" fill="#6c1fc0" /><circle cx="42.4" cy="49.4" r="4" fill="#9b40f2" />
+        <path d="M43 37v-4" stroke="#7a4a1f" stroke-width="2" stroke-linecap="round" />
+      </g>
     </template>
   </svg>
 </template>

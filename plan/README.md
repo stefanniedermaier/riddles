@@ -30,7 +30,7 @@ all data on the device. Every level is generated on the fly.
 | App / game names   | **Riddles** with **Sudoku**, **Crowns** (row/column/region puzzle), **Shapes** (match-3)     |
 | Sudoku             | 4 difficulties (Easy/Medium/Hard/Expert), unique solution, notes/candidates, explained hints |
 | Crowns             | Difficulty determines size: Easy 6×6, Medium 7×7–8×8, Hard 9×9, Expert 10×10; logic-graded  |
-| Shapes             | Modes: Zen (endless), Time, Levels with goals; geometric SVG pieces (colour + shape)         |
+| Shapes             | Modes: Zen (endless), Time, Levels with goals; fruit & garden SVG pieces (colour + shape)        |
 | Persistence        | Resume running games, statistics & best values, JSON export/import – all local              |
 | Presentation       | Dark mode (system + manual), animations (respect "reduce motion")                           |
 | Not in scope (v1)  | Daily puzzle, sound effects, vibration, undo/redo, instant error highlighting in Sudoku      |

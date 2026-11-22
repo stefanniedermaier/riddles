@@ -21,6 +21,8 @@ const props = defineProps<{
   /** Levels mode. */
   movesLeft?: number
   goals?: GoalStatus[]
+  /** Changes whenever flying points arrive (restarts the bump animation). */
+  scoreBump?: number
 }>()
 
 const seconds = computed(() => Math.ceil((props.remainingMs ?? 0) / 1000))
@@ -62,7 +64,9 @@ const fmt = (status: GoalStatus, value: number) =>
     <div v-if="mode !== 'levels'" class="hud__row">
       <div class="hud__stat">
         <span class="hud__label">{{ t('shapes.hud.score') }}</span>
-        <strong class="hud__value tabular">{{ formatNumber(score) }}</strong>
+        <strong :key="scoreBump" class="hud__value tabular score-bump" data-score-target>
+          {{ formatNumber(score) }}
+        </strong>
       </div>
 
       <div v-if="mode === 'time'" class="hud__stat hud__stat--end">
@@ -135,7 +139,9 @@ const fmt = (status: GoalStatus, value: number) =>
       </div>
       <p class="level-score">
         {{ t('shapes.hud.score') }}
-        <strong class="tabular">{{ formatNumber(score) }}</strong>
+        <strong :key="scoreBump" class="tabular score-bump" data-score-target>
+          {{ formatNumber(score) }}
+        </strong>
       </p>
     </template>
   </section>
@@ -361,6 +367,22 @@ const fmt = (status: GoalStatus, value: number) =>
 
 .level-score strong {
   color: var(--color-text);
+}
+
+.score-bump {
+  display: inline-block;
+  animation: score-bump 0.32s var(--ease-out);
+}
+
+@keyframes score-bump {
+  40% {
+    transform: scale(1.25);
+    color: var(--game-shapes);
+  }
+}
+
+:root[data-motion='reduced'] .score-bump {
+  animation: none;
 }
 
 @keyframes bonus-fade {

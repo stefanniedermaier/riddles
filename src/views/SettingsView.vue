@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
@@ -66,6 +66,19 @@ watch(
   },
   { immediate: true },
 )
+
+// Keep the chosen game visible in the horizontally scrolling picker (without scrolling the
+// page itself, so `scrollIntoView` is not used).
+async function revealSelectedGame(): Promise<void> {
+  await nextTick()
+  const tab = document.getElementById(`game-tab-${selectedGame.value}`)
+  const picker = tab?.parentElement
+  if (!tab || !picker) return
+  picker.scrollLeft = tab.offsetLeft - picker.offsetLeft - (picker.clientWidth - tab.offsetWidth) / 2
+}
+
+watch(selectedGame, revealSelectedGame)
+onMounted(revealSelectedGame)
 
 // --- Export ---------------------------------------------------------------
 
