@@ -18,6 +18,7 @@ all data on the device. Every level is generated on the fly.
 | 08 | [Game management](08-game-management.md)     | Show/hide and reorder games (settings, drag & drop)           |
 | 09 | [Merge](09-merge.md)                         | Sliding number game (3×3, 4×4, 5×5)                           |
 | 10 | [Arrows](10-arrows.md)                       | Ordering puzzle: tap arrows so they slide out                 |
+| 11 | [Game plugins](11-game-plugins.md)           | Evaluation: separate repos / runtime-installed games          |
 
 ## Decisions (from the kick-off wizard)
 
