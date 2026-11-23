@@ -25,6 +25,7 @@ import {
 } from './logic/engine'
 import MergeBoard, { type DisplayTile } from './MergeBoard.vue'
 import { clearRun, loadRun, recordHighestTile, saveRun } from './store'
+import MergeRules from './MergeRules.vue'
 
 const props = defineProps<{ variant: Variant }>()
 
@@ -73,6 +74,7 @@ function onVisibilityChange(): void {
 // Dialog state
 
 const menuOpen = ref(false)
+const showRules = ref(false)
 const confirmNew = ref(false)
 const targetOpen = ref(false)
 
@@ -92,6 +94,7 @@ const blocked = computed(
     !run.value ||
     run.value.over ||
     menuOpen.value ||
+    showRules.value ||
     confirmNew.value ||
     targetOpen.value ||
     result.value !== null,
@@ -283,6 +286,9 @@ onBeforeUnmount(() => {
 <template>
   <AppBar :title="t(`merge.variants.${variant}`)" :back-to="{ name: 'merge' }">
     <template #actions>
+      <button type="button" class="icon-btn" :aria-label="t('common.rules')" @click="showRules = true">
+        <AppIcon name="info" />
+      </button>
       <button
         v-if="run"
         type="button"
@@ -361,6 +367,9 @@ onBeforeUnmount(() => {
       <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
+  <AppDialog :open="showRules" :title="t('merge.lobby.howToTitle')" @close="showRules = false">
+    <MergeRules />
+  </AppDialog>
 </template>
 
 <style scoped>

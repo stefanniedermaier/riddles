@@ -23,9 +23,11 @@ function contentSecurityPolicy(): Plugin {
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        const scriptHashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
-          (match) => `'sha256-${createHash('sha256').update(match[1] ?? '').digest('base64')}'`,
-        )
+        // Inline scripts only (external ones with src= are covered by 'self'); tag names are
+        // case-insensitive and browsers also accept end tags with trailing content.
+        const scriptHashes = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)]
+          .filter((match) => !/\bsrc\s*=/i.test(match[1] ?? ''))
+          .map((match) => `'sha256-${createHash('sha256').update(match[2] ?? '').digest('base64')}'`)
         const policy = [
           "default-src 'self'",
           `script-src 'self' ${scriptHashes.join(' ')}`.trim(),

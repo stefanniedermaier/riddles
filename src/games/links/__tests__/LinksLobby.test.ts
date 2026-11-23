@@ -29,7 +29,9 @@ describe('LinksLobby', () => {
     const { wrapper } = await mountLobby()
     expect(wrapper.findAll('.choice')).toHaveLength(4)
     expect(wrapper.text()).toContain('11×11')
-    expect(wrapper.find('.rules').exists()).toBe(true)
+    expect(wrapper.find('.rules-card').exists()).toBe(true)
+    // Collapsed by default.
+    expect(wrapper.find('.rules-card').attributes('open')).toBeUndefined()
     expect(wrapper.find('.rules--bottom').exists()).toBe(false)
   })
 

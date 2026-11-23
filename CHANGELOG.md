@@ -6,6 +6,26 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Statistics: overview (games played, completion rate, days played, day streak, solving
+  time, favourite game) and per game an icon, last-played date and key figures; average score
+  for score games
+- Privacy notice in the app (Settings → Your data, link on the home screen)
+- Share button on the home screen (share sheet or copy link)
+- Rules button in Sudoku, Shapes, Merge and Blocks games, like in the other puzzles
+
+### Changed
+
+- Game rules are shown in a collapsible card (collapsed by default) – above the menu before
+  the first game, below it afterwards – in all games, including Sudoku, Shapes and Blocks
+- Mini Sudoku: the info text in the menu was removed
+
+### Security
+
+- CSP build plugin: robust inline-script detection (CodeQL js/bad-tag-filter)
+- Web Worker RPC: origin and message-shape check (CodeQL js/missing-origin-check)
+
 ## [0.5.0] – 2026-11-22
 
 ### Added

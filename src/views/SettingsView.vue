@@ -211,6 +211,10 @@ function resetAll(): void {
     <h2 class="section-title">{{ t('settings.data') }}</h2>
     <section class="card group">
       <p class="muted info">{{ t('settings.dataInfo') }}</p>
+      <RouterLink to="/privacy" class="about__link">
+        <AppIcon name="lock" :size="16" />
+        {{ t('privacy.link') }}
+      </RouterLink>
       <AppButton icon="download" block @click="exportBackup">{{ t('settings.export') }}</AppButton>
       <AppButton icon="upload" block @click="fileInput?.click()">{{ t('settings.import') }}</AppButton>
       <AppButton icon="trash" variant="danger" block @click="confirmReset = true">

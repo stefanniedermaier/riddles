@@ -11,6 +11,7 @@ export const router = createRouter({
     { path: '/', name: 'home', component: HomeView },
     { path: '/settings', name: 'settings', component: () => import('@/views/SettingsView.vue') },
     { path: '/stats', name: 'stats', component: () => import('@/views/StatsView.vue') },
+    { path: '/privacy', name: 'privacy', component: () => import('@/views/PrivacyView.vue') },
     ...gameRoutes,
     {
       path: '/:pathMatch(.*)*',

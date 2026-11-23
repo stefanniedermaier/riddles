@@ -33,7 +33,9 @@ describe('ArrowsLobby', () => {
 
   it('shows the rules first for new players and the sizes per difficulty', async () => {
     const { wrapper } = await mountLobby()
-    expect(wrapper.find('.rules').exists()).toBe(true)
+    expect(wrapper.find('.rules-card').exists()).toBe(true)
+    // Collapsed by default.
+    expect(wrapper.find('.rules-card').attributes('open')).toBeUndefined()
     expect(wrapper.find('.rules--bottom').exists()).toBe(false)
     expect(wrapper.findAll('.choice__detail').map((el) => el.text())).toEqual(['6×6', '8×8', '10×10', '12×12'])
   })

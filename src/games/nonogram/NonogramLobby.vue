@@ -6,6 +6,7 @@ import AppBar from '@/components/AppBar.vue'
 import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppButton from '@/components/AppButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
+import RulesCard from '@/components/RulesCard.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
@@ -68,10 +69,9 @@ onMounted(() => nonogramPool.warm(DIFFICULTIES))
   </AppBar>
 
   <main class="page lobby">
-    <section v-if="!hasPlayed" class="card rules">
-      <h2 class="rules__title">{{ t('nonogram.rules.title') }}</h2>
+    <RulesCard v-if="!hasPlayed" :title="t('nonogram.rules.title')" accent="var(--game-nonogram)">
       <NonogramRules />
-    </section>
+    </RulesCard>
 
     <div v-if="saved" class="resume">
       <AppButton variant="primary" icon="play" block @click="resume">
@@ -83,10 +83,9 @@ onMounted(() => nonogramPool.warm(DIFFICULTIES))
     <h2 class="section-title">{{ t('nonogram.lobby.newGame') }}</h2>
     <ChoiceList :items="items" @select="onSelect" />
 
-    <section v-if="hasPlayed" class="card rules rules--bottom">
-      <h2 class="rules__title">{{ t('nonogram.rules.title') }}</h2>
+    <RulesCard v-if="hasPlayed" class="rules--bottom" :title="t('nonogram.rules.title')" accent="var(--game-nonogram)">
       <NonogramRules />
-    </section>
+    </RulesCard>
   </main>
 
   <ConfirmDialog
@@ -100,19 +99,8 @@ onMounted(() => nonogramPool.warm(DIFFICULTIES))
 </template>
 
 <style scoped>
-.rules {
-  padding: var(--space-4);
-  border-top: 4px solid var(--game-nonogram);
-}
-
 .rules--bottom {
   margin-top: var(--space-5);
-}
-
-.rules__title {
-  margin-bottom: var(--space-2);
-  font-size: var(--text-md);
-  font-weight: 700;
 }
 
 .resume {
