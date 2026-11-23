@@ -395,7 +395,7 @@ jobs:
           PAGE_URL: ${{ needs.deploy.outputs.page_url }}
         run: |
           node scripts/check-release.mjs "$GITHUB_REF_NAME" --notes > notes.md
-          printf '\n---\n\nDeployed to %s – SBOM attached; build provenance: `gh attestation verify <file> -R %s`\n' \
+          printf "\n---\n\nDeployed to %s – SBOM attached; build provenance: \`gh attestation verify <file> -R %s\`\n" \
             "$PAGE_URL" "$GITHUB_REPOSITORY" >> notes.md
           prerelease=()
           [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
