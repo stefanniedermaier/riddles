@@ -4,10 +4,18 @@ import AppIcon from '@/components/AppIcon.vue'
 import GameArt from '@/components/GameArt.vue'
 import InstallButton from '@/components/InstallButton.vue'
 import { t } from '@/core/i18n'
+import { appUrl, shareApp } from '@/core/share'
+import { showToast } from '@/core/toast'
 import { visibleGames } from '@/games/layout'
 
 // Read once per visit – storage is not reactive, and the home view remounts on navigation.
 const saved = Object.fromEntries(visibleGames.value.map((game) => [game.id, game.hasSavedGame()]))
+
+async function share(): Promise<void> {
+  const outcome = await shareApp(t('app.name'), t('share.text'))
+  if (outcome === 'copied') showToast(t('share.copied'))
+  else if (outcome === 'failed') showToast(t('share.failed', { url: appUrl() }), 6000)
+}
 </script>
 
 <template>
@@ -16,6 +24,9 @@ const saved = Object.fromEntries(visibleGames.value.map((game) => [game.id, game
       <h1 class="brand">{{ t('app.name') }}</h1>
     </template>
     <template #actions>
+      <button type="button" class="icon-btn" :aria-label="t('share.button')" @click="share">
+        <AppIcon name="share" />
+      </button>
       <RouterLink to="/stats" class="icon-btn" :aria-label="t('common.stats')">
         <AppIcon name="stats" />
       </RouterLink>
@@ -43,6 +54,9 @@ const saved = Object.fromEntries(visibleGames.value.map((game) => [game.id, game
         </RouterLink>
       </li>
     </ul>
+    <footer class="footer">
+      <RouterLink to="/privacy" class="footer__link">{{ t('privacy.link') }}</RouterLink>
+    </footer>
   </main>
 </template>
 
@@ -112,5 +126,15 @@ const saved = Object.fromEntries(visibleGames.value.map((game) => [game.id, game
 
 :root[data-theme='dark'] .game-card__badge {
   color: var(--color-bg);
+}
+
+.footer {
+  margin-top: var(--space-6);
+  text-align: center;
+}
+
+.footer__link {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 </style>
