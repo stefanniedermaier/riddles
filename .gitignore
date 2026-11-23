@@ -8,6 +8,9 @@ node_modules
 dist
 dist-ssr
 coverage
+test-results
+playwright-report
+blob-report
 *.local
 *.tsbuildinfo
 .eslintcache
@@ -23,3 +26,4 @@ coverage
 *.sln
 *.sw?
 /ToDo.md
+.bin

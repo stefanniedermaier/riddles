@@ -6,6 +6,20 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Accessibility: higher contrast for secondary text and the *Delete all data* button in the
+  light theme (WCAG AA); the backup file picker has an accessible name
+
+### Security
+
+- CI: OSV-Scanner as a second vulnerability source, gitleaks secret scan of the full history,
+  actionlint and zizmor for the workflows, no caches in release builds (cache poisoning)
+- CI: build output check (gzip budgets, CSP, no source maps or third-party origins) and
+  Playwright end-to-end tests with axe accessibility checks in both themes and offline mode
+- CI: weekly scheduled run of all checks on `main`; scanner versions pinned with checksums
+  and kept up to date by Dependabot
+
 ## [0.7.0] – 2026-11-23
 
 ### Changed

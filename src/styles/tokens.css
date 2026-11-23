@@ -10,7 +10,7 @@
   --color-border: #dcd8e3;
   --color-border-strong: #39364a;
   --color-text: #1d1b26;
-  --color-text-muted: #6b6878;
+  --color-text-muted: #636070;
   --color-overlay: rgb(20 18 30 / 45%);
 
   /* Brand & states */
@@ -18,7 +18,7 @@
   --color-accent-strong: #4a3bc4;
   --color-accent-soft: #e6e2ff;
   --color-on-accent: #ffffff;
-  --color-error: #d42f4a;
+  --color-error: #c0263f;
   --color-error-soft: #fde3e7;
   --color-success: #1d8f62;
   --color-success-soft: #dcf5ea;

@@ -4,22 +4,34 @@ name: CI & Deploy
 # package.json and CHANGELOG.md, on main) builds, deploys and publishes a GitHub Release.
 # Pushes to main and pull requests run all checks but do not deploy.
 #
+# A weekly scheduled run re-checks main against newly published vulnerabilities.
+#
 # Deployment only happens when ALL gates pass:
-#   release-check – tag = package.json version, changelog entry, tag on main, signed tag
-#   supply-chain  – lockfile provenance/integrity/licenses, registry signatures, npm audit
-#   codeql        – static security analysis of the source code
-#   verify        – lint, type-check, unit tests, reproducible build, SBOM, signed
-#                   build-provenance and SBOM attestations
+#   release-check     – tag = package.json version, changelog entry, tag on main, signed tag
+#   supply-chain      – lockfile provenance/integrity/licenses, registry signatures, npm audit
+#   osv               – OSV-Scanner: lockfile against the OSV database (GitHub, npm, Go, ...)
+#   codeql            – static security analysis of the source code and the workflows
+#   workflow-security – actionlint (incl. shellcheck) and zizmor for the GitHub workflows
+#   secret-scan       – gitleaks over the full git history
+#   verify            – lint, type-check, unit tests, reproducible build, build budgets/CSP
+#                       check, SBOM, signed build-provenance and SBOM attestations
+#   e2e               – Playwright smoke tests and axe accessibility checks (WCAG 2.2 AA) of
+#                       the production build, incl. CSP violations and offline mode
 # Pull requests additionally run dependency-review for newly added/updated packages.
 #
-# Third-party actions are pinned to full commit SHAs (tag in the comment); Dependabot
-# keeps the pins up to date.
+# Only GitHub-owned actions are allowed in this repository. They are pinned to full commit
+# SHAs (tag in the comment). The scanners are not actions: they are built from source with Go
+# (versions + checksums in .github/tools/*/go.mod/go.sum, verified against the Go checksum
+# database) or installed with pip --require-hashes. Dependabot keeps all pins up to date.
+# Nothing in this workflow uses a cache: release builds must not be exposed to cache poisoning.
 
 on:
   push:
     branches: [main]
     tags: ['v*']
   pull_request:
+  schedule:
+    - cron: '17 5 * * 1' # Mondays – new advisories for unchanged code
   workflow_dispatch:
 
 permissions:
@@ -50,6 +62,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
 
       - name: Tag matches package.json and CHANGELOG.md
         run: node scripts/check-release.mjs "$GITHUB_REF_NAME"
@@ -108,7 +121,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          cache: npm
+          package-manager-cache: false
 
       # Runs before anything is installed: registry-only sources, sha512 integrity,
       # lockfile format, licenses of shipped packages.
@@ -130,6 +143,89 @@ jobs:
       # Build tooling must at least be free of high/critical vulnerabilities.
       - name: Audit all dependencies
         run: npm audit --audit-level=high
+
+  osv:
+    name: OSV scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: .github/tools/osv-scanner/go.mod
+          cache: false
+
+      - name: Build OSV-Scanner (pinned in .github/tools/osv-scanner)
+        run: go -C .github/tools/osv-scanner build -trimpath -o "$RUNNER_TEMP/bin/" tool
+
+      # Second vulnerability database next to npm audit (GitHub advisories + OSV.dev sources).
+      - name: Scan lockfile for known vulnerabilities
+        run: |
+          "$RUNNER_TEMP/bin/osv-scanner" scan source --lockfile package-lock.json
+
+  workflow-security:
+    name: Workflow security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: .github/tools/actionlint/go.mod
+          cache: false
+
+      - name: Build actionlint (pinned in .github/tools/actionlint)
+        run: go -C .github/tools/actionlint build -trimpath -o "$RUNNER_TEMP/bin/" tool
+
+      # Syntax, expressions, runner labels, action inputs; shell scripts via shellcheck
+      # (preinstalled on the runner).
+      - name: actionlint
+        run: |
+          "$RUNNER_TEMP/bin/actionlint" -color
+
+      - name: Install zizmor (pip, hash-pinned)
+        run: |
+          python3 -m venv "$RUNNER_TEMP/zizmor"
+          "$RUNNER_TEMP/zizmor/bin/pip" install --quiet --require-hashes --no-deps \
+            -r .github/tools/zizmor/requirements.txt
+
+      # Security audit of the workflows and dependabot.yml: injection, excessive permissions, credential
+      # persistence, cache poisoning, unpinned or impostor commits, known-vulnerable actions.
+      - name: zizmor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          "$RUNNER_TEMP/zizmor/bin/zizmor" --format=github --no-progress .
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # scan the complete history, not only the latest commit
+          persist-credentials: false
+
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: .github/tools/gitleaks/go.mod
+          cache: false
+
+      - name: Build gitleaks (pinned in .github/tools/gitleaks)
+        run: go -C .github/tools/gitleaks build -trimpath -o "$RUNNER_TEMP/bin/" tool
+
+      # Complements GitHub secret scanning / push protection with gitleaks' rule set; also
+      # runs on pull requests from forks before anything is merged.
+      - name: Scan git history for secrets
+        run: |
+          "$RUNNER_TEMP/bin/gitleaks" git --redact --no-banner --verbose .
 
   codeql:
     name: CodeQL
@@ -167,7 +263,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          cache: npm
+          package-manager-cache: false
 
       - name: Install (lockfile only, no install scripts)
         run: npm ci --ignore-scripts
@@ -176,6 +272,10 @@ jobs:
       - run: npm run type-check
       - run: npm test
       - run: npm run build-only
+
+      # Performance budgets, CSP, no source maps or third-party origins, manifest + service worker.
+      - name: Check build output
+        run: npm run check:dist
 
       # The build must not modify tracked files (e.g. lockfile drift, stale generated assets).
       - name: Ensure clean working tree
@@ -215,10 +315,46 @@ jobs:
         with:
           path: dist
 
+  e2e:
+    name: E2E & accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Install (lockfile only, no install scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run build-only
+
+      # Production build via `vite preview`: smoke tests of every screen (desktop/light and
+      # mobile/dark), no console errors or CSP violations, offline start via the service
+      # worker, and axe-core checks against WCAG 2.2 A/AA.
+      - name: Playwright tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 14
+
   deploy:
     name: Deploy to GitHub Pages
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [release-check, supply-chain, codeql, verify]
+    needs: [release-check, supply-chain, osv, codeql, workflow-security, secret-scan, verify, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -249,6 +385,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -260,6 +397,7 @@ jobs:
           PAGE_URL: ${{ needs.deploy.outputs.page_url }}
         run: |
           node scripts/check-release.mjs "$GITHUB_REF_NAME" --notes > notes.md
+          # shellcheck disable=SC2016 # the backticks are Markdown, not command substitution
           printf '\n---\n\nDeployed to %s – SBOM attached; build provenance: `gh attestation verify <file> -R %s`\n' \
             "$PAGE_URL" "$GITHUB_REPOSITORY" >> notes.md
           prerelease=()

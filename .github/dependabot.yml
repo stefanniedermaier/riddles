@@ -35,3 +35,26 @@ updates:
     groups:
       actions:
         patterns: ['*']
+
+  # CI scanners (built from source / installed with hashes in .github/workflows/deploy.yml).
+  - package-ecosystem: gomod
+    directories:
+      - /.github/tools/actionlint
+      - /.github/tools/gitleaks
+      - /.github/tools/osv-scanner
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      ci-tools-go:
+        patterns: ['*']
+
+  - package-ecosystem: pip
+    directory: /.github/tools/zizmor
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7

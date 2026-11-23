@@ -32,7 +32,10 @@ Relevant threats and mitigations:
 
 - All changes reach `main` through pull requests with required checks (see §4).
 - CI gates (details in [deployment](deployment.md#supply-chain-safeguards)):
-  supply-chain checks, CodeQL (`security-extended`), lint, type-check, unit tests, build.
+  supply-chain checks, `npm audit` + OSV-Scanner, CodeQL (`security-extended`), workflow
+  security (actionlint, zizmor), secret scanning (gitleaks), lint, type-check, unit tests,
+  build budgets and CSP check, end-to-end and accessibility tests. All of them also run
+  weekly on `main` to catch newly published vulnerabilities.
 - Dependencies: few runtime dependencies (Vue, Vue Router); runtime licenses restricted to
   permissive ones; weekly Dependabot updates.
 - Secure defaults in the app: no permissions requested, works offline, data stays local,
@@ -67,7 +70,7 @@ The GitHub repository settings are documented as code and can be (re-)applied wi
 
 | Area                    | Setting                                                                                  |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
-| Branch `main` (ruleset) | PR required (squash only, conversations resolved, stale approvals dismissed), required checks *Supply chain*, *CodeQL*, *Lint, test & build*, *Dependency review*, code-scanning results (no high/critical alerts), signed commits, linear history, no force-push, no deletion, **no bypass** |
+| Branch `main` (ruleset) | PR required (squash only, conversations resolved, stale approvals dismissed), required checks *Supply chain*, *OSV scan*, *CodeQL*, *Workflow security*, *Secret scan*, *Lint, test & build*, *E2E & accessibility*, *Dependency review*, code-scanning results (no high/critical alerts), signed commits, linear history, no force-push, no deletion, **no bypass** |
 | Tags `v*` (ruleset)     | signed, immutable (no update, no deletion, no force-push)                                 |
 | Security features       | private vulnerability reporting, Dependabot alerts + security updates, secret scanning + push protection, CodeQL advanced setup (`security-extended` in CI; GitHub's default setup disabled) |
 | Actions                 | only GitHub-owned actions, SHA pinning required, read-only default `GITHUB_TOKEN`, Actions cannot approve PRs, approval required for all external contributors' workflow runs |
@@ -117,7 +120,7 @@ good practice:
 | Annex I requirement                                                     | How Riddles addresses it                                                    |
 | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | I.1 Appropriate level of cybersecurity based on risk                    | threat model §1; minimal architecture without backend                        |
-| I.2(a) No known exploitable vulnerabilities on release                  | `npm audit` gates, dependency review, CodeQL; deploy blocked otherwise       |
+| I.2(a) No known exploitable vulnerabilities on release                  | `npm audit` + OSV-Scanner gates, dependency review, CodeQL, gitleaks; deploy blocked otherwise |
 | I.2(b) Secure by default configuration                                  | no permissions, no network beyond self, strict CSP, local data only          |
 | I.2(c) Security updates, automatic where possible                       | service worker update banner; Dependabot security updates                    |
 | I.2(d) Protection against unauthorised access                           | no accounts or remote interfaces; repository and deployment protected (§4)   |
@@ -132,7 +135,7 @@ good practice:
 | I.2(m) Secure removal of data                                           | *Settings → Delete all data*; uninstall clears storage                       |
 | II.1 Identify and document components (SBOM)                            | CycloneDX SBOM per deployment + attestation (§3)                             |
 | II.2 Address vulnerabilities without delay, provide updates            | process §5, Dependabot                                                       |
-| II.3 Regular security testing                                           | CodeQL, audits and tests on every change and weekly via Dependabot PRs       |
+| II.3 Regular security testing                                           | CodeQL, audits, scanners and tests on every change and in a weekly scheduled run |
 | II.4 Public disclosure of fixed vulnerabilities                         | GitHub Security Advisories, changelog                                        |
 | II.5 Coordinated vulnerability disclosure policy                        | [SECURITY.md](../SECURITY.md)                                                |
 | II.6 Contact address for reporting                                      | GitHub private vulnerability reporting                                       |
