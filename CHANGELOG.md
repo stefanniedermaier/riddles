@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.8.0] – 2026-11-23
+
 ### Added
 
 - Settings → About: *Check for updates* looks for a new version right away and installs it
