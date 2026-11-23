@@ -17,17 +17,17 @@ describe('GameOrderList', () => {
   it('lists all games in the stored order', () => {
     gameLayout.value = normalizeLayout({ order: ['shapes', 'sudoku'] })
     const wrapper = mount(GameOrderList)
-    expect(names(wrapper)).toEqual(['Shapes', 'Sudoku', 'Crowns', 'Links', 'Nonogram', 'Arrows', 'Merge', 'Blocks'])
+    expect(names(wrapper)).toEqual(['Shapes', 'Sudoku', 'Stars', 'Links', 'Nonogram', 'Arrows', 'Merge', 'Blocks'])
   })
 
   it('moves a game with the arrow keys on its handle and announces it', async () => {
     const wrapper = mount(GameOrderList, { attachTo: document.body })
     await wrapper.findAll('.order__handle')[0]!.trigger('keydown', { key: 'ArrowDown' })
     await flushPromises()
-    expect(names(wrapper).slice(0, 2)).toEqual(['Crowns', 'Sudoku'])
+    expect(names(wrapper).slice(0, 2)).toEqual(['Stars', 'Sudoku'])
     expect(wrapper.text()).toContain('Sudoku moved to position 2.')
     await wrapper.findAll('.order__handle')[1]!.trigger('keydown', { key: 'ArrowUp' })
-    expect(names(wrapper).slice(0, 2)).toEqual(['Sudoku', 'Crowns'])
+    expect(names(wrapper).slice(0, 2)).toEqual(['Sudoku', 'Stars'])
     wrapper.unmount()
   })
 
@@ -44,7 +44,7 @@ describe('GameOrderList', () => {
     window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 160 })) // near slot 2
     window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientY: 160 }))
     await flushPromises()
-    expect(names(wrapper)).toEqual(['Crowns', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Shapes', 'Merge', 'Blocks'])
+    expect(names(wrapper)).toEqual(['Stars', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Shapes', 'Merge', 'Blocks'])
     wrapper.unmount()
   })
 

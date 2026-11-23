@@ -31,7 +31,7 @@ describe('i18n', () => {
   it('includes game namespaces', () => {
     settings.value.locale = 'en'
     expect(t('sudoku.name')).toBe('Sudoku')
-    expect(t('crowns.name')).toBe('Crowns')
+    expect(t('crowns.name')).toBe('Stars')
     expect(t('shapes.name')).toBe('Shapes')
   })
 })

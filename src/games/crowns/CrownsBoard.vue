@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 
 import { t } from '@/core/i18n'
 import { resolvedTheme } from '@/core/theme'
-import CrownGlyph from './CrownGlyph.vue'
+import StarGlyph from './StarGlyph.vue'
 import { CROWN, EMPTY, MARK, type CellState } from './logic/types'
 import { regionColor } from './palette'
 
@@ -245,7 +245,7 @@ function onKeydown(event: KeyboardEvent): void {
         :class="{ 'cell__crown--conflict': conflicts?.[cell - 1] }"
         :style="{ '--i': cell - 1 }"
       >
-        <CrownGlyph />
+        <StarGlyph />
       </span>
       <svg v-else-if="cells[cell - 1] === MARK" class="cell__mark" viewBox="0 0 10 10" aria-hidden="true">
         <path d="M2 2l6 6M8 2l-6 6" />
@@ -254,7 +254,7 @@ function onKeydown(event: KeyboardEvent): void {
 
       <template v-if="highlight?.ghost.has(cell - 1) && cells[cell - 1] === EMPTY">
         <span v-if="highlight.ghost.get(cell - 1) === 'crown'" class="cell__crown cell__ghost">
-          <CrownGlyph />
+          <StarGlyph />
         </span>
         <svg v-else class="cell__mark cell__ghost" viewBox="0 0 10 10" aria-hidden="true">
           <path d="M2 2l6 6M8 2l-6 6" />

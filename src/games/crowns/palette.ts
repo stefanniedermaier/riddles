@@ -1,34 +1,36 @@
 /**
- * Region colours (11 entries, enough for up to 11×11 grids).
- * Light theme: soft pastels. Dark theme: the same hues, deeper and muted.
- * Regions are also separated by thick borders, so colour is never the only cue.
+ * Region colours (11 entries, enough for up to 11×11 grids): vivid, clearly distinguishable
+ * hues (minimum pairwise CIEDE2000 distance 17.5 light / 14.3 dark, previously 8.8 / 8.5) with
+ * at least 4.5:1 contrast to the star and mark symbols drawn on top (`--color-text`). The most
+ * distinct colours come first, so small grids only use those. Regions are also separated by
+ * thick borders, so colour is never the only cue.
  */
 export const REGION_COLORS = {
   light: [
-    '#f6b8c4', // rose
-    '#a9cff5', // sky
-    '#bfe3ae', // green
-    '#f8d98a', // yellow
-    '#d3c1f4', // lavender
-    '#f7c39d', // peach
-    '#a3e0d8', // teal
-    '#efb5e3', // orchid
-    '#d5e88f', // lime
-    '#b9c3d6', // slate
-    '#e6cfb0', // sand
+    '#eb4773', // red
+    '#47c2eb', // blue
+    '#47eb5d', // green
+    '#f0b642', // yellow
+    '#9f64f7', // violet
+    '#fa7238', // orange
+    '#5cd6b1', // teal
+    '#de97ed', // orchid
+    '#d5e79d', // lime
+    '#8a96a8', // slate
+    '#caa491', // sand
   ],
   dark: [
-    '#7a3d4b',
-    '#2f557f',
-    '#3e6935',
-    '#76622a',
-    '#55437f',
-    '#7b4b2e',
-    '#2a6a62',
-    '#713a6a',
-    '#5a6a26',
-    '#454f63',
-    '#6a5840',
+    '#6e0c26',
+    '#0c566e',
+    '#0e7c2b',
+    '#714f09',
+    '#2c1268',
+    '#862b03',
+    '#18624c',
+    '#7b198f',
+    '#516218',
+    '#343b46',
+    '#533628',
   ],
 } as const
 

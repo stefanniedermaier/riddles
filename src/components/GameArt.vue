@@ -22,26 +22,14 @@ defineProps<{ game: GameId }>()
     </template>
     <template v-else-if="game === 'crowns'">
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
-      <g opacity=".85">
-        <rect x="8" y="8" width="24" height="24" rx="4" fill="#f4b7c4" />
-        <rect x="32" y="8" width="24" height="24" rx="4" fill="#bcd7f5" />
-        <rect x="8" y="32" width="24" height="24" rx="4" fill="#c4e7c0" />
-        <rect x="32" y="32" width="24" height="24" rx="4" fill="#f5dfa6" />
+      <rect x="8" y="8" width="24" height="24" rx="4" fill="#eb4773" />
+      <rect x="32" y="8" width="24" height="24" rx="4" fill="#47c2eb" />
+      <rect x="8" y="32" width="24" height="24" rx="4" fill="#47eb5d" />
+      <rect x="32" y="32" width="24" height="24" rx="4" fill="#f0b642" />
+      <g fill="#1d1b26" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" paint-order="stroke">
+        <path d="M44.0 11.5 L46.4 17.8 L53.0 18.1 L47.8 22.2 L49.6 28.7 L44.0 25.0 L38.4 28.7 L40.2 22.2 L35.0 18.1 L41.6 17.8Z" />
+        <path d="M20.0 35.5 L22.4 41.8 L29.0 42.1 L23.8 46.2 L25.6 52.7 L20.0 49.0 L14.4 52.7 L16.2 46.2 L11.0 42.1 L17.6 41.8Z" />
       </g>
-      <path
-        d="M37 26l-1.5-9 5 4 3.5-6 3.5 6 5-4L51 26z"
-        fill="var(--game-crowns)"
-        stroke="var(--game-crowns)"
-        stroke-width="1.5"
-        stroke-linejoin="round"
-      />
-      <path
-        d="M13 50l-1.5-9 5 4 3.5-6 3.5 6 5-4L27 50z"
-        fill="var(--game-crowns)"
-        stroke="var(--game-crowns)"
-        stroke-width="1.5"
-        stroke-linejoin="round"
-      />
     </template>
     <template v-else-if="game === 'links'">
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
