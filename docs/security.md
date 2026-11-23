@@ -20,19 +20,22 @@ Relevant threats and mitigations:
 | Threat                                              | Mitigation                                                                                      |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Malicious/compromised npm package in the build      | lockfile from registry only with sha512, `npm ci --ignore-scripts`, registry signature + provenance check, `npm audit`, dependency review, Dependabot with cooldown, `min-release-age` |
-| Compromised GitHub Action / CI token misuse         | actions pinned to commit SHAs, only GitHub-owned actions allowed, read-only default token, no persisted credentials |
+| Compromised GitHub Action / CI token misuse         | actions pinned to commit SHAs, only GitHub-owned actions allowed, read-only default token, no persisted credentials, no caches in release builds, workflows audited by actionlint/zizmor, CI tools pinned with checksums |
 | Tampered deployment                                 | deploy only from signed release tags on `main` after all checks; signed build-provenance and SBOM attestations |
 | Unreviewed or forged changes on `main`              | branch ruleset: pull request required, required status checks, signed commits, linear history, no force-push/deletion |
 | Cross-site scripting / injected scripts             | Vue template escaping, no `v-html`, no `eval`; strict Content-Security-Policy (`script-src 'self'` + hash, `object-src 'none'`, `base-uri 'self'`) |
 | Malicious backup file on import                     | JSON parse only (no code), format/app-id validation, values only written to own `riddles:*` keys, explicit confirmation |
 | Leaking data to third parties                       | no third-party resources, `connect-src 'self'`, `Referrer-Policy: no-referrer`                  |
-| Secrets in the repository                           | none needed; GitHub secret scanning with push protection                                        |
+| Secrets in the repository                           | none needed; GitHub secret scanning with push protection; gitleaks over the full history in CI  |
 
 ## 2. Secure development and build
 
 - All changes reach `main` through pull requests with required checks (see §4).
 - CI gates (details in [deployment](deployment.md#supply-chain-safeguards)):
-  supply-chain checks, CodeQL (`security-extended`), lint, type-check, unit tests, build.
+  supply-chain checks (incl. OSV-Scanner), CodeQL (`security-extended`), workflow security
+  (actionlint, zizmor), secret scan (gitleaks), lint, type-check, unit tests, unused code
+  (knip), build output checks (CSP, size budgets), E2E and accessibility tests (Playwright,
+  axe); weekly scheduled re-check of `main`.
 - Dependencies: few runtime dependencies (Vue, Vue Router); runtime licenses restricted to
   permissive ones; weekly Dependabot updates.
 - Secure defaults in the app: no permissions requested, works offline, data stays local,
@@ -67,7 +70,7 @@ The GitHub repository settings are documented as code and can be (re-)applied wi
 
 | Area                    | Setting                                                                                  |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
-| Branch `main` (ruleset) | PR required (squash only, conversations resolved, stale approvals dismissed), required checks *Supply chain*, *CodeQL*, *Lint, test & build*, *Dependency review*, code-scanning results (no high/critical alerts), signed commits, linear history, no force-push, no deletion, **no bypass** |
+| Branch `main` (ruleset) | PR required (squash only, conversations resolved, stale approvals dismissed), required checks *Workflow & repository lint*, *Secret scan*, *Supply chain*, *CodeQL*, *Lint, test & build*, *E2E & accessibility*, *Dependency review*, code-scanning results (no high/critical alerts), signed commits, linear history, no force-push, no deletion, **no bypass** |
 | Tags `v*` (ruleset)     | signed, immutable (no update, no deletion, no force-push)                                 |
 | Security features       | private vulnerability reporting, Dependabot alerts + security updates, secret scanning + push protection, CodeQL advanced setup (`security-extended` in CI; GitHub's default setup disabled) |
 | Actions                 | only GitHub-owned actions, SHA pinning required, read-only default `GITHUB_TOKEN`, Actions cannot approve PRs, approval required for all external contributors' workflow runs |
@@ -132,7 +135,7 @@ good practice:
 | I.2(m) Secure removal of data                                           | *Settings → Delete all data*; uninstall clears storage                       |
 | II.1 Identify and document components (SBOM)                            | CycloneDX SBOM per deployment + attestation (§3)                             |
 | II.2 Address vulnerabilities without delay, provide updates            | process §5, Dependabot                                                       |
-| II.3 Regular security testing                                           | CodeQL, audits and tests on every change and weekly via Dependabot PRs       |
+| II.3 Regular security testing                                           | CodeQL, zizmor, gitleaks, OSV-Scanner, audits, unit/E2E tests on every change and in a weekly scheduled run |
 | II.4 Public disclosure of fixed vulnerabilities                         | GitHub Security Advisories, changelog                                        |
 | II.5 Coordinated vulnerability disclosure policy                        | [SECURITY.md](../SECURITY.md)                                                |
 | II.6 Contact address for reporting                                      | GitHub private vulnerability reporting                                       |

@@ -14,12 +14,30 @@ import { t } from '@/core/i18n'
 import { settings, type LocaleSetting, type MotionSetting, type ThemeSetting } from '@/core/settings'
 import { clearAll, exportData, importData, parseExport, type ExportFile } from '@/core/storage'
 import { showToast } from '@/core/toast'
+import { applyUpdate, checkForUpdate, updateAvailable } from '@/core/update'
 import { visibleGames } from '@/games/layout'
 import { settingsPanelOf } from '@/games/settingsPanels'
 import type { GameId } from '@/games/types'
 
 const version = __APP_VERSION__
 const repoUrl = 'https://github.com/stefanniedermaier/riddles'
+
+// --- Updates: check now and install right away ------------------------------
+
+const checkingUpdate = ref(false)
+
+async function updateApp(): Promise<void> {
+  if (checkingUpdate.value) return
+  checkingUpdate.value = true
+  const result = await checkForUpdate()
+  checkingUpdate.value = false
+  if (result === 'available') {
+    showToast(t('pwa.updating'))
+    applyUpdate()
+  } else if (result === 'current') showToast(t('pwa.upToDate'))
+  else if (result === 'offline') showToast(t('pwa.offline'))
+  else showToast(t('pwa.checkFailed'))
+}
 
 const localeOptions = computed(() => [
   { value: 'system' as LocaleSetting, label: t('settings.languageSystem') },
@@ -226,6 +244,7 @@ function resetAll(): void {
         accept="application/json,.json"
         class="visually-hidden"
         tabindex="-1"
+        :aria-label="t('settings.import')"
         @change="onFileChosen"
       />
     </section>
@@ -236,6 +255,17 @@ function resetAll(): void {
         <strong>{{ t('app.name') }}</strong>
         <span class="muted"> · {{ t('settings.version', { version }) }}</span>
       </p>
+      <AppButton
+        icon="restart"
+        :variant="updateAvailable ? 'primary' : 'secondary'"
+        block
+        :disabled="checkingUpdate"
+        @click="updateApp"
+      >
+        {{
+          checkingUpdate ? t('pwa.checking') : updateAvailable ? t('pwa.updateNow') : t('pwa.check')
+        }}
+      </AppButton>
       <p class="muted">{{ t('settings.license') }}</p>
       <a :href="repoUrl" target="_blank" rel="noopener" class="about__link">
         {{ t('settings.source') }}

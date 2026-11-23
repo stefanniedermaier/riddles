@@ -23,3 +23,10 @@ coverage
 *.sln
 *.sw?
 /ToDo.md
+
+# Playwright
+/playwright-report
+/test-results
+/blob-report
+/.bin
+/.venv

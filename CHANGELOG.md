@@ -6,6 +6,29 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.8.0] – 2026-11-23
+
+### Added
+
+- Settings → About: *Check for updates* looks for a new version right away and installs it
+  directly (or reports that the app is up to date)
+
+- CI: end-to-end and accessibility tests (Playwright + axe, WCAG 2.2 AA) of the production
+  build on desktop and mobile, in light and dark mode, including an offline start
+- CI: workflow lint (actionlint, shellcheck) and workflow security audit (zizmor),
+  `.editorconfig` check, secret scan of the full history (gitleaks), OSV-Scanner as a second
+  vulnerability database, unused code and dependencies (knip), build output checks (CSP, no
+  source maps or `eval`, size budgets) and a weekly scheduled run
+
+### Fixed
+
+- Accessibility: higher text contrast for game taglines and the *Delete all data* button
+  (light theme), label for the backup file input
+
+### Security
+
+- CI: no dependency caches in jobs that build release artifacts (cache poisoning)
+
 ## [0.7.0] – 2026-11-23
 
 ### Changed

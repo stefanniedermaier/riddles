@@ -25,6 +25,7 @@ The dev server listens on all interfaces (`--host`), so you can open
 | `npm run dev`        | Vite dev server with hot module replacement               |
 | `npm test`           | Run all unit tests once                                   |
 | `npm run test:watch` | Vitest in watch mode                                      |
+| `npm run test:e2e`   | Playwright E2E + axe accessibility tests against `dist/` (run `npm run build-only` and `npx playwright install chromium` first) |
 | `npm run lint`       | ESLint (`npm run lint:fix` to auto-fix)                   |
 | `npm run type-check` | `vue-tsc --build` for app, tests and config files         |
 | `npm run build`      | Type-check + production build to `dist/`                  |
@@ -32,6 +33,8 @@ The dev server listens on all interfaces (`--host`), so you can open
 | `npm run icons`      | Regenerate icons from `public/logo.svg`                   |
 | `npm run check:deps` | Lockfile sources, integrity hashes, runtime licenses      |
 | `npm run audit:ci`   | Registry signatures + vulnerability audit (as in CI)      |
+| `npm run knip`       | Unused files, dependencies and exports                    |
+| `npm run check:dist` | Build output: CSP, no source maps/`eval`, PWA files, size budgets |
 
 ## Dependencies
 

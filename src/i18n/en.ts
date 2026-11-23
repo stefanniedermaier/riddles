@@ -125,6 +125,13 @@ const en = {
     updateAvailable: 'A new version is available.',
     reload: 'Update',
     offlineReady: 'Ready to play offline.',
+    check: 'Check for updates',
+    checking: 'Checking…',
+    updateNow: 'Update now',
+    updating: 'Updating to the new version…',
+    upToDate: 'You have the latest version.',
+    offline: 'No connection – try again when you are online.',
+    checkFailed: 'Could not check for updates.',
   },
   share: {
     button: 'Share Riddles',

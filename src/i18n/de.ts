@@ -131,6 +131,13 @@ const de: Messages<typeof en> = {
     updateAvailable: 'Eine neue Version ist verfügbar.',
     reload: 'Aktualisieren',
     offlineReady: 'Bereit für die Offline-Nutzung.',
+    check: 'Nach Updates suchen',
+    checking: 'Suche …',
+    updateNow: 'Jetzt aktualisieren',
+    updating: 'Neue Version wird geladen …',
+    upToDate: 'Du hast die neueste Version.',
+    offline: 'Keine Verbindung – versuche es später online erneut.',
+    checkFailed: 'Suche nach Updates fehlgeschlagen.',
   },
   share: {
     button: 'Riddles teilen',
