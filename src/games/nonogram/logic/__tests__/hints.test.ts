@@ -19,7 +19,7 @@ describe('nonogram hints', () => {
   })
 
   it('steps are consistent with the solution and solve every difficulty', () => {
-    for (const difficulty of ['easy', 'hard', 'expert'] as const) {
+    for (const difficulty of ['easy', 'medium', 'hard'] as const) {
       const puzzle = generatePuzzle(difficulty, 7)
       let cells = new Array<CellMark>(puzzle.width * puzzle.height).fill(UNKNOWN)
       for (let i = 0; i < 400 && !isSolved(puzzle, cells); i++) {

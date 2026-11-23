@@ -29,14 +29,14 @@ export interface GenerateOptions {
 }
 
 const DEFAULT_ATTEMPTS = 60
-const DEFAULT_REPAIRS: Record<Difficulty, number> = { easy: 30, medium: 80, hard: 150, expert: 200 }
+const DEFAULT_REPAIRS: Record<Difficulty, number> = { easy: 30, medium: 80, hard: 150 }
 
 /**
  * Minimum propagation passes of the line solver: more passes mean deductions build on each
  * other more often, which makes larger grids feel harder. Puzzles below the minimum are only
  * used as a fallback.
  */
-export const MIN_PASSES: Record<Difficulty, number> = { easy: 1, medium: 4, hard: 5, expert: 6 }
+export const MIN_PASSES: Record<Difficulty, number> = { easy: 1, medium: 4, hard: 5 }
 
 function randomPattern(width: number, height: number, density: number, rng: Rng): (0 | 1)[] {
   let grid: (0 | 1)[] = Array.from({ length: width * height }, () => (rng.chance(density) ? 1 : 0))

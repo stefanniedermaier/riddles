@@ -27,9 +27,10 @@ describe('NonogramLobby', () => {
 
   it('lists the difficulties with sizes and shows the rules first for new players', async () => {
     const { wrapper } = await mountLobby()
-    expect(wrapper.findAll('.choice')).toHaveLength(4)
+    expect(wrapper.findAll('.choice')).toHaveLength(3)
     expect(wrapper.text()).toContain('5×5')
-    expect(wrapper.text()).toContain('15×20')
+    expect(wrapper.text()).toContain('10×15')
+    expect(wrapper.text()).not.toContain('15×15')
     expect(wrapper.find('.rules--bottom').exists()).toBe(false)
   })
 
@@ -41,8 +42,8 @@ describe('NonogramLobby', () => {
 
   it('starts a new game for the chosen difficulty', async () => {
     const { router, wrapper } = await mountLobby()
-    await wrapper.findAll('.choice')[3]!.trigger('click')
+    await wrapper.findAll('.choice')[2]!.trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(router.currentRoute.value.fullPath).toBe('/nonogram/play?new=expert')
+    expect(router.currentRoute.value.fullPath).toBe('/nonogram/play?new=hard')
   })
 })
