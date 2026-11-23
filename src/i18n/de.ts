@@ -103,6 +103,7 @@ const de: Messages<typeof en> = {
     version: 'Version {version}',
     license: 'Open Source unter der MIT-Lizenz.',
     source: 'Quellcode auf GitHub',
+    thirdParty: 'Lizenzen verwendeter Software',
   },
   stats: {
     title: 'Statistik',

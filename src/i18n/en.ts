@@ -97,6 +97,7 @@ const en = {
     version: 'Version {version}',
     license: 'Open source under the MIT license.',
     source: 'Source code on GitHub',
+    thirdParty: 'Third-party licences',
   },
   stats: {
     title: 'Statistics',

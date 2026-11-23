@@ -21,6 +21,8 @@ import { settingsPanelOf } from '@/games/settingsPanels'
 import type { GameId } from '@/games/types'
 
 const version = __APP_VERSION__
+/** Licence notices of the bundled third-party packages (generated at build time). */
+const licensesUrl = `${import.meta.env.BASE_URL}licenses.txt`
 
 // --- Updates: check now and install right away ------------------------------
 
@@ -270,6 +272,9 @@ function resetAll(): void {
       <a :href="repoUrl" target="_blank" rel="noopener" class="about__link">
         {{ t('settings.source') }}
         <AppIcon name="external" :size="16" />
+      </a>
+      <a :href="licensesUrl" target="_blank" rel="noopener" class="about__link">
+        {{ t('settings.thirdParty') }}
       </a>
       <RouterLink to="/imprint" class="about__link">{{ t('imprint.link') }}</RouterLink>
     </section>

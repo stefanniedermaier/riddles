@@ -9,6 +9,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - Imprint page (home screen footer and Settings → About)
+- Settings → About → *Third-party licences*: licence notices of all bundled open-source
+  packages (`licenses.txt`, generated at build time and checked by `check-dist`)
 
 ### Changed
 
