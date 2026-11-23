@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.6.0] – 2026-11-23
+
 ### Added
 
 - Statistics: overview (games played, completion rate, days played, day streak, solving
