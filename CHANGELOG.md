@@ -6,6 +6,10 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.1] – 2026-11-23
+
+Version 0.9.0 was not released (its tag was pushed before the version bump).
+
 ### Added
 
 - Privacy notice: controller details (name, postal address, email) as required by the GDPR,
