@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Privacy notice: controller details (name, postal address, email) as required by the GDPR,
+  legal basis of the hosting and the data subject rights incl. the right to lodge a complaint
+
 ### Fixed
 
 - Accessibility: higher contrast for secondary text and the *Delete all data* button in the
