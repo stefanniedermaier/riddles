@@ -12,7 +12,8 @@ export const en = {
   },
   rules: {
     title: 'How to play',
-    goal: 'Fill the grid so that every row, every column and every box contains each digit exactly once – 1–9 in the classic 9×9 grid, 1–6 (with 2×3 boxes) in Mini.',
+    goalClassic: 'Fill the 9×9 grid so that every row, every column and every 3×3 box contains each digit from 1 to 9 exactly once.',
+    goalMini: 'Fill the 6×6 grid so that every row, every column and every 2×3 box contains each digit from 1 to 6 exactly once.',
     input: 'Tap a cell, then a number. Erase removes your entry; undo takes back the last step.',
     notes: 'Notes mode lets you jot down candidates. A hint explains the next logical step.',
   },
@@ -108,7 +109,8 @@ export const de: Messages<typeof en> = {
   },
   rules: {
     title: 'So wird gespielt',
-    goal: 'Fülle das Raster so, dass jede Zeile, jede Spalte und jeder Block jede Ziffer genau einmal enthält – 1–9 im klassischen 9×9-Raster, 1–6 (mit 2×3-Blöcken) bei Mini.',
+    goalClassic: 'Fülle das 9×9-Raster so, dass jede Zeile, jede Spalte und jeder 3×3-Block jede Ziffer von 1 bis 9 genau einmal enthält.',
+    goalMini: 'Fülle das 6×6-Raster so, dass jede Zeile, jede Spalte und jeder 2×3-Block jede Ziffer von 1 bis 6 genau einmal enthält.',
     input: 'Tippe ein Feld an, dann eine Zahl. „Löschen“ entfernt deine Eingabe, „Rückgängig“ nimmt den letzten Schritt zurück.',
     notes: 'Im Notizmodus notierst du Kandidaten. Ein Hinweis erklärt den nächsten logischen Schritt.',
   },

@@ -68,7 +68,13 @@ interface DrawnArrow {
   color: string
   points: string
   head: string
-  /** Translation (board units) for the leave animation. */
+  /** Body path extended straight out of the board (used while leaving). */
+  exitPoints: string
+  /** Length of the visible body (board units). */
+  length: number
+  /** How far the arrow travels while leaving (board units). */
+  travel: number
+  /** Direction of travel. */
   dx: number
   dy: number
   leaveKey: number | undefined
@@ -86,14 +92,24 @@ const drawn = computed<DrawnArrow[]>(() =>
     const tip = { x: c.x + d.x * 0.4, y: c.y + d.y * 0.4 }
     const b1 = { x: c.x - d.x * 0.08 + p.x * 0.3, y: c.y - d.y * 0.08 + p.y * 0.3 }
     const b2 = { x: c.x - d.x * 0.08 - p.x * 0.3, y: c.y - d.y * 0.08 - p.y * 0.3 }
-    const distance = props.size + arrow.cells.length + 1
+    let length = 0
+    for (let i = 1; i < body.length; i++) {
+      length += Math.hypot(body[i]!.x - body[i - 1]!.x, body[i]!.y - body[i - 1]!.y)
+    }
+    // Far enough for the tail to follow the head out of the board along a straight line.
+    const travel = props.size + length + 1
+    const end = body[body.length - 1]!
+    const exit = [...body, { x: end.x + d.x * travel, y: end.y + d.y * travel }]
     return {
       id: arrow.id,
       color: arrowColor(resolvedTheme.value, arrow.dir, arrowsSettings.value.colorByDirection),
       points: body.map((pt) => `${pt.x},${pt.y}`).join(' '),
       head: `M${tip.x},${tip.y}L${b1.x},${b1.y}L${b2.x},${b2.y}Z`,
-      dx: d.x * distance,
-      dy: d.y * distance,
+      exitPoints: exit.map((pt) => `${pt.x},${pt.y}`).join(' '),
+      length,
+      travel,
+      dx: d.x,
+      dy: d.y,
       leaveKey: leavingIds.value.get(arrow.id),
     }
   }),
@@ -125,12 +141,16 @@ function arrowClasses(arrow: DrawnArrow): Record<string, boolean> {
 }
 
 function arrowStyle(arrow: DrawnArrow): Record<string, string> {
-  const d = unit(props.arrows[arrow.id]!.dir)
   return {
-    '--dx': `${arrow.dx}px`,
-    '--dy': `${arrow.dy}px`,
-    '--bx': `${d.x * 0.22}px`,
-    '--by': `${d.y * 0.22}px`,
+    '--dx': `${arrow.dx * arrow.travel}px`,
+    '--dy': `${arrow.dy * arrow.travel}px`,
+    '--bx': `${arrow.dx * 0.22}px`,
+    '--by': `${arrow.dy * 0.22}px`,
+    // The body is a dash of its own length sliding along the extended path: the head runs
+    // ahead in the arrow's direction while the tail follows the bends and straightens out.
+    '--length': `${arrow.length}`,
+    '--gap': `${arrow.length + arrow.travel + 1}`,
+    '--travel': `${-arrow.travel}`,
   }
 }
 
@@ -264,8 +284,16 @@ function onKeydown(event: KeyboardEvent): void {
         :style="arrowStyle(arrow)"
         :data-arrow="arrow.id"
       >
-        <polyline v-if="highlight === arrow.id" class="arrow__glow" :points="arrow.points" />
-        <polyline class="arrow__body" :points="arrow.points" :stroke="arrow.color" />
+        <polyline
+          v-if="highlight === arrow.id && arrow.leaveKey === undefined"
+          class="arrow__glow"
+          :points="arrow.points"
+        />
+        <polyline
+          class="arrow__body"
+          :points="arrow.leaveKey !== undefined ? arrow.exitPoints : arrow.points"
+          :stroke="arrow.color"
+        />
         <path class="arrow__head" :d="arrow.head" :fill="arrow.color" :stroke="arrow.color" />
       </g>
     </svg>
@@ -340,8 +368,14 @@ function onKeydown(event: KeyboardEvent): void {
   animation: glow 1.1s ease-in-out infinite;
 }
 
-.arrow--leaving {
-  animation: leave 280ms ease-in forwards;
+.arrow--leaving .arrow__body {
+  stroke-dasharray: var(--length) var(--gap);
+  stroke-dashoffset: 0;
+  animation: leave-body 420ms ease-in forwards;
+}
+
+.arrow--leaving .arrow__head {
+  animation: leave-head 420ms ease-in forwards;
 }
 
 .arrow--bump {
@@ -364,10 +398,15 @@ function onKeydown(event: KeyboardEvent): void {
   animation: ray 900ms ease-out;
 }
 
-@keyframes leave {
+@keyframes leave-body {
+  to {
+    stroke-dashoffset: var(--travel);
+  }
+}
+
+@keyframes leave-head {
   to {
     transform: translate(var(--dx), var(--dy));
-    opacity: 0;
   }
 }
 

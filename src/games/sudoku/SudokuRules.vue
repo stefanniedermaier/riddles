@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { t } from '@/core/i18n'
 
-/** How to play Sudoku (lobby expander and in-game rules dialog). */
+import type { SudokuMode } from './logic/types'
+
+/** How to play Sudoku (lobby expander and in-game rules dialog), worded for the grid size. */
+defineProps<{ mode: SudokuMode }>()
 </script>
 
 <template>
   <ul class="rules-list">
-    <li>{{ t('sudoku.rules.goal') }}</li>
+    <li>{{ t(mode === 'mini' ? 'sudoku.rules.goalMini' : 'sudoku.rules.goalClassic') }}</li>
     <li>{{ t('sudoku.rules.input') }}</li>
     <li>{{ t('sudoku.rules.notes') }}</li>
   </ul>

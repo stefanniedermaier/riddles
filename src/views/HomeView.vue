@@ -4,12 +4,15 @@ import AppIcon from '@/components/AppIcon.vue'
 import GameArt from '@/components/GameArt.vue'
 import InstallButton from '@/components/InstallButton.vue'
 import { t } from '@/core/i18n'
-import { appUrl, shareApp } from '@/core/share'
+import { appUrl, isApplePlatform, shareApp } from '@/core/share'
 import { showToast } from '@/core/toast'
 import { visibleGames } from '@/games/layout'
 
 // Read once per visit – storage is not reactive, and the home view remounts on navigation.
 const saved = Object.fromEntries(visibleGames.value.map((game) => [game.id, game.hasSavedGame()]))
+
+/** Share icon in the style of the user's operating system. */
+const shareIcon = isApplePlatform() ? 'share' : 'shareNodes'
 
 async function share(): Promise<void> {
   const outcome = await shareApp(t('app.name'), t('share.text'))
@@ -25,7 +28,7 @@ async function share(): Promise<void> {
     </template>
     <template #actions>
       <button type="button" class="icon-btn" :aria-label="t('share.button')" @click="share">
-        <AppIcon name="share" />
+        <AppIcon :name="shareIcon" />
       </button>
       <RouterLink to="/stats" class="icon-btn" :aria-label="t('common.stats')">
         <AppIcon name="stats" />

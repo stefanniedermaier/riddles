@@ -60,7 +60,15 @@ export const icons = {
     },
   ],
   undo: [{ d: 'M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11' }],
+  /** Share on Apple devices: box with an upward arrow. */
   share: [{ d: 'M12 15V3.5M8 7.5l4-4 4 4M8 10.5H6v10h12v-10h-2' }],
+  /** Share on Android, Windows and others: three connected nodes. */
+  shareNodes: [
+    { d: 'M8.6 10.7l6.8-3.9M8.6 13.3l6.8 3.9' },
+    {
+      d: 'M18 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM6 9.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM18 15.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z',
+    },
+  ],
   addSquare: [{ d: 'M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM12 8.5v7M8.5 12h7' }],
   lock: [{ d: 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3' }],
   crown: [{ d: 'M5 18h14M5 15L3.5 7l5 4L12 5l3.5 6 5-4L19 15z' }],

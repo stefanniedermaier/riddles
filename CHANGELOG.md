@@ -6,6 +6,14 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- The share button uses the share icon of the operating system: a box with an upward arrow on
+  Apple devices, three connected nodes on Android, Windows and others.
+- Sudoku: "How to play" describes the selected grid (9×9 with 3×3 boxes or 6×6 with 2×3 boxes).
+- Arrows: a freed arrow now slides out along its own path – the head flies ahead, the tail follows
+  the bends and the arrow leaves the board as a straight line.
+
 ## [0.6.0] – 2026-11-23
 
 ### Added
