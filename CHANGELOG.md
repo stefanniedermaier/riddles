@@ -10,22 +10,24 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Privacy notice: controller details (name, postal address, email) as required by the GDPR,
-  legal basis of the hosting and the data subject rights incl. the right to lodge a complaint
+- Settings → About: *Check for updates* looks for a new version right away and installs it
+  directly (or reports that the app is up to date)
+
+- CI: end-to-end and accessibility tests (Playwright + axe, WCAG 2.2 AA) of the production
+  build on desktop and mobile, in light and dark mode, including an offline start
+- CI: workflow lint (actionlint, shellcheck) and workflow security audit (zizmor),
+  `.editorconfig` check, secret scan of the full history (gitleaks), OSV-Scanner as a second
+  vulnerability database, unused code and dependencies (knip), build output checks (CSP, no
+  source maps or `eval`, size budgets) and a weekly scheduled run
 
 ### Fixed
 
-- Accessibility: higher contrast for secondary text and the *Delete all data* button in the
-  light theme (WCAG AA); the backup file picker has an accessible name
+- Accessibility: higher text contrast for game taglines and the *Delete all data* button
+  (light theme), label for the backup file input
 
 ### Security
 
-- CI: OSV-Scanner as a second vulnerability source, gitleaks secret scan of the full history,
-  actionlint and zizmor for the workflows, no caches in release builds (cache poisoning)
-- CI: build output check (gzip budgets, CSP, no source maps or third-party origins) and
-  Playwright end-to-end tests with axe accessibility checks in both themes and offline mode
-- CI: weekly scheduled run of all checks on `main`; scanner versions pinned with checksums
-  and kept up to date by Dependabot
+- CI: no dependency caches in jobs that build release artifacts (cache poisoning)
 
 ## [0.7.0] – 2026-11-23
 

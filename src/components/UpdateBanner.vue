@@ -1,34 +1,23 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useRegisterSW } from 'virtual:pwa-register/vue'
 
 import { t } from '@/core/i18n'
 import { showToast } from '@/core/toast'
+import { applyUpdate, initUpdates, offlineReady, updateAvailable } from '@/core/update'
 import AppButton from './AppButton.vue'
 
-const { needRefresh, offlineReady, updateServiceWorker } = useRegisterSW({
-  immediate: true,
-  onRegisteredSW(_url, registration) {
-    // Look for a new version every hour while the app stays open.
-    if (registration) setInterval(() => void registration.update(), 60 * 60 * 1000)
-  },
-})
+initUpdates()
 
 watch(offlineReady, (ready) => {
   if (ready) showToast(t('pwa.offlineReady'))
 })
-
-function reload(): void {
-  // Running games are saved continuously, so reloading is safe.
-  void updateServiceWorker(true)
-}
 </script>
 
 <template>
   <Transition name="banner">
-    <div v-if="needRefresh" class="update-banner" role="status">
+    <div v-if="updateAvailable" class="update-banner" role="status">
       <span>{{ t('pwa.updateAvailable') }}</span>
-      <AppButton variant="primary" @click="reload">{{ t('pwa.reload') }}</AppButton>
+      <AppButton variant="primary" @click="applyUpdate">{{ t('pwa.reload') }}</AppButton>
     </div>
   </Transition>
 </template>

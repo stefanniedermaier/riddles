@@ -36,21 +36,19 @@ updates:
       actions:
         patterns: ['*']
 
-  # CI scanners (built from source / installed with hashes in .github/workflows/deploy.yml).
+  # CI tools (actionlint, gitleaks, OSV-Scanner, editorconfig-checker), one Go module each.
   - package-ecosystem: gomod
-    directories:
-      - /.github/tools/actionlint
-      - /.github/tools/gitleaks
-      - /.github/tools/osv-scanner
+    directories: ['/.github/tools/*']
     schedule:
       interval: weekly
       day: monday
     cooldown:
       default-days: 7
     groups:
-      ci-tools-go:
+      ci-tools:
         patterns: ['*']
 
+  # zizmor (hash-locked requirements file).
   - package-ecosystem: pip
     directory: /.github/tools/zizmor
     schedule:

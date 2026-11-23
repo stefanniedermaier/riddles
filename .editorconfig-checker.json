@@ -1,0 +1,6 @@
+{
+  "Exclude": ["^\\.bin/", "^\\.venv/", "\\.github/tools/.*/go\\.sum$", "^dist/", "^dev-dist/", "^coverage/", "^playwright-report/", "^test-results/"],
+  "Disable": {
+    "MaxLineLength": true
+  }
+}

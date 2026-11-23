@@ -25,15 +25,16 @@ The dev server listens on all interfaces (`--host`), so you can open
 | `npm run dev`        | Vite dev server with hot module replacement               |
 | `npm test`           | Run all unit tests once                                   |
 | `npm run test:watch` | Vitest in watch mode                                      |
+| `npm run test:e2e`   | Playwright E2E + axe accessibility tests against `dist/` (run `npm run build-only` and `npx playwright install chromium` first) |
 | `npm run lint`       | ESLint (`npm run lint:fix` to auto-fix)                   |
 | `npm run type-check` | `vue-tsc --build` for app, tests and config files         |
 | `npm run build`      | Type-check + production build to `dist/`                  |
 | `npm run preview`    | Serve `dist/` (with service worker)                       |
 | `npm run icons`      | Regenerate icons from `public/logo.svg`                   |
-| `npm run test:e2e`   | Playwright smoke + accessibility tests (build first)      |
-| `npm run check:dist` | Build budgets, CSP, no source maps (build first)          |
 | `npm run check:deps` | Lockfile sources, integrity hashes, runtime licenses      |
 | `npm run audit:ci`   | Registry signatures + vulnerability audit (as in CI)      |
+| `npm run knip`       | Unused files, dependencies and exports                    |
+| `npm run check:dist` | Build output: CSP, no source maps/`eval`, PWA files, size budgets |
 
 ## Dependencies
 
@@ -58,11 +59,6 @@ The dev server listens on all interfaces (`--host`), so you can open
 - Run a subset: `npx vitest run src/games/sudoku`.
 - Generators take a seed – when a puzzle misbehaves, note its `seed` (stored in the save
   game) and reproduce it in a test.
-- End-to-end tests in `e2e/` run with Playwright against the production build
-  (`npm run build-only && npm run test:e2e`; once `npx playwright install chromium`). They
-  check every screen in both themes for console errors, CSP violations and accessibility
-  issues (axe-core, WCAG 2.2 AA) plus the offline start. With an already installed Chromium,
-  set `PW_CHROMIUM_PATH` to its executable instead of installing one.
 
 ## Conventions
 

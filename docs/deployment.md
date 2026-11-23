@@ -23,31 +23,30 @@ URL: <https://stefanniedermaier.github.io/riddles/>
 Deployments are driven by the **version number**: only a signed tag `vX.Y.Z` deploys.
 
 ```
-pull request:    dependency-review + all checks below                (no deploy)
-push to main:    all checks below                                    (no deploy)
-weekly (Mon):    all checks below on main – new advisories, no deploy
+pull request:  dependency-review + all checks below                 (no deploy)
+push to main:  repo-lint, secret-scan, supply-chain, codeql,       (no deploy)
+               verify, e2e
+weekly (Mon):  same as push to main – catches new advisories       (no deploy)
 
-tag vX.Y.Z:    release-check ──────┐
-               supply-chain ───────┤
-               osv ────────────────┤
-               codeql ─────────────┤
-               workflow-security ──┼──▶ deploy (GitHub Pages) ──▶ release (GitHub Release + SBOM)
-               secret-scan ────────┤    only if all of them succeed
-               verify ─────────────┤
-               e2e ────────────────┘
+tag vX.Y.Z:    release-check ──┐
+               repo-lint ──────┤
+               secret-scan ────┤
+               supply-chain ───┼──▶ deploy (GitHub Pages) ──▶ release (GitHub Release + SBOM)
+               codeql ─────────┤    only if all seven succeed
+               verify ─────────┤
+               e2e ────────────┘
 ```
 
 | Job                 | When        | Checks                                                                                       |
 | ------------------- | ----------- | -------------------------------------------------------------------------------------------- |
-| `dependency-review` | PRs         | New/updated packages: no known vulnerability ≥ moderate, license on the allow list, OpenSSF Scorecard warning |
-| `supply-chain`      | always      | `scripts/check-dependencies.mjs` (see below), `npm ci --ignore-scripts`, `npm audit signatures`, `npm audit` (runtime: no vulnerability ≥ moderate; all: none ≥ high) |
-| `osv`               | always      | OSV-Scanner: `package-lock.json` against the OSV database (second source next to `npm audit`) |
+| `dependency-review` | PRs         | New/updated packages (npm and the Go modules of the CI tools): no known vulnerability ≥ moderate, license on the allow list (a few CI-only Go packages exempted by name, see `deploy.yml`), OpenSSF Scorecard warning |
+| `repo-lint`         | always      | [actionlint](https://github.com/rhysd/actionlint) (workflow syntax, expressions, embedded shell scripts via shellcheck), [zizmor](https://docs.zizmor.sh) (workflow security: injection, permissions, cache poisoning, impostor commits, vulnerable actions), [editorconfig-checker](https://editorconfig-checker.github.io) |
+| `secret-scan`       | always      | [gitleaks](https://github.com/gitleaks/gitleaks) over the full git history (complements GitHub secret scanning, also for fork PRs) |
+| `supply-chain`      | always      | `scripts/check-dependencies.mjs` (see below), `npm ci --ignore-scripts`, `npm audit signatures`, `npm audit` (runtime: no vulnerability ≥ moderate; all: none ≥ high), [OSV-Scanner](https://google.github.io/osv-scanner/) on the lockfile (osv.dev incl. malicious-package advisories) |
 | `codeql`            | always      | CodeQL `security-extended` analysis of the TypeScript/Vue code and the workflow files        |
-| `workflow-security` | always      | actionlint (incl. shellcheck of `run:` scripts) and zizmor (injection, permissions, cache poisoning, impostor commits, vulnerable actions) for `.github/` |
-| `secret-scan`       | always      | gitleaks over the complete git history                                                       |
 | `release-check`     | tags        | tag = `package.json`/lockfile version, `CHANGELOG.md` section exists, tagged commit is on `main`, tag is annotated and its signature verified |
-| `verify`            | always      | lint, type-check, unit tests, production build, `scripts/check-dist.mjs` (gzip budgets, CSP, no source maps, no third-party origins), clean working tree, SBOM; on tags also attestations and upload of `dist/` |
-| `e2e`               | always      | Playwright against `vite preview` (desktop/light, mobile/dark): every screen renders without console errors or CSP violations, offline start via the service worker, axe-core WCAG 2.2 A/AA checks; report uploaded on failure |
+| `verify`            | always      | lint, type-check, unit tests, [knip](https://knip.dev) (unused files/dependencies), production build, `scripts/check-dist.mjs` (CSP, no source maps/`eval`, PWA files, gzip size budgets), clean working tree, SBOM; on tags also attestations and upload of `dist/` |
+| `e2e`               | always      | Playwright against the production build (Chromium desktop + mobile, light + dark): every page renders without console errors, CSP violations or third-party requests, no WCAG 2.2 A/AA violations (axe), navigation, offline start via service worker; report uploaded on failure |
 | `deploy`            | tags only   | publishes the uploaded artifact – needs all jobs above except `dependency-review` |
 | `release`           | tags only   | creates the GitHub Release with the changelog section as notes and the SBOM attached      |
 
@@ -85,18 +84,19 @@ failed release is fixed with a new patch version, never by moving a tag.
 | `npm audit signatures`            | CI, `npm run audit:ci`              | tampered packages (registry signatures, Sigstore provenance)      |
 | `npm audit`                       | CI, `npm run audit:ci`              | known vulnerabilities                                             |
 | Dependency review                 | PRs                                 | vulnerable or unexpectedly licensed new dependencies              |
-| OSV-Scanner                       | CI (`osv`)                          | known vulnerabilities missing from the npm advisory database      |
 | CodeQL                            | CI                                  | security bugs in our own code and workflows                       |
-| actionlint + zizmor               | CI (`workflow-security`)            | broken or insecure workflows (script injection, over-broad permissions, cache poisoning, impostor commits) |
-| gitleaks                          | CI (`secret-scan`)                  | credentials committed anywhere in the history                     |
+| OSV-Scanner                       | CI                                  | known vulnerabilities and malicious packages missing from `npm audit` |
+| actionlint + zizmor               | CI (`repo-lint`)                    | broken or insecure workflows (injection, over-privileged tokens, cache poisoning, impostor commits) |
+| gitleaks                          | CI (`secret-scan`)                  | committed secrets anywhere in the history                         |
+| No dependency caches              | `deploy.yml`                        | cache poisoning of release builds                                 |
+| CI tools pinned with checksums    | `.github/tools/`                    | tampered linters/scanners (Go checksum database, pip `--require-hashes`) |
 | Actions pinned to commit SHAs     | `deploy.yml`                        | moved/compromised action tags                                     |
-| Scanners pinned with checksums    | `.github/tools/`                    | tampered scanner downloads: Go tools are built from source and verified against `go.sum` and the Go checksum database, zizmor is installed with `pip --require-hashes` |
-| No caches in CI                   | `deploy.yml`                        | cache poisoning of release builds                                 |
 | SBOM + signed attestations        | `deploy.yml` (`verify`)             | undocumented components, tampered deployments (verify with `gh attestation verify`) |
 | Content-Security-Policy           | `vite.config.ts`                    | injected or third-party scripts in the deployed app               |
 | Least-privilege permissions       | `deploy.yml`                        | token misuse (`contents: read` by default, `persist-credentials: false`) |
 | `min-release-age=7`               | `.npmrc`                            | freshly published malicious versions when installing/updating locally |
-| Dependabot with cooldown          | `.github/dependabot.yml`            | outdated dependencies, action pins and scanner versions; waits 7 (major: 14) days after a release |
+| Dependabot with cooldown          | `.github/dependabot.yml`            | outdated dependencies, action pins and CI tools; waits 7 (major: 14) days after a release |
+| Weekly scheduled run              | `deploy.yml`                        | new advisories for dependencies that did not change               |
 | `engine-strict`                   | `.npmrc`, CI                        | installing with an unsupported Node.js version                    |
 
 Run the same checks locally with `npm run check:deps` and `npm run audit:ci`.
@@ -120,6 +120,8 @@ Routing uses hash URLs (`#/sudoku`), so no 404 fallback page is needed.
   precache manifest.
 - Installed apps check for updates on start and every hour. When a new version is found,
   an *Update* banner appears; tapping it activates the new service worker and reloads.
+- *Settings → About → Check for updates* checks immediately and, if a new version is found,
+  downloads and activates it right away (logic in `src/core/update.ts`).
 - Old caches are cleaned up automatically (`cleanupOutdatedCaches`).
 
 ## Release checklist

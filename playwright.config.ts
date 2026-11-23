@@ -1,36 +1,30 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * End-to-end smoke and accessibility tests against the production build (`vite preview`),
- * i.e. with the Content-Security-Policy and the service worker that users get.
- * Run `npm run build-only` first; `npm run test:e2e` starts the preview server itself.
+ * End-to-end and accessibility tests against the production build (`npm run build-only`),
+ * served by `vite preview` under the real base path /riddles/.
  */
-const port = 4173
-const isCI = !!process.env.CI
+const PORT = 4173
 
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  forbidOnly: isCI,
-  retries: isCI ? 1 : 0,
-  reporter: isCI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: `http://localhost:${port}/riddles/`,
+    baseURL: `http://localhost:${PORT}/riddles/`,
     trace: 'retain-on-failure',
-    // Lets the tests run with a Chromium that is already installed (e.g. in dev containers).
-    launchOptions: process.env.PW_CHROMIUM_PATH
-      ? { executablePath: process.env.PW_CHROMIUM_PATH }
-      : {},
+    serviceWorkers: 'allow',
   },
-  // Both layouts and both colour themes (light/dark tokens are checked separately by axe).
   projects: [
-    { name: 'desktop-light', use: { ...devices['Desktop Chrome'], colorScheme: 'light' } },
-    { name: 'mobile-dark', use: { ...devices['Pixel 7'], colorScheme: 'dark' } },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
   webServer: {
-    command: `npx vite preview --port ${port} --strictPort`,
-    url: `http://localhost:${port}/riddles/`,
-    reuseExistingServer: !isCI,
-    timeout: 60_000,
+    command: `npx vite preview --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}/riddles/`,
+    reuseExistingServer: !process.env.CI,
+    timeout: 30_000,
   },
 })

@@ -55,7 +55,7 @@ npm run dev        # http://localhost:5173/riddles/ (also reachable from your ph
 | -------------------- | --------------------------------------------------- |
 | `npm run dev`        | Development server with hot reload                  |
 | `npm test`           | Unit tests (Vitest); `npm run test:watch` to watch  |
-| `npm run test:e2e`   | E2E + accessibility tests (Playwright, after a build) |
+| `npm run test:e2e`   | E2E + accessibility tests (Playwright, axe) of the production build |
 | `npm run lint`       | ESLint                                              |
 | `npm run type-check` | TypeScript / Vue type-check                         |
 | `npm run build`      | Type-check and production build into `dist/`        |
@@ -63,8 +63,9 @@ npm run dev        # http://localhost:5173/riddles/ (also reachable from your ph
 | `npm run icons`      | Regenerate app icons from `public/logo.svg`         |
 | `npm run release:check` | Tag/version/changelog consistency before tagging a release |
 | `npm run check:deps` / `audit:ci` | Supply-chain checks (lockfile, licenses, signatures, audit) |
+| `npm run knip` / `check:dist` | Unused files/dependencies; build output checks (CSP, size budgets) |
 
-Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
+Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest, Playwright.
 
 ## Documentation
 
@@ -80,8 +81,7 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest.
 ## Security
 
 Please report vulnerabilities privately – see [SECURITY.md](SECURITY.md). Every deployment
-only happens after supply-chain, vulnerability, CodeQL, workflow, secret-scanning, test and
-accessibility gates pass, ships an SBOM and is covered by
+only happens after supply-chain, CodeQL and test gates pass, ships an SBOM and is covered by
 signed build-provenance attestations ([details](docs/security.md)).
 
 ## Originality

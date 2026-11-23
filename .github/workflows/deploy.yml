@@ -4,26 +4,26 @@ name: CI & Deploy
 # package.json and CHANGELOG.md, on main) builds, deploys and publishes a GitHub Release.
 # Pushes to main and pull requests run all checks but do not deploy.
 #
-# A weekly scheduled run re-checks main against newly published vulnerabilities.
+# A weekly scheduled run re-checks main against newly published advisories.
 #
 # Deployment only happens when ALL gates pass:
-#   release-check     – tag = package.json version, changelog entry, tag on main, signed tag
-#   supply-chain      – lockfile provenance/integrity/licenses, registry signatures, npm audit
-#   osv               – OSV-Scanner: lockfile against the OSV database (GitHub, npm, Go, ...)
-#   codeql            – static security analysis of the source code and the workflows
-#   workflow-security – actionlint (incl. shellcheck) and zizmor for the GitHub workflows
-#   secret-scan       – gitleaks over the full git history
-#   verify            – lint, type-check, unit tests, reproducible build, build budgets/CSP
-#                       check, SBOM, signed build-provenance and SBOM attestations
-#   e2e               – Playwright smoke tests and axe accessibility checks (WCAG 2.2 AA) of
-#                       the production build, incl. CSP violations and offline mode
+#   release-check – tag = package.json version, changelog entry, tag on main, signed tag
+#   repo-lint     – workflow lint (actionlint + shellcheck), workflow security (zizmor),
+#                   .editorconfig compliance
+#   secret-scan   – gitleaks over the full git history
+#   supply-chain  – lockfile provenance/integrity/licenses, registry signatures, npm audit,
+#                   OSV-Scanner (second vulnerability database incl. malicious packages)
+#   codeql        – static security analysis of the source code
+#   verify        – lint, type-check, unit tests, unused code/deps (knip), reproducible
+#                   build, build-output checks (CSP, no source maps, size budgets), SBOM,
+#                   signed build-provenance and SBOM attestations
+#   e2e           – end-to-end tests and WCAG 2.2 AA accessibility scans (axe) of the
+#                   production build in Chromium (desktop + mobile), offline check
 # Pull requests additionally run dependency-review for newly added/updated packages.
 #
-# Only GitHub-owned actions are allowed in this repository. They are pinned to full commit
-# SHAs (tag in the comment). The scanners are not actions: they are built from source with Go
-# (versions + checksums in .github/tools/*/go.mod/go.sum, verified against the Go checksum
-# database) or installed with pip --require-hashes. Dependabot keeps all pins up to date.
-# Nothing in this workflow uses a cache: release builds must not be exposed to cache poisoning.
+# Actions are pinned to full commit SHAs (tag in the comment); Dependabot keeps the pins up
+# to date. CLI tools are pinned with checksums: Go tools via .github/tools/*/go.sum (verified
+# against the Go checksum database), zizmor via a hash-locked requirements file.
 
 on:
   push:
@@ -31,7 +31,7 @@ on:
     tags: ['v*']
   pull_request:
   schedule:
-    - cron: '17 5 * * 1' # Mondays – new advisories for unchanged code
+    - cron: '23 4 * * 1' # Mondays 04:23 UTC – new advisories for unchanged dependencies
   workflow_dispatch:
 
 permissions:
@@ -46,6 +46,9 @@ env:
   # Fail instead of silently using a different Node / npm behaviour.
   NPM_CONFIG_ENGINE_STRICT: 'true'
   NPM_CONFIG_FUND: 'false'
+  # Go tools build with the toolchain pinned in their go.mod (downloaded and verified by Go).
+  GOTOOLCHAIN: auto
+  GOFLAGS: -trimpath -mod=readonly
 
 jobs:
   release-check:
@@ -103,11 +106,84 @@ jobs:
           fail-on-scopes: runtime, development
           # Licenses currently in use; anything else needs a deliberate decision.
           # (LGPL only comes from sharp/libvips, a dev-only icon tool.)
+          # The last line is used by the Go modules of the CI tools (.github/tools, never
+          # shipped): the Go patent grant, public domain and permissive BSD/MIT variants.
           allow-licenses: >-
             MIT, ISC, Apache-2.0, BSD-2-Clause, BSD-3-Clause, 0BSD, BlueOak-1.0.0,
-            CC0-1.0, CC-BY-4.0, Unlicense, MPL-2.0, LGPL-3.0-or-later
+            CC0-1.0, CC-BY-4.0, Unlicense, MPL-2.0, LGPL-3.0-or-later,
+            MIT-0, BSD-2-Clause-Views, LicenseRef-scancode-google-patent-license-golang,
+            LicenseRef-scancode-public-domain
+          # Dependencies of OSV-Scanner (CI only, never shipped) whose code is Apache-2.0/MIT
+          # but that the license scan reports with additional licenses: docs (go-digest:
+          # CC-BY-SA-4.0), a logo (fuzzy: CC-BY-3.0), the contributor DCO (image-spec), and
+          # tools-golang's dual license "Apache-2.0 OR GPL-2.0-or-later" read as AND (used
+          # under Apache-2.0). Exempted by name so these licenses stay disallowed otherwise.
+          allow-dependencies-licenses: >-
+            pkg:golang/github.com/opencontainers/go-digest,
+            pkg:golang/github.com/opencontainers/image-spec,
+            pkg:golang/github.com/sahilm/fuzzy,
+            pkg:golang/github.com/spdx/tools-golang
           # Warn (in the job summary) about packages with a low OpenSSF Scorecard.
           warn-on-openssf-scorecard-level: 3
+
+  repo-lint:
+    name: Workflow & repository lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build pinned actionlint and editorconfig-checker
+        run: |
+          for tool in actionlint editorconfig-checker; do
+            go -C ".github/tools/$tool" build -o "$RUNNER_TEMP/bin/" tool
+          done
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      # Syntax, expressions, runner labels and embedded shell scripts (shellcheck is
+      # preinstalled on the runner) of all workflows.
+      - name: actionlint
+        run: actionlint -color
+
+      # Security audit of the workflows: template injection, excessive permissions,
+      # credential persistence, cache poisoning, impostor commits, unpinned or known
+      # vulnerable actions (online audits use the read-only token).
+      - name: zizmor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -m venv "$RUNNER_TEMP/zizmor"
+          "$RUNNER_TEMP/zizmor/bin/pip" install --quiet --require-hashes --only-binary :all: \
+            -r .github/tools/zizmor/requirements.txt
+          "$RUNNER_TEMP/zizmor/bin/zizmor" --format=github .github/workflows
+
+      # Encoding, line endings, indentation and final newlines as declared in .editorconfig.
+      - name: editorconfig-checker
+        run: editorconfig-checker
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # scan the complete history, not only the latest commit
+          persist-credentials: false
+
+      - name: Build pinned gitleaks
+        run: |
+          for tool in gitleaks; do
+            go -C ".github/tools/$tool" build -o "$RUNNER_TEMP/bin/" tool
+          done
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      # Complements GitHub secret scanning: also covers generic secrets (keys, tokens,
+      # passwords) and runs on pull requests from forks before anything is merged.
+      - name: gitleaks (full history)
+        run: gitleaks git --redact --no-banner --exit-code 1 .
 
   supply-chain:
     name: Supply chain
@@ -121,6 +197,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
+          # No dependency cache: jobs of release runs build what is deployed (cache poisoning).
           package-manager-cache: false
 
       # Runs before anything is installed: registry-only sources, sha512 integrity,
@@ -144,96 +221,25 @@ jobs:
       - name: Audit all dependencies
         run: npm audit --audit-level=high
 
-  osv:
-    name: OSV scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
-        with:
-          go-version-file: .github/tools/osv-scanner/go.mod
-          cache: false
-
-      - name: Build OSV-Scanner (pinned in .github/tools/osv-scanner)
-        run: go -C .github/tools/osv-scanner build -trimpath -o "$RUNNER_TEMP/bin/" tool
-
-      # Second vulnerability database next to npm audit (GitHub advisories + OSV.dev sources).
-      - name: Scan lockfile for known vulnerabilities
+      - name: Build pinned OSV-Scanner
         run: |
-          "$RUNNER_TEMP/bin/osv-scanner" scan source --lockfile package-lock.json
+          for tool in osv-scanner; do
+            go -C ".github/tools/$tool" build -o "$RUNNER_TEMP/bin/" tool
+          done
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
-  workflow-security:
-    name: Workflow security
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
-        with:
-          go-version-file: .github/tools/actionlint/go.mod
-          cache: false
-
-      - name: Build actionlint (pinned in .github/tools/actionlint)
-        run: go -C .github/tools/actionlint build -trimpath -o "$RUNNER_TEMP/bin/" tool
-
-      # Syntax, expressions, runner labels, action inputs; shell scripts via shellcheck
-      # (preinstalled on the runner).
-      - name: actionlint
-        run: |
-          "$RUNNER_TEMP/bin/actionlint" -color
-
-      - name: Install zizmor (pip, hash-pinned)
-        run: |
-          python3 -m venv "$RUNNER_TEMP/zizmor"
-          "$RUNNER_TEMP/zizmor/bin/pip" install --quiet --require-hashes --no-deps \
-            -r .github/tools/zizmor/requirements.txt
-
-      # Security audit of the workflows and dependabot.yml: injection, excessive permissions, credential
-      # persistence, cache poisoning, unpinned or impostor commits, known-vulnerable actions.
-      - name: zizmor
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          "$RUNNER_TEMP/zizmor/bin/zizmor" --format=github --no-progress .
-
-  secret-scan:
-    name: Secret scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0 # scan the complete history, not only the latest commit
-          persist-credentials: false
-
-      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
-        with:
-          go-version-file: .github/tools/gitleaks/go.mod
-          cache: false
-
-      - name: Build gitleaks (pinned in .github/tools/gitleaks)
-        run: go -C .github/tools/gitleaks build -trimpath -o "$RUNNER_TEMP/bin/" tool
-
-      # Complements GitHub secret scanning / push protection with gitleaks' rule set; also
-      # runs on pull requests from forks before anything is merged.
-      - name: Scan git history for secrets
-        run: |
-          "$RUNNER_TEMP/bin/gitleaks" git --redact --no-banner --verbose .
+      # Second opinion from osv.dev (GitHub, npm and OpenSSF malicious-package advisories)
+      # for every locked package, runtime and dev.
+      - name: OSV-Scanner
+        run: osv-scanner scan source --lockfile package-lock.json
 
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: read
-      security-events: write
+      contents: read # checkout
+      security-events: write # upload CodeQL results to code scanning
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -252,9 +258,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: read
+      contents: read # checkout
       id-token: write # Sigstore signing of attestations (main only)
-      attestations: write
+      attestations: write # store the attestations
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -263,6 +269,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
+          # No dependency cache: jobs of release runs build what is deployed (cache poisoning).
           package-manager-cache: false
 
       - name: Install (lockfile only, no install scripts)
@@ -271,9 +278,13 @@ jobs:
       - run: npm run lint
       - run: npm run type-check
       - run: npm test
+
+      # Unused files, dependencies and unlisted/unresolved imports (unused exports: warnings).
+      - run: npm run knip
+
       - run: npm run build-only
 
-      # Performance budgets, CSP, no source maps or third-party origins, manifest + service worker.
+      # CSP present, no source maps / eval, PWA files present, gzip size budgets.
       - name: Check build output
         run: npm run check:dist
 
@@ -327,21 +338,22 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
+          # No dependency cache: jobs of release runs build what is deployed (cache poisoning).
           package-manager-cache: false
 
       - name: Install (lockfile only, no install scripts)
         run: npm ci --ignore-scripts
 
-      - name: Install Chromium for Playwright
+      # Browser version matching the locked @playwright/test.
+      - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
       - run: npm run build-only
 
-      # Production build via `vite preview`: smoke tests of every screen (desktop/light and
-      # mobile/dark), no console errors or CSP violations, offline start via the service
-      # worker, and axe-core checks against WCAG 2.2 A/AA.
-      - name: Playwright tests
-        run: npm run test:e2e
+      # All pages in light and dark mode on desktop and mobile: renders without console
+      # errors, CSP violations or third-party requests, no WCAG 2.2 A/AA violations (axe),
+      # navigation, not-found page and offline start via the service worker.
+      - run: npm run test:e2e
 
       - name: Upload Playwright report
         if: failure()
@@ -354,12 +366,12 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [release-check, supply-chain, osv, codeql, workflow-security, secret-scan, verify, e2e]
+    needs: [release-check, repo-lint, secret-scan, supply-chain, codeql, verify, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      pages: write
-      id-token: write
+      pages: write # publish the site
+      id-token: write # authenticate the deployment (OIDC)
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
@@ -397,8 +409,7 @@ jobs:
           PAGE_URL: ${{ needs.deploy.outputs.page_url }}
         run: |
           node scripts/check-release.mjs "$GITHUB_REF_NAME" --notes > notes.md
-          # shellcheck disable=SC2016 # the backticks are Markdown, not command substitution
-          printf '\n---\n\nDeployed to %s – SBOM attached; build provenance: `gh attestation verify <file> -R %s`\n' \
+          printf "\n---\n\nDeployed to %s – SBOM attached; build provenance: \`gh attestation verify <file> -R %s\`\n" \
             "$PAGE_URL" "$GITHUB_REPOSITORY" >> notes.md
           prerelease=()
           [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
