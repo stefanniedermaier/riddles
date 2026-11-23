@@ -120,6 +120,8 @@ Routing uses hash URLs (`#/sudoku`), so no 404 fallback page is needed.
   precache manifest.
 - Installed apps check for updates on start and every hour. When a new version is found,
   an *Update* banner appears; tapping it activates the new service worker and reloads.
+- *Settings → About → Check for updates* checks immediately and, if a new version is found,
+  downloads and activates it right away (logic in `src/core/update.ts`).
 - Old caches are cleaned up automatically (`cleanupOutdatedCaches`).
 
 ## Release checklist

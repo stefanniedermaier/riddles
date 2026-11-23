@@ -8,6 +8,9 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Settings → About: *Check for updates* looks for a new version right away and installs it
+  directly (or reports that the app is up to date)
+
 - CI: end-to-end and accessibility tests (Playwright + axe, WCAG 2.2 AA) of the production
   build on desktop and mobile, in light and dark mode, including an offline start
 - CI: workflow lint (actionlint, shellcheck) and workflow security audit (zizmor),

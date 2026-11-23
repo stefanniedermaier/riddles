@@ -51,3 +51,13 @@ test('works offline once the service worker is active', async ({ page, context }
   await expect(page.locator('.game-card').first()).toBeVisible()
   await context.setOffline(false)
 })
+
+test('settings check for updates and report the latest version', async ({ page }) => {
+  await page.goto('./')
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready
+  })
+  await page.goto('./#/settings')
+  await page.getByRole('button', { name: 'Check for updates' }).click()
+  await expect(page.getByText('You have the latest version.')).toBeVisible()
+})
