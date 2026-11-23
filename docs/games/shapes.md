@@ -203,7 +203,9 @@ mode-specific state, so a reload continues exactly where the player left off. Ru
 saved after every move, when the app goes to the background and when leaving the screen.
 A run is only saved once it has at least one valid move, so merely opening a mode leaves no
 *Continue* behind (and replaces an older save of that mode). *End game* (Zen) records the
-score, removes the save and shows the result.
+score, removes the save and shows the result. The home screen shows *Continue* on the Shapes
+card only for Time and Levels runs – Zen is endless, so a saved Zen run is only offered in
+the Shapes menu.
 
 **Migration:** the highest unlocked level of the old `shapes:progress:v1` becomes the
 current level; old `v1` progress and level runs (without obstacles) are removed.

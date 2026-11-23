@@ -14,6 +14,8 @@ export const descriptor: GameDescriptor = {
   variants: MODES,
   statKind: 'score',
   variantLabel: (variant) => t(`shapes.modes.${variant as Mode}`),
-  hasSavedGame: () => MODES.some((mode) => has(saveKey(mode))),
+  // Zen is endless and always running, so it never counts as a game to continue on the home
+  // screen (the Shapes menu still offers to continue it).
+  hasSavedGame: () => MODES.some((mode) => mode !== 'zen' && has(saveKey(mode))),
   settingsComponent: () => import('./ShapesSettings.vue'),
 }
