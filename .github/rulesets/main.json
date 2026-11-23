@@ -28,9 +28,12 @@
         "strict_required_status_checks_policy": true,
         "do_not_enforce_on_create": false,
         "required_status_checks": [
+          { "context": "Workflow & repository lint", "integration_id": 15368 },
+          { "context": "Secret scan", "integration_id": 15368 },
           { "context": "Supply chain", "integration_id": 15368 },
           { "context": "CodeQL", "integration_id": 15368 },
           { "context": "Lint, test & build", "integration_id": 15368 },
+          { "context": "E2E & accessibility", "integration_id": 15368 },
           { "context": "Dependency review", "integration_id": 15368 }
         ]
       }

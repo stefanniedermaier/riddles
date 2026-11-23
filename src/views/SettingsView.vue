@@ -226,6 +226,7 @@ function resetAll(): void {
         accept="application/json,.json"
         class="visually-hidden"
         tabindex="-1"
+        :aria-label="t('settings.import')"
         @change="onFileChosen"
       />
     </section>

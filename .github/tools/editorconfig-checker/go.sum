@@ -1,0 +1,14 @@
+github.com/editorconfig-checker/editorconfig-checker/v3 v3.11.3 h1:15rFaYche1gMPQDp5hHKitDvjOJgQWqtu6+paDyEosc=
+github.com/editorconfig-checker/editorconfig-checker/v3 v3.11.3/go.mod h1:aCyoUbMGeHKjKYEtZuQk27golxutD/3o1DeP/x+p6eI=
+github.com/editorconfig/editorconfig-core-go/v2 v2.6.4 h1:CHwUbBVVyKWRX9kt5A/OtwhYUJB32DrFp9xzmjR6cac=
+github.com/editorconfig/editorconfig-core-go/v2 v2.6.4/go.mod h1:JWRVKHdVW+dkv6F8p+xGCa6a+TyMrqsFbFkSs/aQkrQ=
+github.com/gabriel-vasile/mimetype v1.4.15 h1:05iP/CYtZ/w455R/KZM6rZ5ieAdh99UPtd+d3YzLmaI=
+github.com/gabriel-vasile/mimetype v1.4.15/go.mod h1:azpTcoLcDZRNgFou5j+APrqQx9HqVPWa6ijYQIIVswQ=
+github.com/wlynxg/chardet v1.0.5 h1:BNEolSEujJUtKwkaqNb0D6Ue+d7VTKTh5rXDyEdiipU=
+github.com/wlynxg/chardet v1.0.5/go.mod h1:q4N3YNbywQtX0u12Eh0+0LZB53Ayc7nOfHHaio+RcVA=
+golang.org/x/mod v0.37.0 h1:vF1DjpVEshcIqoEaauuHebaLk1O1forxjxBaVn884JQ=
+golang.org/x/mod v0.37.0/go.mod h1:m8S8VeM9r4dzDwjrKO0a1sZP3YjeMamRRlD+fmR2Q/0=
+golang.org/x/text v0.40.0 h1:Ub2Z6/xjgF1WrYQz2nuITOEegKFtiIy+rieRJ5lHZKs=
+golang.org/x/text v0.40.0/go.mod h1:hpnzDAfGV753zIKo+wk3u1bVKCGPbrnF7+7LBF/UHVY=
+gopkg.in/ini.v1 v1.67.0 h1:Dgnx+6+nfE+IfzjUEISNeydPJh9AXNNsWbGP9KzCsOA=
+gopkg.in/ini.v1 v1.67.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=

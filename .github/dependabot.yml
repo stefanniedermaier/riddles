@@ -35,3 +35,24 @@ updates:
     groups:
       actions:
         patterns: ['*']
+
+  # CI tools (actionlint, gitleaks, OSV-Scanner, editorconfig-checker), one Go module each.
+  - package-ecosystem: gomod
+    directories: ['/.github/tools/*']
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      ci-tools:
+        patterns: ['*']
+
+  # zizmor (hash-locked requirements file).
+  - package-ecosystem: pip
+    directory: /.github/tools/zizmor
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
