@@ -24,8 +24,8 @@ function contentSecurityPolicy(): Plugin {
       order: 'post',
       handler(html) {
         // Inline scripts only (external ones with src= are covered by 'self'); tag names are
-        // case-insensitive and end tags may contain whitespace.
-        const scriptHashes = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
+        // case-insensitive and browsers also accept end tags with trailing content.
+        const scriptHashes = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)]
           .filter((match) => !/\bsrc\s*=/i.test(match[1] ?? ''))
           .map((match) => `'sha256-${createHash('sha256').update(match[2] ?? '').digest('base64')}'`)
         const policy = [
