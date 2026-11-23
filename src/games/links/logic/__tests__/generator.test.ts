@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { generatePuzzle } from '../generator'
+import { PALETTE_SIZE } from '../../palette'
 import { solve } from '../solver'
 import { COLOR_RANGE, DIFFICULTIES, SIZES, isLinksPuzzle } from '../types'
 import { validSolution } from './helpers'
@@ -27,6 +28,12 @@ describe('links generator', () => {
       })
     }
   }
+
+  it('has a distinct palette colour for every pair', () => {
+    for (const difficulty of DIFFICULTIES) {
+      expect(COLOR_RANGE[difficulty][1]).toBeLessThanOrEqual(PALETTE_SIZE)
+    }
+  })
 
   it('is deterministic per seed', () => {
     expect(generatePuzzle('medium', 11)).toEqual(generatePuzzle('medium', 11))

@@ -11,11 +11,10 @@ has exactly one solution and can be solved by logic alone.
 | ---------- | --------------------- | ------------ | --------------------- |
 | Easy       | 5 × 5                 | 52–68 %      | 1                     |
 | Medium     | 10 × 10               | 48–62 %      | 4                     |
-| Hard       | 15 × 15               | 45–58 %      | 5                     |
-| Expert     | 15 × 20 (portrait)    | 45–58 %      | 6                     |
+| Hard       | 10 × 15 (portrait)    | 45–58 %      | 5                     |
 
-Expert is portrait instead of 20 × 15: twenty columns plus row clues do not fit a 360 px wide
-phone with usable cell sizes (≈ 17–19 px cells at 360 × 640).
+Grids are at most 10 columns wide: with 15 or more columns plus row clues the cells on a
+360 px wide phone become too small to tap reliably. Hard is therefore portrait.
 
 ## Controls
 
@@ -62,8 +61,8 @@ rough difficulty measure.
    attempt count is bounded and everything is deterministic per seed.
 
 Generation runs in a Web Worker; a prefetch pool keeps one puzzle per difficulty ready.
-Measured in Node (20 seeds each): Easy 0.2 ms avg / 1.2 ms max, Medium 0.7 / 4.4 ms,
-Hard 3.0 / 17 ms, Expert 5.3 / 23 ms.
+Measured in Node (20 seeds each): Easy 0.2 ms avg / 1.2 ms max, Medium 1.3 / 3.9 ms,
+Hard 1.9 / 6.8 ms.
 
 ## Hints
 

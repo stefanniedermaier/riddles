@@ -141,7 +141,7 @@ describe('NonogramPlay', () => {
     vi.spyOn(nonogramPool, 'take').mockReturnValue(new Promise((resolve) => (deliver = resolve)))
     const router = makeRouter()
     await router.push('/nonogram')
-    await router.push('/nonogram/play?new=expert')
+    await router.push('/nonogram/play?new=hard')
     const wrapper = mount(NonogramPlay, { global: { plugins: [router] } })
     await vi.waitFor(() => expect(router.currentRoute.value.query.new).toBeUndefined())
     router.back()

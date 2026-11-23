@@ -6,6 +6,20 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Privacy notice: controller details (name, postal address, email) as required by the GDPR,
+  legal basis of the hosting and the data subject rights incl. the right to lodge a complaint
+
+### Changed
+
+- Nonogram: the 15×15 and 15×20 grids are gone (too small to tap on phones); *Hard* is now
+  10×15 (portrait), *Expert* is no longer offered. Running games of the removed sizes are
+  discarded.
+- Links: new 12-colour palette with clearly distinguishable colours in both themes
+  (letters A–L), fewer colours per puzzle (Hard 7–9, Expert 10–12)
+- Shapes: the home screen no longer shows *Continue* for a running Zen game
+
 ## [0.8.0] – 2026-11-23
 
 ### Added

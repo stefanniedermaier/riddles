@@ -6,7 +6,7 @@
  *     generate: (difficulty, seed) => generateInWorker({ difficulty, seed }),
  *   })
  *   const puzzle = await pool.take('hard') // cached or freshly generated
- *   pool.warm(['easy', 'medium', 'hard', 'expert']) // fill the pool in the background
+ *   pool.warm(['easy', 'medium', 'hard']) // fill the pool in the background
  */
 import { randomSeed } from './rng'
 import { load, save } from './storage'

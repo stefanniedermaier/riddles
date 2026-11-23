@@ -1,15 +1,14 @@
-export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const
+export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
 /**
- * Grid size per difficulty (columns × rows). Expert is portrait (15 × 20): 20 columns plus
- * clues do not fit a 360 px wide phone screen with usable cell sizes.
+ * Grid size per difficulty (columns × rows). At most 10 columns, Hard is portrait (10 × 15):
+ * wider grids plus clues leave cells on a 360 px wide phone too small to tap reliably.
  */
 export const SIZES: Record<Difficulty, { width: number; height: number }> = {
   easy: { width: 5, height: 5 },
   medium: { width: 10, height: 10 },
-  hard: { width: 15, height: 15 },
-  expert: { width: 15, height: 20 },
+  hard: { width: 10, height: 15 },
 }
 
 /** Inclusive range of the share of filled cells per difficulty. */
@@ -17,7 +16,6 @@ export const DENSITY: Record<Difficulty, readonly [number, number]> = {
   easy: [0.52, 0.68],
   medium: [0.48, 0.62],
   hard: [0.45, 0.58],
-  expert: [0.45, 0.58],
 }
 
 /** Player marks. */

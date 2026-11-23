@@ -70,6 +70,7 @@ export const icons = {
     },
   ],
   addSquare: [{ d: 'M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM12 8.5v7M8.5 12h7' }],
+  mail: [{ d: 'M4 6h16v12H4zM4 7l8 6 8-6' }],
   lock: [{ d: 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3' }],
   crown: [{ d: 'M5 18h14M5 15L3.5 7l5 4L12 5l3.5 6 5-4L19 15z' }],
 } satisfies Record<string, IconPath[]>
