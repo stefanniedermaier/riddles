@@ -15,12 +15,12 @@ import { settings, type LocaleSetting, type MotionSetting, type ThemeSetting } f
 import { clearAll, exportData, importData, parseExport, type ExportFile } from '@/core/storage'
 import { showToast } from '@/core/toast'
 import { applyUpdate, checkForUpdate, updateAvailable } from '@/core/update'
+import { repoUrl } from '@/core/legal'
 import { visibleGames } from '@/games/layout'
 import { settingsPanelOf } from '@/games/settingsPanels'
 import type { GameId } from '@/games/types'
 
 const version = __APP_VERSION__
-const repoUrl = 'https://github.com/stefanniedermaier/riddles'
 
 // --- Updates: check now and install right away ------------------------------
 
@@ -271,6 +271,7 @@ function resetAll(): void {
         {{ t('settings.source') }}
         <AppIcon name="external" :size="16" />
       </a>
+      <RouterLink to="/imprint" class="about__link">{{ t('imprint.link') }}</RouterLink>
     </section>
   </main>
 

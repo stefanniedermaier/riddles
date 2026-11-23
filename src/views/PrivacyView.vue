@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import AppBar from '@/components/AppBar.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import ProviderAddress from '@/components/ProviderAddress.vue'
 import { t, type MessageKey } from '@/core/i18n'
-
-const repoUrl = 'https://github.com/stefanniedermaier/riddles'
-
-/** Controller within the meaning of the GDPR (Art. 13(1)(a)). */
-const controller = {
-  name: 'Stefan Niedermaier',
-  street: 'Ostendstr. 5',
-  city: '85777 Fahrenzhausen',
-  email: 'stefan@niedermaier.bayern',
-}
+import { repoUrl } from '@/core/legal'
 const githubPrivacyUrl =
   'https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement'
 
@@ -53,16 +45,7 @@ const sections: { title: MessageKey; text: MessageKey }[] = [
     <section class="block">
       <h2 class="section-title">{{ t('privacy.contactTitle') }}</h2>
       <p>{{ t('privacy.contact') }}</p>
-      <address class="controller">
-        {{ controller.name }}<br />
-        {{ controller.street }}<br />
-        {{ controller.city }}<br />
-        {{ t('privacy.country') }}
-      </address>
-      <p>{{ t('privacy.contactMail') }}</p>
-      <a :href="`mailto:${controller.email}`" class="link">
-        <AppIcon name="mail" :size="16" /> {{ controller.email }}
-      </a>
+      <ProviderAddress />
       <br />
       <a :href="repoUrl" target="_blank" rel="noopener" class="link">
         {{ t('privacy.projectPage') }} <AppIcon name="external" :size="16" />
@@ -93,12 +76,6 @@ const sections: { title: MessageKey; text: MessageKey }[] = [
 }
 
 .block p {
-  line-height: 1.55;
-}
-
-.controller {
-  margin: var(--space-2) 0;
-  font-style: normal;
   line-height: 1.55;
 }
 

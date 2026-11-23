@@ -59,6 +59,8 @@ async function share(): Promise<void> {
     </ul>
     <footer class="footer">
       <RouterLink to="/privacy" class="footer__link">{{ t('privacy.link') }}</RouterLink>
+      <span class="footer__sep" aria-hidden="true">·</span>
+      <RouterLink to="/imprint" class="footer__link">{{ t('imprint.link') }}</RouterLink>
     </footer>
   </main>
 </template>
@@ -136,8 +138,13 @@ async function share(): Promise<void> {
   text-align: center;
 }
 
-.footer__link {
+.footer__link,
+.footer__sep {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.footer__sep {
+  margin: 0 var(--space-2);
 }
 </style>

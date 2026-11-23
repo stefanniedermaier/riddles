@@ -14,7 +14,9 @@ Germany
 Email: [stefan@niedermaier.bayern](mailto:stefan@niedermaier.bayern)
 
 Riddles is a private, non-commercial open-source project. No data protection officer is
-appointed (not required, Art. 37 GDPR).
+appointed (not required, Art. 37 GDPR). The same details are shown in the app under
+**Imprint** (home screen footer, Settings → About); they are defined once in
+`src/core/legal.ts`.
 
 ## What is stored
 
@@ -27,7 +29,9 @@ with `riddles:`:
 - statistics and personal bests (incl. the calendar days on which you played, for the
   "days played" and day-streak figures), level progress and records
 
-Nothing of this is ever sent anywhere.
+Nothing of this is ever sent anywhere. Storing it is strictly necessary for the app to work
+(§ 25(2) no. 2 TDDDG), so no consent is required; it stays until the user deletes it (see
+below).
 
 ## Network access
 
@@ -36,7 +40,9 @@ worker. Afterwards the app only contacts GitHub Pages to check for a new version
 web server, GitHub (GitHub, Inc., USA) may log technical request data (e.g. IP address) – see
 the [GitHub Privacy Statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
 The legal basis is the legitimate interest in delivering the app securely and reliably
-(Art. 6(1)(f) GDPR).
+(Art. 6(1)(f) GDPR). The data may be processed in the USA; GitHub transfers it on the basis of
+the EU–US Data Privacy Framework and the EU standard contractual clauses (Art. 45 and 46
+GDPR). GitHub's privacy statement describes how long it keeps this data.
 
 ## Sharing
 

@@ -6,6 +6,15 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Imprint page (home screen footer and Settings → About)
+
+### Changed
+
+- Privacy notice: legal basis for storing data on the device (§ 25 TDDDG), transfer of
+  connection data to the USA (GitHub) and storage duration
+
 ## [0.9.1] – 2026-11-23
 
 Version 0.9.0 was not released (its tag was pushed before the version bump).
