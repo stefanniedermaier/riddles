@@ -58,6 +58,10 @@ for (const screen of screens) {
     page,
   }) => {
     const errors = collectErrors(page)
+    // The app turns transitions off for reduced motion. axe measures contrast at the current
+    // opacity, so a half-faded element (e.g. the "ready for offline use" toast) would be
+    // reported; this way every element is checked in its final state.
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(`./${screen.hash}`)
     await expect(page.locator('#app > *').first()).toBeVisible()
     await page.waitForLoadState('networkidle')
