@@ -49,6 +49,7 @@ export const icons = {
   download: [{ d: 'M12 4v11M7 10l5 5 5-5M5 20h14' }],
   upload: [{ d: 'M12 15V4M7 9l5-5 5 5M5 20h14' }],
   trash: [{ d: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3' }],
+  chevronDown: [{ d: 'M6 9l6 6 6-6' }],
   info: [{ d: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v5M12 8h.01' }],
   external: [{ d: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5' }],
   grid: [{ d: 'M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z' }],

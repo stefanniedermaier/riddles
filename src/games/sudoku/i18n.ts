@@ -9,7 +9,12 @@ export const en = {
     classic: 'Classic 9×9',
     mini: 'Mini 6×6',
     miniShort: 'Mini',
-    miniInfo: 'Digits 1–6 in every row, column and 2×3 box. Fewer givens make it harder.',
+  },
+  rules: {
+    title: 'How to play',
+    goal: 'Fill the grid so that every row, every column and every box contains each digit exactly once – 1–9 in the classic 9×9 grid, 1–6 (with 2×3 boxes) in Mini.',
+    input: 'Tap a cell, then a number. Erase removes your entry; undo takes back the last step.',
+    notes: 'Notes mode lets you jot down candidates. A hint explains the next logical step.',
   },
   lobby: {
     newGame: 'New game',
@@ -100,7 +105,12 @@ export const de: Messages<typeof en> = {
     classic: 'Klassisch 9×9',
     mini: 'Mini 6×6',
     miniShort: 'Mini',
-    miniInfo: 'Ziffern 1–6 in jeder Zeile, Spalte und jedem 2×3-Block. Weniger Vorgaben = schwerer.',
+  },
+  rules: {
+    title: 'So wird gespielt',
+    goal: 'Fülle das Raster so, dass jede Zeile, jede Spalte und jeder Block jede Ziffer genau einmal enthält – 1–9 im klassischen 9×9-Raster, 1–6 (mit 2×3-Blöcken) bei Mini.',
+    input: 'Tippe ein Feld an, dann eine Zahl. „Löschen“ entfernt deine Eingabe, „Rückgängig“ nimmt den letzten Schritt zurück.',
+    notes: 'Im Notizmodus notierst du Kandidaten. Ein Hinweis erklärt den nächsten logischen Schritt.',
   },
   lobby: {
     newGame: 'Neues Spiel',

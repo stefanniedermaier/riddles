@@ -30,6 +30,7 @@ import {
 } from './logic/engine'
 import { shapeSize } from './logic/pieces'
 import { clearRun, loadRun, saveRun } from './store'
+import BlocksRules from './BlocksRules.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -60,12 +61,15 @@ function onVisibilityChange(): void {
 // Dialogs
 
 const menuOpen = ref(false)
+const showRules = ref(false)
 const confirmNew = ref(false)
 const result = ref<{ score: number; best: number; lines: number; moves: number; newBest: boolean } | null>(
   null,
 )
 const finished = ref(false)
-const locked = computed(() => !run.value || finished.value || menuOpen.value || confirmNew.value)
+const locked = computed(
+  () => !run.value || finished.value || menuOpen.value || showRules.value || confirmNew.value,
+)
 
 // ---------------------------------------------------------------------------
 // Board geometry
@@ -432,6 +436,9 @@ onBeforeUnmount(() => {
 <template>
   <AppBar :title="t('blocks.name')" :back-to="{ name: 'blocks' }">
     <template #actions>
+      <button type="button" class="icon-btn" :aria-label="t('common.rules')" @click="showRules = true">
+        <AppIcon name="info" />
+      </button>
       <button
         v-if="run"
         type="button"
@@ -548,6 +555,9 @@ onBeforeUnmount(() => {
       <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
+  <AppDialog :open="showRules" :title="t('blocks.lobby.howToTitle')" @close="showRules = false">
+    <BlocksRules />
+  </AppDialog>
 </template>
 
 <style scoped>

@@ -4,10 +4,12 @@ import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
+import RulesCard from '@/components/RulesCard.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
 import { getVariantStats } from '@/core/stats'
+import BlocksRules from './BlocksRules.vue'
 import { loadRun } from './store'
 
 const router = useRouter()
@@ -55,11 +57,9 @@ function select(id: string): void {
 <template>
   <AppBar :title="t('blocks.name')" back-to="/" />
   <main class="page lobby" :class="{ 'lobby--played': hasPlayed }">
-    <section class="intro card" :aria-label="t('blocks.lobby.howToTitle')">
-      <h2 class="intro__title">{{ t('blocks.lobby.howToTitle') }}</h2>
-      <p>{{ t('blocks.lobby.howTo') }}</p>
-      <p>{{ t('blocks.lobby.howToScore') }}</p>
-    </section>
+    <RulesCard class="intro" :title="t('blocks.lobby.howToTitle')" accent="var(--game-blocks)">
+      <BlocksRules />
+    </RulesCard>
     <ChoiceList :items="items" @select="select" />
   </main>
 
@@ -82,23 +82,5 @@ function select(id: string): void {
 
 .lobby--played .intro {
   order: 2;
-}
-
-.intro {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border-top: 4px solid var(--game-blocks);
-}
-
-.intro__title {
-  font-size: var(--text-md);
-  font-weight: 700;
-}
-
-.intro p {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
 }
 </style>

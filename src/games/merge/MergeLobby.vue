@@ -4,10 +4,12 @@ import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
+import RulesCard from '@/components/RulesCard.vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
 import { getVariantStats } from '@/core/stats'
 import { VARIANTS, type Variant } from './index'
+import MergeRules from './MergeRules.vue'
 import { targetOf } from './logic/engine'
 import { loadRun, records } from './store'
 
@@ -59,10 +61,9 @@ function select(id: string): void {
 <template>
   <AppBar :title="t('merge.name')" back-to="/" />
   <main class="page lobby" :class="{ 'lobby--played': hasPlayed }">
-    <section class="intro card" :aria-label="t('merge.lobby.howToTitle')">
-      <h2 class="intro__title">{{ t('merge.lobby.howToTitle') }}</h2>
-      <p>{{ t('merge.lobby.howTo') }}</p>
-    </section>
+    <RulesCard class="intro" :title="t('merge.lobby.howToTitle')" accent="var(--game-merge)">
+      <MergeRules />
+    </RulesCard>
     <ChoiceList class="variants" :items="items" @select="select" />
   </main>
 </template>
@@ -77,21 +78,5 @@ function select(id: string): void {
 /* Returning players: variants first, instructions at the bottom. */
 .lobby--played .intro {
   order: 2;
-}
-
-.intro {
-  padding: var(--space-4);
-  border-top: 4px solid var(--game-merge);
-}
-
-.intro__title {
-  margin-bottom: var(--space-2);
-  font-size: var(--text-md);
-  font-weight: 700;
-}
-
-.intro p {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
 }
 </style>

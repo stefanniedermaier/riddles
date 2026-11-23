@@ -22,6 +22,7 @@ import NumberPad from './NumberPad.vue'
 import { sudokuSettings } from './settings'
 import SudokuBoard from './SudokuBoard.vue'
 import { useSudokuGame } from './useSudokuGame'
+import SudokuRules from './SudokuRules.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -78,7 +79,8 @@ onMounted(() => {
 })
 
 // Pause the clock while a dialog covers the board.
-const overlayOpen = computed(() => menuOpen.value || confirm.value !== null)
+const showRules = ref(false)
+const overlayOpen = computed(() => menuOpen.value || showRules.value || confirm.value !== null)
 watch(overlayOpen, (open) => {
   if (status.value !== 'playing') return
   if (open) stopwatch.pause()
@@ -161,6 +163,9 @@ const resultRows = computed(() =>
         <AppIcon name="clock" :size="16" />
         {{ timeLabel }}
       </span>
+      <button type="button" class="icon-btn" :aria-label="t('common.rules')" @click="showRules = true">
+        <AppIcon name="info" />
+      </button>
       <button
         v-if="status === 'playing'"
         type="button"
@@ -282,6 +287,9 @@ const resultRows = computed(() =>
       <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
+  <AppDialog :open="showRules" :title="t('sudoku.rules.title')" @close="showRules = false">
+    <SudokuRules />
+  </AppDialog>
 </template>
 
 <style scoped>

@@ -7,10 +7,11 @@ import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import RulesCard from '@/components/RulesCard.vue'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
-import { getVariantStats } from '@/core/stats'
+import { getStats, getVariantStats } from '@/core/stats'
 
 import { poolOf } from './generate'
 import {
@@ -22,6 +23,7 @@ import {
   type SudokuMode,
 } from './logic/types'
 import { sudokuSettings } from './settings'
+import SudokuRules from './SudokuRules.vue'
 import { loadSavedGame } from './useSudokuGame'
 
 const router = useRouter()
@@ -39,6 +41,12 @@ const modeOptions = computed(() => [
 ])
 
 const saved = computed(() => loadSavedGame(mode.value))
+
+/** First-time players see the rules first; afterwards they move below the menu. */
+const hasPlayed =
+  Object.values(getStats('sudoku')).some((s) => s.started > 0) ||
+  loadSavedGame('classic') !== null ||
+  loadSavedGame('mini') !== null
 const pendingDifficulty = ref<Difficulty | null>(null)
 const playQuery = (playMode: SudokuMode) => (playMode === 'mini' ? { mode: 'mini' } : {})
 
@@ -88,8 +96,11 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
   </AppBar>
 
   <main class="page">
+    <RulesCard v-if="!hasPlayed" class="rules--top" :title="t('sudoku.rules.title')" accent="var(--game-sudoku)">
+      <SudokuRules />
+    </RulesCard>
+
     <SegmentedControl v-model="mode" :options="modeOptions" :label="t('sudoku.modes.label')" />
-    <p v-if="mode === 'mini'" class="mode-info">{{ t('sudoku.modes.miniInfo') }}</p>
 
     <button v-if="saved" type="button" class="continue" @click="continueGame">
       <span class="continue__text">
@@ -108,6 +119,10 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
 
     <h2 class="section-title">{{ t('sudoku.lobby.newGame') }}</h2>
     <ChoiceList :items="items" @select="onSelect" />
+
+    <RulesCard v-if="hasPlayed" class="rules--bottom" :title="t('sudoku.rules.title')" accent="var(--game-sudoku)">
+      <SudokuRules />
+    </RulesCard>
   </main>
 
   <ConfirmDialog
@@ -121,10 +136,12 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
 </template>
 
 <style scoped>
-.mode-info {
-  margin-top: var(--space-2);
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+.rules--top {
+  margin-bottom: var(--space-4);
+}
+
+.rules--bottom {
+  margin-top: var(--space-5);
 }
 
 .continue {

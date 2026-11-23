@@ -23,6 +23,7 @@ import type { Mode } from './logic/types'
 import { IDLE_HINT_MS, shapesSettings } from './settings'
 import ShapesBoard from './ShapesBoard.vue'
 import ShapesHud from './ShapesHud.vue'
+import ShapesRules from './ShapesRules.vue'
 import { clearRun, levelProgress, loadRun, recordLevelWin, saveRun } from './store'
 
 const props = defineProps<{ mode: Mode }>()
@@ -131,6 +132,7 @@ function onTimeUp(): void {
 // UI state
 
 const menuOpen = ref(false)
+const showRules = ref(false)
 const selected = ref<number | null>(null)
 const hint = ref<[number, number] | null>(null)
 
@@ -145,6 +147,7 @@ const locked = computed(
   () =>
     animator.animating.value ||
     menuOpen.value ||
+    showRules.value ||
     result.value !== null ||
     timeUpPending.value ||
     finished.value,
@@ -404,10 +407,10 @@ const resultTitle = computed(() => {
 
 // The timer runs only while actually playing.
 watch(
-  [menuOpen, result, finished],
+  [menuOpen, showRules, result, finished],
   () => {
     if (!countdown) return
-    if (menuOpen.value || result.value || finished.value) countdown.pause()
+    if (menuOpen.value || showRules.value || result.value || finished.value) countdown.pause()
     else countdown.start()
   },
   { immediate: false },
@@ -440,6 +443,9 @@ onBeforeUnmount(() => {
 <template>
   <AppBar :title="title" :back-to="{ name: 'shapes' }">
     <template #actions>
+      <button type="button" class="icon-btn" :aria-label="t('common.rules')" @click="showRules = true">
+        <AppIcon name="info" />
+      </button>
       <button
         v-if="run"
         type="button"
@@ -543,6 +549,9 @@ onBeforeUnmount(() => {
       <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
+  <AppDialog :open="showRules" :title="t('shapes.lobby.howToTitle')" @close="showRules = false">
+    <ShapesRules />
+  </AppDialog>
 </template>
 
 <style scoped>

@@ -5,12 +5,12 @@ import { useRouter } from 'vue-router'
 import AppBar from '@/components/AppBar.vue'
 import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
+import RulesCard from '@/components/RulesCard.vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
 import { getVariantStats } from '@/core/stats'
-import { ITEM_KIND, MODES, type Mode } from './logic/types'
-import ObstacleArt from './ObstacleArt.vue'
-import ShapePiece from './ShapePiece.vue'
+import { MODES, type Mode } from './logic/types'
+import ShapesRules from './ShapesRules.vue'
 import { levelProgress, loadRun } from './store'
 
 const router = useRouter()
@@ -66,26 +66,9 @@ function select(id: string): void {
     </template>
   </AppBar>
   <main class="page lobby" :class="{ 'lobby--played': hasPlayed }">
-    <section class="intro" :aria-label="t('shapes.lobby.howToTitle')">
-      <h2 v-if="hasPlayed" class="section-title">{{ t('shapes.lobby.howToTitle') }}</h2>
-      <div class="intro__art" aria-hidden="true">
-        <ShapePiece :kind="0" special="none" />
-        <ShapePiece :kind="4" special="line-h" />
-        <ShapePiece :kind="3" special="burst" />
-        <ShapePiece :kind="-1" special="prism" />
-      </div>
-      <p class="muted">{{ t('shapes.lobby.howTo') }}</p>
-      <div class="intro__art" aria-hidden="true">
-        <span class="intro__tile"><ObstacleArt type="target" /></span>
-        <span class="intro__tile intro__tile--stack">
-          <ShapePiece :kind="2" special="none" />
-          <ObstacleArt type="chain" />
-        </span>
-        <span class="intro__tile"><ObstacleArt type="crate" /></span>
-        <span class="intro__tile"><ShapePiece :kind="ITEM_KIND" special="none" /></span>
-      </div>
-      <p class="muted">{{ t('shapes.lobby.howToLevels') }}</p>
-    </section>
+    <RulesCard class="intro" :title="t('shapes.lobby.howToTitle')" accent="var(--game-shapes)">
+      <ShapesRules />
+    </RulesCard>
     <ChoiceList class="modes" :items="items" @select="select" />
   </main>
 </template>
@@ -100,42 +83,5 @@ function select(id: string): void {
 /* Returning players: modes first, instructions at the bottom. */
 .lobby--played .intro {
   order: 2;
-}
-
-.intro {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.intro .section-title {
-  margin: 0;
-}
-
-.intro__art {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.intro__art > * {
-  width: 40px;
-  height: 40px;
-}
-
-.intro__tile {
-  display: block;
-}
-
-.intro__tile--stack {
-  position: relative;
-}
-
-.intro__tile--stack > :deep(svg) {
-  position: absolute;
-  inset: 0;
-}
-
-.intro p {
-  font-size: var(--text-sm);
 }
 </style>
