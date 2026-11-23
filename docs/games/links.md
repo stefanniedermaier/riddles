@@ -10,8 +10,11 @@ board is filled**. Every puzzle is generated on the device and has exactly one s
 | ---------- | ----- | ------- |
 | Easy       | 5×5   | 4–5     |
 | Medium     | 7×7   | 6–7     |
-| Hard       | 9×9   | 8–10    |
-| Expert     | 11×11 | 10–13   |
+| Hard       | 9×9   | 7–9     |
+| Expert     | 11×11 | 10–12   |
+
+Expert needs at least 10 pairs: with fewer, an 11×11 grid rarely has a unique solution
+(measured: 9 pairs → 3 of 15 puzzles ambiguous, ≈ 22 s generation).
 
 ## Controls
 
@@ -32,8 +35,11 @@ when it changes a different colour than the previous drag. Solving with exactly 
 colour and without hints is **perfect**. The result dialog shows time, moves, hints and offers
 *New game*, *Links menu* and *Home*.
 
-Settings → Links → **Letters on dots** shows a letter (A–M) on every dot, so colours can be
-told apart without colour vision. The 13-colour palette has separate light and dark variants.
+Settings → Links → **Letters on dots** shows a letter (A–L) on every dot, so colours can be
+told apart without colour vision. The 12-colour palette (`palette.ts`) has light and dark
+variants of the same colour families, chosen for a minimum pairwise CIEDE2000 distance of
+22.8 (light) / 20.7 (dark) and at least 3:1 contrast to the board; the most distinct colours
+come first, so smaller puzzles only use those.
 
 The rules are shown at the top of the Links menu for first-time players and below the
 difficulty list afterwards.
@@ -63,8 +69,8 @@ Measured (Node 26, 20 seeds each, main thread), every result re-checked for uniq
 | ---------- | ------- | ------- |
 | Easy       | 0.7 ms  | 3 ms    |
 | Medium     | 1.1 ms  | 6 ms    |
-| Hard       | 42 ms   | 107 ms  |
-| Expert     | 415 ms  | 1.2 s   |
+| Hard       | 87 ms   | 215 ms  |
+| Expert     | 964 ms  | 2.9 s   |
 
 ## Solver (`logic/solver.ts`)
 

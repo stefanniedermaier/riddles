@@ -8,8 +8,8 @@ export const SIZES: Record<Difficulty, number> = { easy: 5, medium: 7, hard: 9, 
 export const COLOR_RANGE: Record<Difficulty, readonly [number, number]> = {
   easy: [4, 5],
   medium: [6, 7],
-  hard: [8, 10],
-  expert: [10, 13],
+  hard: [7, 9],
+  expert: [10, 12],
 }
 
 /** The two dots of one colour. `color` equals the index in `LinksPuzzle.endpoints`. */

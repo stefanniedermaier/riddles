@@ -1,37 +1,38 @@
 /**
- * Line colours of Links (13 colours; light and dark variants). Chosen for distinct hues and
- * enough contrast on the board surface; labels (A–M) help when colours are hard to tell apart.
+ * Line colours of Links (12 colours; light and dark variants of the same colour families).
+ * Optimised for telling them apart: minimum pairwise CIEDE2000 distance 22.8 (light) and
+ * 20.7 (dark), at least 3:1 contrast to the board in both themes. The most distinct colours
+ * come first, so smaller puzzles only use those. Labels (A–L) help when colours are hard to
+ * tell apart.
  */
 const LIGHT = [
-  '#e0384f', // red
-  '#2f6fdf', // blue
-  '#1f9a55', // green
-  '#e3a700', // yellow
-  '#ef7a1c', // orange
-  '#8a4fe0', // violet
-  '#0fa3c4', // cyan
-  '#de4bad', // pink
-  '#8d5f33', // brown
-  '#7fb317', // lime
-  '#3a3fa6', // indigo
-  '#0f8a73', // teal
-  '#6b7280', // grey
+  '#d81b2c', // red
+  '#1565d8', // blue
+  '#0f9438', // green
+  '#a08000', // ochre
+  '#f26b00', // orange
+  '#5b1fa8', // purple
+  '#00a2b8', // cyan
+  '#e33aa8', // pink
+  '#1c1c1c', // black
+  '#6b3a1a', // brown
+  '#7f7f7f', // grey
+  '#0d5c63', // teal
 ] as const
 
 const DARK = [
-  '#ff6178',
-  '#5d9bff',
-  '#3fd07f',
-  '#f7d046',
-  '#ff9a45',
-  '#ab8bff',
-  '#4fd6f2',
-  '#ff7ad2',
-  '#c99a68',
-  '#b8e64e',
-  '#8b90ff',
-  '#3fd4b6',
-  '#b9bfcc',
+  '#ff3b4f', // red
+  '#3b9cff', // blue
+  '#2fd35f', // green
+  '#ffe23a', // yellow
+  '#ff9530', // orange
+  '#9d5cff', // purple
+  '#43e3f0', // cyan
+  '#ff9ad8', // pink
+  '#f4f4f4', // white
+  '#a0703f', // brown
+  '#9a9a9a', // grey
+  '#2a9d8f', // teal
 ] as const
 
 export const PALETTE_SIZE = LIGHT.length
