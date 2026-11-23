@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.10.0] – 2026-11-23
+
 ### Added
 
 - Imprint page (home screen footer and Settings → About)
