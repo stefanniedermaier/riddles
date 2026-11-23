@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.0] – 2026-11-23
+
 ### Changed
 
 - The share button uses the share icon of the operating system: a box with an upward arrow on
