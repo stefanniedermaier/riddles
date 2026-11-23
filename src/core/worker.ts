@@ -31,10 +31,23 @@ interface WorkerScope {
   postMessage(message: unknown): void
 }
 
+function isRpcRequest(data: unknown): data is RpcRequest<unknown> {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    Number.isInteger((data as RpcRequest<unknown>).id) &&
+    'payload' in data
+  )
+}
+
 /** Call this at the top level of a `*.worker.ts` module. */
 export function exposeWorker<Req, Res>(handler: Handler<Req, Res>): void {
   const scope = self as unknown as WorkerScope
   scope.onmessage = async (event: MessageEvent) => {
+    // A dedicated worker only receives messages from the page that created it (their origin
+    // is empty or our own). Anything else – or a malformed request – is ignored.
+    if (event.origin !== '' && event.origin !== self.location.origin) return
+    if (!isRpcRequest(event.data)) return
     const { id, payload } = event.data as RpcRequest<Req>
     try {
       const result = await handler(payload)
