@@ -39,7 +39,7 @@ tag vX.Y.Z:    release-check ──┐
 
 | Job                 | When        | Checks                                                                                       |
 | ------------------- | ----------- | -------------------------------------------------------------------------------------------- |
-| `dependency-review` | PRs         | New/updated packages: no known vulnerability ≥ moderate, license on the allow list, OpenSSF Scorecard warning |
+| `dependency-review` | PRs         | New/updated packages (npm and the Go modules of the CI tools): no known vulnerability ≥ moderate, license on the allow list (a few CI-only Go packages exempted by name, see `deploy.yml`), OpenSSF Scorecard warning |
 | `repo-lint`         | always      | [actionlint](https://github.com/rhysd/actionlint) (workflow syntax, expressions, embedded shell scripts via shellcheck), [zizmor](https://docs.zizmor.sh) (workflow security: injection, permissions, cache poisoning, impostor commits, vulnerable actions), [editorconfig-checker](https://editorconfig-checker.github.io) |
 | `secret-scan`       | always      | [gitleaks](https://github.com/gitleaks/gitleaks) over the full git history (complements GitHub secret scanning, also for fork PRs) |
 | `supply-chain`      | always      | `scripts/check-dependencies.mjs` (see below), `npm ci --ignore-scripts`, `npm audit signatures`, `npm audit` (runtime: no vulnerability ≥ moderate; all: none ≥ high), [OSV-Scanner](https://google.github.io/osv-scanner/) on the lockfile (osv.dev incl. malicious-package advisories) |
