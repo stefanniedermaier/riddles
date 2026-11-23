@@ -1,17 +1,17 @@
 import type { Messages } from '@/i18n/types'
 
-/** English texts of the Crowns game (namespace `crowns`). */
+/** English texts of the Stars game (namespace `crowns`). */
 export const en = {
-  name: 'Crowns',
-  tagline: 'One crown per row, column and region.',
+  name: 'Stars',
+  tagline: 'One star per row, column and region.',
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {
     title: 'How to play',
-    goal: 'Place one crown in every row, every column and every coloured region.',
-    touch: 'Crowns must not touch each other – not even diagonally.',
+    goal: 'Place one star in every row, every column and every coloured region.',
+    touch: 'Stars must not touch each other – not even diagonally.',
     controls:
-      'Tap a cell once to mark it with ✕, twice for a crown and a third time to clear it. Drag across cells to mark several at once.',
+      'Tap a cell once to mark it with ✕, twice for a star and a third time to clear it. Drag across cells to mark several at once.',
   },
   lobby: {
     newGame: 'New game',
@@ -21,18 +21,18 @@ export const en = {
   },
   play: {
     clear: 'Clear',
-    clearConfirm: 'Remove all crowns and marks?',
+    clearConfirm: 'Remove all stars and marks?',
     rules: 'Rules',
-    crownsPlaced: '{placed} / {total} crowns',
-    solvedText: 'Every crown is in place.',
+    crownsPlaced: '{placed} / {total} stars',
+    solvedText: 'Every star is in place.',
     undo: 'Undo',
-    toMenu: 'Crowns menu',
+    toMenu: 'Stars menu',
   },
   settings: {
     autoMark: 'Show blocked cells',
-    autoMarkDesc: 'A dot marks cells that cannot hold a crown because of crowns you placed.',
+    autoMarkDesc: 'A dot marks cells that cannot hold a star because of stars you placed.',
     instantConflicts: 'Show conflicts right away',
-    instantConflictsDesc: 'Crowns that break a rule turn red at once. Otherwise only “Check” shows mistakes.',
+    instantConflictsDesc: 'Stars that break a rule turn red at once. Otherwise only “Check” shows mistakes.',
   },
   unit: {
     row: 'row {n}',
@@ -51,36 +51,36 @@ export const en = {
   },
   hint: {
     title: 'Hint',
-    wrongCrown: 'This crown is not part of the solution.',
-    wrongMark: 'This cell is marked, but it needs a crown.',
+    wrongCrown: 'This star is not part of the solution.',
+    wrongMark: 'This cell is marked, but it needs a star.',
     fix: 'Remove it',
-    lastCell: 'Only one free cell is left in {unit} – it must hold the crown.',
+    lastCell: 'Only one free cell is left in {unit} – it must hold the star.',
     confinementRegion:
-      'All free cells of the highlighted region lie in {line}. Its crown goes there, so the other cells of {line} can be marked.',
+      'All free cells of the highlighted region lie in {line}. Its star goes there, so the other cells of {line} can be marked.',
     confinementLine:
-      'All free cells of {line} lie in the highlighted region. So that region’s crown is in {line} – its other cells can be marked.',
+      'All free cells of {line} lie in the highlighted region. So that region’s star is in {line} – its other cells can be marked.',
     forced:
-      'A crown on the highlighted cell would block every free cell of {unit}. So this cell can be marked.',
+      'A star on the highlighted cell would block every free cell of {unit}. So this cell can be marked.',
     groupRegions:
-      'The {count} highlighted regions only have free cells in {lines}. Their crowns fill these lines, so all other cells there can be marked.',
+      'The {count} highlighted regions only have free cells in {lines}. Their stars fill these lines, so all other cells there can be marked.',
     groupLines:
-      '{lines} only have free cells in the {count} highlighted regions. Those regions get their crowns from there, so their other cells can be marked.',
+      '{lines} only have free cells in the {count} highlighted regions. Those regions get their stars from there, so their other cells can be marked.',
     solved: 'The puzzle is already solved.',
     stuck: 'No hint available right now.',
   },
 }
 
 export const de: Messages<typeof en> = {
-  name: 'Crowns',
-  tagline: 'Eine Krone pro Zeile, Spalte und Region.',
+  name: 'Stars',
+  tagline: 'Ein Stern pro Zeile, Spalte und Region.',
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {
     title: 'So wird gespielt',
-    goal: 'Setze in jede Zeile, jede Spalte und jede farbige Region genau eine Krone.',
-    touch: 'Kronen dürfen sich nicht berühren – auch nicht diagonal.',
+    goal: 'Setze in jede Zeile, jede Spalte und jede farbige Region genau einen Stern.',
+    touch: 'Sterne dürfen sich nicht berühren – auch nicht diagonal.',
     controls:
-      'Tippe einmal auf ein Feld, um es mit ✕ zu markieren, zweimal für eine Krone und ein drittes Mal zum Leeren. Ziehe über mehrere Felder, um sie gemeinsam zu markieren.',
+      'Tippe einmal auf ein Feld, um es mit ✕ zu markieren, zweimal für einen Stern und ein drittes Mal zum Leeren. Ziehe über mehrere Felder, um sie gemeinsam zu markieren.',
   },
   lobby: {
     newGame: 'Neues Spiel',
@@ -90,19 +90,19 @@ export const de: Messages<typeof en> = {
   },
   play: {
     clear: 'Leeren',
-    clearConfirm: 'Alle Kronen und Markierungen entfernen?',
+    clearConfirm: 'Alle Sterne und Markierungen entfernen?',
     rules: 'Regeln',
-    crownsPlaced: '{placed} / {total} Kronen',
-    solvedText: 'Alle Kronen sind gesetzt.',
+    crownsPlaced: '{placed} / {total} Sterne',
+    solvedText: 'Alle Sterne sind gesetzt.',
     undo: 'Rückgängig',
-    toMenu: 'Crowns-Menü',
+    toMenu: 'Stars-Menü',
   },
   settings: {
     autoMark: 'Blockierte Felder zeigen',
     autoMarkDesc:
-      'Ein Punkt kennzeichnet Felder, auf die wegen deiner gesetzten Kronen keine Krone mehr passt.',
+      'Ein Punkt kennzeichnet Felder, auf die wegen deiner gesetzten Sterne kein Stern mehr passt.',
     instantConflicts: 'Konflikte sofort zeigen',
-    instantConflictsDesc: 'Kronen, die gegen eine Regel verstoßen, werden sofort rot. Sonst zeigt nur „Kontrollieren“ Fehler.',
+    instantConflictsDesc: 'Sterne, die gegen eine Regel verstoßen, werden sofort rot. Sonst zeigt nur „Kontrollieren“ Fehler.',
   },
   unit: {
     row: 'Zeile {n}',
@@ -121,20 +121,20 @@ export const de: Messages<typeof en> = {
   },
   hint: {
     title: 'Hinweis',
-    wrongCrown: 'Diese Krone gehört nicht zur Lösung.',
-    wrongMark: 'Dieses Feld ist markiert, braucht aber eine Krone.',
+    wrongCrown: 'Dieser Stern gehört nicht zur Lösung.',
+    wrongMark: 'Dieses Feld ist markiert, braucht aber einen Stern.',
     fix: 'Entfernen',
-    lastCell: 'In {unit} ist nur noch ein Feld frei – dort muss die Krone hin.',
+    lastCell: 'In {unit} ist nur noch ein Feld frei – dort muss der Stern hin.',
     confinementRegion:
-      'Alle freien Felder der markierten Region liegen in {line}. Ihre Krone steht also dort, die übrigen Felder in {line} können markiert werden.',
+      'Alle freien Felder der markierten Region liegen in {line}. Ihr Stern steht also dort, die übrigen Felder in {line} können markiert werden.',
     confinementLine:
-      'Alle freien Felder in {line} gehören zur markierten Region. Deren Krone steht also in {line} – ihre übrigen Felder können markiert werden.',
+      'Alle freien Felder in {line} gehören zur markierten Region. Deren Stern steht also in {line} – ihre übrigen Felder können markiert werden.',
     forced:
-      'Eine Krone auf dem markierten Feld würde alle freien Felder in {unit} blockieren. Dieses Feld kann also markiert werden.',
+      'Ein Stern auf dem markierten Feld würde alle freien Felder in {unit} blockieren. Dieses Feld kann also markiert werden.',
     groupRegions:
-      'Die {count} markierten Regionen haben nur in {lines} freie Felder. Ihre Kronen füllen diese Linien, alle anderen Felder dort können markiert werden.',
+      'Die {count} markierten Regionen haben nur in {lines} freie Felder. Ihre Sterne füllen diese Linien, alle anderen Felder dort können markiert werden.',
     groupLines:
-      'In {lines} gibt es nur freie Felder in den {count} markierten Regionen. Diese Regionen bekommen ihre Kronen von dort, ihre übrigen Felder können markiert werden.',
+      'In {lines} gibt es nur freie Felder in den {count} markierten Regionen. Diese Regionen bekommen ihre Sterne von dort, ihre übrigen Felder können markiert werden.',
     solved: 'Das Rätsel ist bereits gelöst.',
     stuck: 'Gerade ist kein Hinweis verfügbar.',
   },

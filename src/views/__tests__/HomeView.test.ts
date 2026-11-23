@@ -19,7 +19,7 @@ describe('HomeView', () => {
     const cards = wrapper.findAll('.game-card')
     expect(cards).toHaveLength(games.length)
     expect(wrapper.text()).toContain('Sudoku')
-    expect(wrapper.text()).toContain('Crowns')
+    expect(wrapper.text()).toContain('Stars')
     expect(wrapper.text()).toContain('Links')
     expect(wrapper.text()).toContain('Shapes')
   })

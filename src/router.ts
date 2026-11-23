@@ -12,6 +12,7 @@ export const router = createRouter({
     { path: '/settings', name: 'settings', component: () => import('@/views/SettingsView.vue') },
     { path: '/stats', name: 'stats', component: () => import('@/views/StatsView.vue') },
     { path: '/privacy', name: 'privacy', component: () => import('@/views/PrivacyView.vue') },
+    { path: '/imprint', name: 'imprint', component: () => import('@/views/ImprintView.vue') },
     ...gameRoutes,
     {
       path: '/:pathMatch(.*)*',

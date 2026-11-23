@@ -1,7 +1,7 @@
 import { expect, expectAccessible, test } from './fixtures'
 
 const GAMES = ['sudoku', 'crowns', 'links', 'nonogram', 'arrows', 'shapes', 'merge', 'blocks']
-const PAGES = ['', 'settings', 'stats', 'privacy', ...GAMES]
+const PAGES = ['', 'settings', 'stats', 'privacy', 'imprint', ...GAMES]
 
 test.describe('every page', () => {
   for (const path of PAGES) {

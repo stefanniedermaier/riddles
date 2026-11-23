@@ -6,6 +6,20 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Imprint page (home screen footer and Settings → About)
+- Settings → About → *Third-party licences*: licence notices of all bundled open-source
+  packages (`licenses.txt`, generated at build time and checked by `check-dist`)
+
+### Changed
+
+- *Crowns* is now **Stars**: stars instead of crowns, vivid and clearly distinguishable
+  region colours in both themes (stars and marks keep at least 4.5:1 contrast), new star tile
+  in the app icon. Saved games and statistics are kept.
+- Privacy notice: legal basis for storing data on the device (§ 25 TDDDG), transfer of
+  connection data to the USA (GitHub) and storage duration
+
 ## [0.9.1] – 2026-11-23
 
 Version 0.9.0 was not released (its tag was pushed before the version bump).

@@ -3,6 +3,7 @@
 //   - index.html carries the Content-Security-Policy and no inline event handlers
 //   - no source maps, no eval / new Function in shipped JavaScript
 //   - PWA files (service worker, manifest, icons) are present
+//   - licenses.txt lists every third-party package shipped (incl. Workbox in the service worker)
 //   - size budgets (gzip) for the initial load and for all JavaScript/CSS
 //
 //   node scripts/check-dist.mjs [dist]
@@ -61,6 +62,26 @@ for (const required of ['sw.js', 'manifest.webmanifest', 'pwa-192x192.png', 'pwa
   if (!files.includes(join(dist, required))) fail(`${required} missing`)
 }
 
+// --- third-party licences ----------------------------------------------------------------
+const licensesFile = join(dist, 'licenses.txt')
+if (!files.includes(licensesFile)) fail('licenses.txt missing (third-party licence notices)')
+else {
+  const licenses = text(licensesFile)
+  const workboxModules = new Set(
+    files
+      .filter((file) => extname(file) === '.js')
+      .flatMap((file) => [...text(file).matchAll(/workbox:([a-z-]+):\d/g)].map((match) => match[1])),
+  )
+  for (const module of workboxModules) {
+    if (!licenses.includes(`workbox-${module}@`)) {
+      fail(`licenses.txt: workbox-${module} is shipped but not listed (SERVICE_WORKER_PACKAGES in vite.config.ts)`)
+    }
+  }
+  for (const name of ['@vue/runtime-core', 'vue-router']) {
+    if (!licenses.includes(`${name}@`)) fail(`licenses.txt: ${name} missing`)
+  }
+}
+
 // --- size budgets -----------------------------------------------------------------------
 const assets = files.filter((file) => ['.js', '.css'].includes(extname(file)))
 const initialAssets = [...indexHtml.matchAll(/(?:src|href)="\/riddles\/(assets\/[^"]+\.(?:js|css))"/g)]
@@ -80,4 +101,4 @@ if (errors.length) {
   for (const error of errors) console.error(`::error::${error}`)
   process.exit(1)
 }
-console.log(`✔ dist/ ok: ${files.length} files, CSP present, no source maps, no eval`)
+console.log(`✔ dist/ ok: ${files.length} files, CSP present, no source maps, no eval, licences listed`)

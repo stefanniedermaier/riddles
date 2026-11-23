@@ -119,8 +119,8 @@ incompatible format change instead of crashing the app.
 | `<game>:settings`            | Game-specific options                       |
 | `sudoku:current:v1`          | Running Sudoku game                         |
 | `sudoku:pool:v1`             | Pre-generated Sudoku puzzles                |
-| `crowns:current:v1`          | Running Crowns game                         |
-| `crowns:pool:v1`             | Pre-generated Crowns puzzles                |
+| `crowns:current:v1`          | Running Stars game (formerly Crowns)        |
+| `crowns:pool:v1`             | Pre-generated Stars puzzles                 |
 | `links:current:v1`           | Running Links game                          |
 | `links:pool:v1`              | Pre-generated Links puzzles                 |
 | `nonogram:current:v1`        | Running Nonogram game (pool: `nonogram:pool:v1`) |

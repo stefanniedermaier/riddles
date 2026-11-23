@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
 
 import vue from '@vitejs/plugin-vue'
@@ -51,6 +52,57 @@ function contentSecurityPolicy(): Plugin {
   }
 }
 
+/**
+ * Packages bundled into the service worker by Workbox (built outside the Rollup graph).
+ * `scripts/check-dist.mjs` fails if the built service worker contains a Workbox module that is
+ * missing here, so the list cannot silently go stale.
+ */
+const SERVICE_WORKER_PACKAGES = ['workbox-core', 'workbox-precaching', 'workbox-routing', 'workbox-strategies']
+
+/**
+ * Writes `licenses.txt` with the licence texts of every third-party package shipped to users
+ * (MIT and similar licences require the copyright and licence notice in every copy; minified
+ * bundles drop them).
+ */
+function thirdPartyLicenses(): Plugin {
+  const root = fileURLToPath(new URL('.', import.meta.url))
+  return {
+    name: 'riddles:third-party-licenses',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      const packages = new Set<string>(SERVICE_WORKER_PACKAGES)
+      // Only modules that actually end up in the output (tree-shaken ones are not shipped).
+      const shipped = Object.values(bundle).flatMap((chunk) =>
+        chunk.type === 'chunk'
+          ? Object.entries(chunk.modules)
+              .filter(([, info]) => info.renderedLength > 0)
+              .map(([id]) => id)
+          : [],
+      )
+      for (const id of shipped) {
+        const match = /node_modules[\\/]((?:@[^\\/]+[\\/])?[^\\/]+)/.exec(id)
+        if (match?.[1]) packages.add(match[1].split(/[\\/]/).join('/'))
+      }
+      const entries = [...packages].sort().map((name) => {
+        const dir = join(root, 'node_modules', name)
+        const meta = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
+          version: string
+          license?: string
+        }
+        const file = existsSync(dir) ? readdirSync(dir).find((f) => /^licen[cs]e/i.test(f)) : undefined
+        if (!file) throw new Error(`third-party-licenses: no licence file in ${name}`)
+        const text = readFileSync(join(dir, file), 'utf8').trim()
+        return `${name}@${meta.version} (${meta.license ?? 'see below'})\n\n${text}`
+      })
+      this.emitFile({
+        type: 'asset',
+        fileName: 'licenses.txt',
+        source: `Riddles ${pkg.version} – third-party software\n\nThis app includes the following open-source packages.\n\n${entries.join(`\n\n${'-'.repeat(72)}\n\n`)}\n`,
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   // The app is served from https://<user>.github.io/riddles/
@@ -61,6 +113,7 @@ export default defineConfig({
   plugins: [
     vue(),
     contentSecurityPolicy(),
+    thirdPartyLicenses(),
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
@@ -91,7 +144,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,txt}'],
         cleanupOutdatedCaches: true,
       },
     }),
