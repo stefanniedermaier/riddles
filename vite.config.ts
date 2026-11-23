@@ -81,7 +81,7 @@ function thirdPartyLicenses(): Plugin {
       )
       for (const id of shipped) {
         const match = /node_modules[\\/]((?:@[^\\/]+[\\/])?[^\\/]+)/.exec(id)
-        if (match?.[1]) packages.add(match[1].replace('\\', '/'))
+        if (match?.[1]) packages.add(match[1].split(/[\\/]/).join('/'))
       }
       const entries = [...packages].sort().map((name) => {
         const dir = join(root, 'node_modules', name)
