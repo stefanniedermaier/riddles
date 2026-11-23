@@ -31,7 +31,7 @@ const router = useRouter()
 type Status = 'loading' | 'playing' | 'won' | 'failed'
 
 /** Duration of the slide-out animation (ms). */
-const LEAVE_MS = 280
+const LEAVE_MS = 420
 
 const status = ref<Status>('loading')
 const game = ref<ArrowsSave | null>(null)

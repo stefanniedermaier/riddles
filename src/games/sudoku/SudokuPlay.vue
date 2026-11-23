@@ -288,7 +288,7 @@ const resultRows = computed(() =>
     </template>
   </ResultDialog>
   <AppDialog :open="showRules" :title="t('sudoku.rules.title')" @close="showRules = false">
-    <SudokuRules />
+    <SudokuRules :mode="mode" />
   </AppDialog>
 </template>
 

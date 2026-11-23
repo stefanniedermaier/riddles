@@ -97,7 +97,7 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
 
   <main class="page">
     <RulesCard v-if="!hasPlayed" class="rules--top" :title="t('sudoku.rules.title')" accent="var(--game-sudoku)">
-      <SudokuRules />
+      <SudokuRules :mode="mode" />
     </RulesCard>
 
     <SegmentedControl v-model="mode" :options="modeOptions" :label="t('sudoku.modes.label')" />
@@ -121,7 +121,7 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
     <ChoiceList :items="items" @select="onSelect" />
 
     <RulesCard v-if="hasPlayed" class="rules--bottom" :title="t('sudoku.rules.title')" accent="var(--game-sudoku)">
-      <SudokuRules />
+      <SudokuRules :mode="mode" />
     </RulesCard>
   </main>
 
