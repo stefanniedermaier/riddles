@@ -20,6 +20,7 @@ all data on the device. Every level is generated on the fly.
 | 10 | [Arrows](10-arrows.md)                       | Ordering puzzle: tap arrows so they slide out                 |
 | 11 | [Game plugins](11-game-plugins.md)           | Game API (one module list) done; repos / plugins in backlog   |
 | 12 | [Blocks](12-blocks.md)                       | Block-placing puzzle: three pieces, clear rows and columns     |
+| 13 | [Mines](13-minesweeper.md)                   | Minesweeper without guessing: pre-opened start, logic solver  |
 
 ## Decisions (from the kick-off wizard)
 
