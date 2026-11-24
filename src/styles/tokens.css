@@ -34,6 +34,9 @@
   --game-blocks: #c2410c;
   --game-shapes: #d6457a;
   --game-mines: #3f7a1f;
+  --game-pipes: #0f6fb0;
+  --game-watersort: #7c3aed;
+  --game-codebreaker: #a3470d;
 
   /* Typography */
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -104,6 +107,9 @@
   --game-blocks: #fb923c;
   --game-shapes: #f0759f;
   --game-mines: #8fd162;
+  --game-pipes: #5cb8f5;
+  --game-watersort: #b794ff;
+  --game-codebreaker: #f59e5b;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 45%);

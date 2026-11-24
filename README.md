@@ -19,6 +19,9 @@ Every puzzle and level is generated on the fly.
 | **Blocks** | Place three pieces at a time on an 8×8 board and clear full rows and columns – combos and a cleared board earn bonus points. |
 | **Arrows** | Tap the arrows in the right order – an arrow only slides out if its way is free. 6×6 to 12×12, always solvable, 3 lives, hints. |
 | **Mines**  | Reveal every cell without a mine – numbers count the mines around a cell. Every board is solvable by logic alone, no guessing. 8×10 to 12×18, hints that explain the next step. |
+| **Pipes**  | Turn the tiles until the water from the source reaches every pipe – no open ends. 5×5 to 10×12, lock tiles, undo, hints. |
+| **Water Sort** | Pour coloured water from tube to tube until every tube holds one colour. 4 to 12 colours, always solvable, unlimited undo, hints. |
+| **Code Breaker** | Crack the hidden colour code – dots tell you how many pegs are right. 4 to 6 pegs, 6 to 8 colours with shapes, hints. |
 | **Shapes** | Match-3 with fruit-and-garden pieces: swap neighbours to line up three or more. Zen, Time and Levels modes with special pieces and combos. |
 
 ## Features
@@ -75,7 +78,7 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest, Playwrig
 - [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, releasing a version, PWA updates
 - [Privacy](docs/privacy.md) – what is stored and where
 - [Security](docs/security.md) – threat model, supply chain, SBOM & provenance, CRA alignment
-- Games: [Sudoku](docs/games/sudoku.md) · [Stars](docs/games/crowns.md) · [Links](docs/games/links.md) · [Nonogram](docs/games/nonogram.md) · [Arrows](docs/games/arrows.md) · [Shapes](docs/games/shapes.md) · [Merge](docs/games/merge.md) · [Blocks](docs/games/blocks.md) · [Mines](docs/games/mines.md)
+- Games: [Sudoku](docs/games/sudoku.md) · [Stars](docs/games/crowns.md) · [Links](docs/games/links.md) · [Nonogram](docs/games/nonogram.md) · [Arrows](docs/games/arrows.md) · [Shapes](docs/games/shapes.md) · [Merge](docs/games/merge.md) · [Blocks](docs/games/blocks.md) · [Mines](docs/games/mines.md) · [Pipes](docs/games/pipes.md) · [Water Sort](docs/games/watersort.md) · [Code Breaker](docs/games/codebreaker.md)
 - [Implementation plans](plan/README.md) – the original design and decisions
 - [Changelog](CHANGELOG.md)
 

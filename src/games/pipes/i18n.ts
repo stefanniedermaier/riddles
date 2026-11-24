@@ -1,0 +1,96 @@
+import type { Messages } from '@/i18n/types'
+
+/** English texts of the Pipes game (namespace `pipes`). */
+export const en = {
+  name: 'Pipes',
+  tagline: 'Turn the tiles until the water reaches every pipe.',
+  sizeLabel: '{width}×{height}',
+  variantLabel: '{difficulty} · {size}',
+  rules: {
+    title: 'How to play',
+    goal: 'Turn the tiles so that all pipes form one network connected to the source.',
+    rotate: 'Tap a tile to turn it clockwise. Water fills every pipe connected to the source.',
+    ends: 'Solved when every tile has water and no pipe ends open or points off the board.',
+    lock: 'Press and hold (or right-click) a tile to lock it, so it cannot be turned by mistake.',
+  },
+  lobby: {
+    newGame: 'New game',
+    confirmNewTitle: 'Start a new puzzle?',
+    confirmNew: 'Your current puzzle will be lost.',
+    start: 'Start',
+  },
+  play: {
+    moves: 'Moves',
+    connected: 'Water',
+    undo: 'Undo',
+    restart: 'Restart',
+    restartConfirm: 'Start this puzzle again from the beginning?',
+    toMenu: 'Pipes menu',
+    rules: 'Rules',
+    board: 'Pipes board, {width} columns by {height} rows',
+    cell: 'row {row}, column {col}',
+    source: 'source',
+    water: 'with water',
+    locked: 'locked',
+    hintTurn: 'Turn the highlighted tile like this – it is locked now.',
+    hintUnlock: 'This locked tile is turned the wrong way – it is unlocked now.',
+    noHint: 'No hint available.',
+    directions: 'pipes to {list}',
+  },
+  directions: {
+    up: 'top',
+    right: 'right',
+    down: 'bottom',
+    left: 'left',
+  },
+  result: {
+    solvedText: 'The water reaches every pipe.',
+  },
+}
+
+export const de: Messages<typeof en> = {
+  name: 'Pipes',
+  tagline: 'Drehe die Kacheln, bis das Wasser jedes Rohr erreicht.',
+  sizeLabel: '{width}×{height}',
+  variantLabel: '{difficulty} · {size}',
+  rules: {
+    title: 'So wird gespielt',
+    goal: 'Drehe die Kacheln so, dass alle Rohre ein Netz bilden, das mit der Quelle verbunden ist.',
+    rotate: 'Tippe eine Kachel an, um sie im Uhrzeigersinn zu drehen. Wasser füllt jedes Rohr, das mit der Quelle verbunden ist.',
+    ends: 'Gelöst, wenn jede Kachel Wasser hat und kein Rohr offen endet oder aus dem Feld zeigt.',
+    lock: 'Halte eine Kachel gedrückt (oder Rechtsklick), um sie zu sperren – dann dreht sie sich nicht aus Versehen.',
+  },
+  lobby: {
+    newGame: 'Neues Spiel',
+    confirmNewTitle: 'Neues Rätsel starten?',
+    confirmNew: 'Dein aktuelles Rätsel geht verloren.',
+    start: 'Starten',
+  },
+  play: {
+    moves: 'Züge',
+    connected: 'Wasser',
+    undo: 'Rückgängig',
+    restart: 'Neu starten',
+    restartConfirm: 'Dieses Rätsel noch einmal von vorn beginnen?',
+    toMenu: 'Pipes-Menü',
+    rules: 'Regeln',
+    board: 'Pipes-Feld, {width} Spalten mal {height} Zeilen',
+    cell: 'Zeile {row}, Spalte {col}',
+    source: 'Quelle',
+    water: 'mit Wasser',
+    locked: 'gesperrt',
+    hintTurn: 'Drehe die markierte Kachel so – sie ist jetzt gesperrt.',
+    hintUnlock: 'Diese gesperrte Kachel ist falsch gedreht – sie ist jetzt entsperrt.',
+    noHint: 'Kein Hinweis verfügbar.',
+    directions: 'Rohre nach {list}',
+  },
+  directions: {
+    up: 'oben',
+    right: 'rechts',
+    down: 'unten',
+    left: 'links',
+  },
+  result: {
+    solvedText: 'Das Wasser erreicht jedes Rohr.',
+  },
+}

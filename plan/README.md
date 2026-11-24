@@ -21,6 +21,9 @@ all data on the device. Every level is generated on the fly.
 | 11 | [Game plugins](11-game-plugins.md)           | Game API (one module list) done; repos / plugins in backlog   |
 | 12 | [Blocks](12-blocks.md)                       | Block-placing puzzle: three pieces, clear rows and columns     |
 | 13 | [Mines](13-minesweeper.md)                   | Minesweeper without guessing: pre-opened start, logic solver  |
+| 14 | [Pipes](14-pipes.md)                         | Rotation puzzle: spanning tree, flow, locks                   |
+| 15 | [Water Sort](15-water-sort.md)               | Colour sorting with a solver-checked generator and hints      |
+| 16 | [Code Breaker](16-code-breaker.md)           | Code breaking with consistent-code hints                      |
 
 ## Decisions (from the kick-off wizard)
 

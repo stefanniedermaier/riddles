@@ -13,6 +13,14 @@ project adheres to [Semantic Versioning](https://semver.org/).
   Four difficulties (8×10 to 12×18), pre-opened start area, *Reveal*/*Flag* tool with long
   press for the other action, chord on numbers, hints that explain the next logical step,
   *Check* for wrong flags, and *Undo move* after a mine hit (counts as a mistake).
+- New game **Pipes**: turn the tiles until the water reaches every pipe without open ends.
+  5×5 to 10×12, lock tiles with a long press, undo and hints.
+- New game **Water Sort**: pour coloured water between tubes until every tube holds one
+  colour. 4 to 12 colours, every level checked by a solver, unlimited undo, hints that always
+  lead to the goal, optional letters on the layers.
+- New game **Code Breaker**: find the hidden colour code from the dots after each guess.
+  Four difficulties (4–6 pegs, 6–8 colours), every colour with its own shape, hints that fill
+  in a code fitting all clues, optional guess check and count of possible codes.
 
 ## [0.10.0] – 2026-11-23
 

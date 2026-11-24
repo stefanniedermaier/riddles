@@ -128,6 +128,9 @@ incompatible format change instead of crashing the app.
 | `merge:current:<variant>:v1` | Running Merge game per variant; `merge:records:v1` = highest tiles |
 | `blocks:current:v1`          | Running Blocks game                         |
 | `mines:current:v1`           | Running Mines game (pool: `mines:pool:v1`, settings: `mines:settings`) |
+| `pipes:current:v1`           | Running Pipes game                          |
+| `watersort:current:v1`       | Running Water Sort game (settings: `watersort:settings`) |
+| `codebreaker:current:v1`     | Running Code Breaker game (settings: `codebreaker:settings`) |
 | `shapes:current:<mode>:v1`   | Running Shapes game per mode (levels: `v2`) |
 | `shapes:progress:v2`         | Current (highest unlocked) level            |
 | `sudoku:mini:current:v1`     | Running Mini-Sudoku game (pool: `sudoku:mini:pool:v1`) |
