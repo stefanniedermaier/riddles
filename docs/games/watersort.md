@@ -23,7 +23,8 @@ every level is generated on the device.
 | Hint     | shows the next move of a solution (both tubes highlighted), *Apply* pours. Following hints walks along one solution, so hints always lead to the goal. From a dead end: "undo some moves". |
 | Restart  | the same level from the start (confirmation)                                    |
 
-Setting (Settings → Water Sort): **Show symbols** (off) – a letter on every layer.
+Setting (Settings → Water Sort): **Show symbols** (on) – a letter on every layer, so colours
+never have to be told apart by hue alone (WCAG 1.4.1); can be turned off.
 
 ## Difficulties
 

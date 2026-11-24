@@ -44,7 +44,7 @@ Tubes are laid out in up to two rows (max. 7 per row) so they fit a 360 px scree
 - Board: tubes as rounded SVG/CSS columns, layers as coloured blocks; the selected tube lifts.
   Pouring animates the moved layers (≈ 250 ms; reduced motion: instant).
 - Colours: 12 clearly distinguishable colours in both themes. Setting **Show symbols**
-  (default off) puts a letter on every layer for colour-blind players.
+  (default on since the accessibility review – WCAG 1.4.1) puts a letter on every layer.
 - HUD: difficulty, moves, sorted tubes. Toolbar: Undo, Hint, Restart (confirm).
 - Keyboard: the tubes are buttons (Tab, Enter/Space).
 - Win → result dialog (time, moves, hints, new best).

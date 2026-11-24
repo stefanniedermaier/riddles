@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.11.0] – 2026-11-24
+
 ### Added
 
 - New game **Mines**: reveal every cell without a mine, numbers count the mines around a
@@ -17,7 +19,7 @@ project adheres to [Semantic Versioning](https://semver.org/).
   5×5 to 10×12, lock tiles with a long press, undo and hints.
 - New game **Water Sort**: pour coloured water between tubes until every tube holds one
   colour. 4 to 12 colours, every level checked by a solver, unlimited undo, hints that always
-  lead to the goal, optional letters on the layers.
+  lead to the goal, letters on the layers (can be turned off).
 - New game **Code Breaker**: find the hidden colour code from the dots after each guess.
   Four difficulties (4–6 pegs, 6–8 colours), every colour with its own shape, hints that fill
   in a code fitting all clues, optional guess check and count of possible codes.
