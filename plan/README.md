@@ -24,6 +24,7 @@ all data on the device. Every level is generated on the fly.
 | 14 | [Pipes](14-pipes.md)                         | Rotation puzzle: spanning tree, flow, locks                   |
 | 15 | [Water Sort](15-water-sort.md)               | Colour sorting with a solver-checked generator and hints      |
 | 16 | [Code Breaker](16-code-breaker.md)           | Code breaking with consistent-code hints                      |
+| 17 | [Solitaire & Spider](17-solitaire-spider.md) | Card games on a shared engine: Klondike and Spider, solvers   |
 
 ## Decisions (from the kick-off wizard)
 
