@@ -3,7 +3,7 @@
 The classic mine-finding puzzle – reveal every safe cell, numbers tell how many of the eight
 neighbours hide a mine – with one twist that fits Riddles: **every board is solvable by logic
 alone, no guessing**. Generic mechanic (genre *Minesweeper*); the game is called **Mines**
-(German **Minen**), name, artwork and colours are original.
+in every language; name, artwork and colours are original.
 
 ## 1. Rules
 
@@ -45,12 +45,13 @@ Arrows 12×12). Boards are portrait.
 | Difficulty | Board (cols × rows) | Mines | Density | Logic required                         |
 | ---------- | ------------------- | ----- | ------- | -------------------------------------- |
 | Easy       | 8×10                | 12    | 15 %    | single-cell rules only                 |
-| Medium     | 9×13                | 22    | 19 %    | + subset rule (e.g. 1-2 patterns)      |
-| Hard       | 10×16               | 35    | 22 %    | subset rule needed repeatedly          |
-| Expert     | 12×18               | 50    | 23 %    | + frontier enumeration / mine count    |
+| Medium     | 9×13                | 22    | 19 %    | + two-number rule (≥ 2 ×)              |
+| Hard       | 10×16               | 35    | 22 %    | two-number rule ≥ 8 ×, ≤ 2 enumerations |
+| Expert     | 12×18               | 50    | 23 %    | ≥ 2 enumerations / mine counts         |
 
-Numbers are a starting point; tune density and grading windows with the generator benchmark
-(attempts per board, generation time in the worker ≤ ~300 ms on a mid-range phone for Expert).
+(As implemented: benchmark on 15 seeds per difficulty – Easy/Medium a few ms, Hard ≈ 80 ms,
+Expert ≈ 350 ms; Easy–Hard always hit the window, Expert falls back to the closest of 40
+boards when none fits.)
 
 ## 3. Data model
 
@@ -64,7 +65,7 @@ interface MinesPuzzle {
   height: number
   mines: number[]        // cell indices (row-major), sorted
   start: number          // the 0 cell of the start area
-  grade: number          // hardest technique used + step counts (for tests / tuning)
+  grade: [number, number, number, number] // rounds that needed technique 1–4
 }
 
 type CellState = 0 | 1 | 2   // covered | revealed | flagged
@@ -72,11 +73,13 @@ type CellState = 0 | 1 | 2   // covered | revealed | flagged
 interface MinesSave {        // mines:current:v1
   puzzle: MinesPuzzle
   cells: CellState[]
+  actions: number            // moves in this attempt (saved only once > 0)
   elapsedMs: number
   hintsUsed: number
   mistakes: number           // mine hits undone + wrong flags found by "Check"
-  lost: boolean              // true while the mine-hit dialog is open
-  before?: CellState[]       // state before the last reveal (for "Undo move" after a hit)
+  checked?: number[]         // wrong flags found by the last "Check"
+  hit?: number               // the mine hit – set while the mine-hit dialog is open
+  before?: CellState[]       // state before the fatal move (for "Undo move")
 }
 ```
 
@@ -167,7 +170,7 @@ solver import Vue.
 
 | Setting             | Default | Effect                                                       |
 | ------------------- | ------- | ------------------------------------------------------------ |
-| `longPressAction`   | on      | Long press does the other tool's action                      |
+| `longPress`         | on      | Long press does the other tool's action                      |
 | `chord`             | on      | Tap on a satisfied number reveals its other neighbours       |
 | `instantMistakes`   | off     | Wrong flags are shown and counted right away (as in Nonogram) |
 

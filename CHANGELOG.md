@@ -6,6 +6,14 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- New game **Mines**: reveal every cell without a mine, numbers count the mines around a
+  cell. Every board is generated so that it can be solved by logic alone – no guessing.
+  Four difficulties (8×10 to 12×18), pre-opened start area, *Reveal*/*Flag* tool with long
+  press for the other action, chord on numbers, hints that explain the next logical step,
+  *Check* for wrong flags, and *Undo move* after a mine hit (counts as a mistake).
+
 ## [0.10.0] – 2026-11-23
 
 ### Added

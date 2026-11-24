@@ -118,6 +118,27 @@ defineProps<{ game: GameId }>()
       </g>
       <path d="M8 38h48" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".7" />
     </template>
+    <template v-else-if="game === 'mines'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- A 3×3 corner of a board: covered cells, a number, a flag and a mine. -->
+      <g fill="var(--game-mines)" opacity=".22">
+        <rect x="9" y="9" width="14" height="14" rx="3" />
+        <rect x="25" y="9" width="14" height="14" rx="3" />
+        <rect x="9" y="25" width="14" height="14" rx="3" />
+        <rect x="41" y="41" width="14" height="14" rx="3" />
+      </g>
+      <g fill="var(--game-mines)" font-family="var(--font-sans)" font-weight="800" font-size="11" text-anchor="middle">
+        <text x="48" y="20">1</text>
+        <text x="32" y="36">2</text>
+        <text x="16" y="52">1</text>
+      </g>
+      <path d="M45 26v12M42.5 38h6" stroke="var(--color-text)" stroke-width="1.6" stroke-linecap="round" />
+      <path d="M45.6 26.4l6.4 2.8-6.4 2.8z" fill="#e2445c" />
+      <g stroke="var(--color-text)" stroke-width="1.6" stroke-linecap="round">
+        <path d="M32 42v12M26 48h12M27.8 43.8l8.4 8.4M36.2 43.8l-8.4 8.4" />
+      </g>
+      <circle cx="32" cy="48" r="4" fill="var(--color-text)" />
+    </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <!-- Strawberry, orange, leaf and grapes – the fruit-garden pieces of the game. -->

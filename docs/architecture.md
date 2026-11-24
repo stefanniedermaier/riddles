@@ -127,6 +127,7 @@ incompatible format change instead of crashing the app.
 | `arrows:current:v1`          | Running Arrows game (pool: `arrows:pool:v1`, settings: `arrows:settings`) |
 | `merge:current:<variant>:v1` | Running Merge game per variant; `merge:records:v1` = highest tiles |
 | `blocks:current:v1`          | Running Blocks game                         |
+| `mines:current:v1`           | Running Mines game (pool: `mines:pool:v1`, settings: `mines:settings`) |
 | `shapes:current:<mode>:v1`   | Running Shapes game per mode (levels: `v2`) |
 | `shapes:progress:v2`         | Current (highest unlocked) level            |
 | `sudoku:mini:current:v1`     | Running Mini-Sudoku game (pool: `sudoku:mini:pool:v1`) |
