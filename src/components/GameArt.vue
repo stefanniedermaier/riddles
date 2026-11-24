@@ -118,6 +118,76 @@ defineProps<{ game: GameId }>()
       </g>
       <path d="M8 38h48" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".7" />
     </template>
+    <template v-else-if="game === 'mines'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- A 3×3 corner of a board: covered cells, a number, a flag and a mine. -->
+      <g fill="var(--game-mines)" opacity=".22">
+        <rect x="9" y="9" width="14" height="14" rx="3" />
+        <rect x="25" y="9" width="14" height="14" rx="3" />
+        <rect x="9" y="25" width="14" height="14" rx="3" />
+        <rect x="41" y="41" width="14" height="14" rx="3" />
+      </g>
+      <g fill="var(--game-mines)" font-family="var(--font-sans)" font-weight="800" font-size="11" text-anchor="middle">
+        <text x="48" y="20">1</text>
+        <text x="32" y="36">2</text>
+        <text x="16" y="52">1</text>
+      </g>
+      <path d="M45 26v12M42.5 38h6" stroke="var(--color-text)" stroke-width="1.6" stroke-linecap="round" />
+      <path d="M45.6 26.4l6.4 2.8-6.4 2.8z" fill="#e2445c" />
+      <g stroke="var(--color-text)" stroke-width="1.6" stroke-linecap="round">
+        <path d="M32 42v12M26 48h12M27.8 43.8l8.4 8.4M36.2 43.8l-8.4 8.4" />
+      </g>
+      <circle cx="32" cy="48" r="4" fill="var(--color-text)" />
+    </template>
+    <template v-else-if="game === 'pipes'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- A small pipe network: water from the tank fills the connected pipes. -->
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+        <path d="M32 32H48V14M32 32V50H16" stroke="var(--game-pipes)" />
+        <path d="M16 50V36M48 14H16V24" stroke="var(--game-pipes)" opacity=".3" />
+      </g>
+      <circle cx="32" cy="32" r="7" fill="var(--game-pipes)" stroke="var(--color-surface)" stroke-width="2" />
+      <circle cx="16" cy="36" r="4" fill="var(--color-surface)" stroke="var(--game-pipes)" stroke-width="2" opacity=".5" />
+    </template>
+    <template v-else-if="game === 'watersort'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- Three tubes with coloured water, one almost sorted. -->
+      <g>
+        <rect x="11" y="37" width="10" height="7" fill="#1565d8" />
+        <rect x="11" y="44" width="10" height="7" fill="#d81b2c" />
+        <path d="M11 51h10v2a5 5 0 0 1-10 0z" fill="#f2c200" />
+        <rect x="27" y="23" width="10" height="7" fill="#d81b2c" />
+        <rect x="27" y="30" width="10" height="7" fill="#d81b2c" />
+        <rect x="27" y="37" width="10" height="7" fill="#d81b2c" />
+        <rect x="27" y="44" width="10" height="7" fill="#1565d8" />
+        <path d="M27 51h10v2a5 5 0 0 1-10 0z" fill="#1565d8" />
+        <rect x="43" y="44" width="10" height="7" fill="#f2c200" />
+        <path d="M43 51h10v2a5 5 0 0 1-10 0z" fill="#f2c200" />
+      </g>
+      <g fill="none" stroke="var(--game-watersort)" stroke-width="2.2" stroke-linejoin="round">
+        <path d="M10 12v41a6 6 0 0 0 12 0V12" />
+        <path d="M26 12v41a6 6 0 0 0 12 0V12" />
+        <path d="M42 12v41a6 6 0 0 0 12 0V12" />
+      </g>
+    </template>
+    <template v-else-if="game === 'codebreaker'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- Two guesses with feedback dots and the hidden code on top. -->
+      <g fill="var(--color-surface-3)">
+        <circle cx="13" cy="14" r="5" /><circle cx="25" cy="14" r="5" /><circle cx="37" cy="14" r="5" />
+      </g>
+      <g>
+        <circle cx="13" cy="31" r="5" fill="#d81b2c" /><circle cx="25" cy="31" r="5" fill="#1565d8" />
+        <circle cx="37" cy="31" r="5" fill="#f2c200" />
+        <circle cx="13" cy="47" r="5" fill="#1565d8" /><circle cx="25" cy="47" r="5" fill="#d81b2c" />
+        <circle cx="37" cy="47" r="5" fill="#0f9438" />
+      </g>
+      <g fill="var(--game-codebreaker)">
+        <circle cx="49" cy="28" r="2.4" /><circle cx="55" cy="28" r="2.4" fill="none" stroke="var(--game-codebreaker)" stroke-width="1.4" />
+        <circle cx="49" cy="44" r="2.4" /><circle cx="55" cy="44" r="2.4" /><circle cx="49" cy="50" r="2.4" />
+      </g>
+      <path d="M8 22h40" stroke="var(--game-codebreaker)" stroke-width="1.5" opacity=".4" />
+    </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <!-- Strawberry, orange, leaf and grapes – the fruit-garden pieces of the game. -->
