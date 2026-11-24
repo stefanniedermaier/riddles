@@ -67,6 +67,14 @@ const contradicts = computed(() => {
   return !isConsistent(g.current as number[], g.guesses, g.puzzle.code)
 })
 
+/** Read out by screen readers after each guess (the new row is not focused). */
+const announcement = computed(() => {
+  const last = rows.value.at(-1)
+  return last
+    ? `${t('codebreaker.play.row', { n: last.index + 1 })}: ${t('codebreaker.play.feedback', { ...last.feedback })}`
+    : ''
+})
+
 const colorName = (color: number) => t(`codebreaker.colorNames.c${color}` as 'codebreaker.colorNames.c0')
 
 function rowLabel(guess: readonly number[], index: number): string {
@@ -402,6 +410,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
         <span class="dots" aria-hidden="true" />
       </li>
     </ol>
+    <p class="visually-hidden" aria-live="polite">{{ announcement }}</p>
     <p v-if="contradicts" class="warning" role="status">{{ t('codebreaker.play.contradicts') }}</p>
 
     <div class="palette" role="group" :aria-label="t('codebreaker.play.colors')">

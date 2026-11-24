@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, useId } from 'vue'
 
 import { t } from '@/core/i18n'
 import { resolvedTheme } from '@/core/theme'
@@ -42,6 +42,8 @@ const emit = defineEmits<{
 }>()
 
 const board = ref<HTMLElement | null>(null)
+/** Prefix for cell ids (the focused grid points screen readers to the cursor cell). */
+const idPrefix = useId()
 const total = computed(() => props.width * props.height)
 
 interface CellView {
@@ -69,6 +71,8 @@ const view = computed<CellView[]>(() => {
     else if (state === FLAGGED) what = wrong ? t('mines.play.wrongFlag') : t('mines.play.flagged')
     else if (revealed) what = number ? t('mines.play.number', { count: number }) : t('mines.play.empty')
     else what = t('mines.play.covered')
+    if (props.hintSafe?.has(cell)) what += `, ${t('mines.play.hintSafe')}`
+    if (props.hintMines?.has(cell)) what += `, ${t('mines.play.hintMine')}`
     result.push({
       cell,
       number,
@@ -223,6 +227,7 @@ function onKeydown(event: KeyboardEvent): void {
     :class="{ 'mines-board--disabled': disabled, 'mines-board--solved': solved }"
     :style="{ '--w': width, '--h': height }"
     role="grid"
+    :aria-activedescendant="cursor >= 0 ? `${idPrefix}-${cursor}` : undefined"
     :aria-label="t('mines.play.board', { width, height })"
     tabindex="0"
     @pointerdown="onPointerDown"
@@ -230,11 +235,13 @@ function onKeydown(event: KeyboardEvent): void {
     @pointerup="onPointerUp"
     @pointercancel="onPointerCancel"
     @keydown="onKeydown"
+    @focus="cursor < 0 && (cursor = 0)"
     @contextmenu.prevent
   >
     <div v-for="r in height" :key="r" class="row" role="row">
       <div
         v-for="c in view.slice((r - 1) * width, r * width)"
+        :id="`${idPrefix}-${c.cell}`"
         :key="c.cell"
         class="cell"
         :class="c.classes"
@@ -263,7 +270,8 @@ function onKeydown(event: KeyboardEvent): void {
 
 <style scoped>
 .mines-board {
-  --covered: var(--color-surface-3);
+  /* Covered cells keep ≥ 3:1 contrast to revealed cells (WCAG 1.4.11). */
+  --covered: #948fa3;
   --covered-hi: color-mix(in srgb, var(--covered) 55%, #fff);
   --covered-lo: color-mix(in srgb, var(--covered) 80%, #000);
   --open: var(--color-surface);
@@ -287,7 +295,7 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 :root[data-theme='dark'] .mines-board {
-  --covered: #4a4659;
+  --covered: #6c6880;
   --covered-hi: color-mix(in srgb, var(--covered) 75%, #fff);
   --covered-lo: color-mix(in srgb, var(--covered) 70%, #000);
 }
@@ -413,6 +421,25 @@ function onKeydown(event: KeyboardEvent): void {
 .cell--danger {
   box-shadow: inset 0 0 0 3px var(--color-error);
   animation: glow 1.1s ease-in-out infinite;
+}
+
+/* Not by colour alone (WCAG 1.4.1): a check mark for safe cells, "!" for mines. */
+.cell--safe:not(.cell--open)::before,
+.cell--danger:not(.cell--open)::before {
+  position: absolute;
+  font-size: calc(100cqw / var(--w) * 0.5);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cell--safe:not(.cell--open)::before {
+  content: '✓';
+  color: var(--color-success);
+}
+
+.cell--danger:not(.cell--open)::before {
+  content: '!';
+  color: var(--color-error);
 }
 
 .mines-board:focus-visible .cell--cursor {

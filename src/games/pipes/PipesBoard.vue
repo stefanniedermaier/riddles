@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 
 import { t } from '@/core/i18n'
 import { rotate } from './logic/rules'
@@ -30,6 +30,8 @@ const emit = defineEmits<{
 }>()
 
 const board = ref<HTMLElement | null>(null)
+/** Prefix for cell ids (the focused grid points screen readers to the cursor cell). */
+const idPrefix = useId()
 const total = computed(() => props.width * props.height)
 
 /**
@@ -209,6 +211,7 @@ function onKeydown(event: KeyboardEvent): void {
     :class="{ 'pipes-board--disabled': disabled, 'pipes-board--solved': solved }"
     :style="{ '--w': width, '--h': height }"
     role="grid"
+    :aria-activedescendant="cursor >= 0 ? `${idPrefix}-${cursor}` : undefined"
     :aria-label="t('pipes.play.board', { width, height })"
     tabindex="0"
     @pointerdown="onPointerDown"
@@ -216,11 +219,13 @@ function onKeydown(event: KeyboardEvent): void {
     @pointerup="onPointerUp"
     @pointercancel="onPointerCancel"
     @keydown="onKeydown"
+    @focus="cursor < 0 && (cursor = 0)"
     @contextmenu.prevent
   >
     <div v-for="r in height" :key="r" class="row" role="row">
       <div
         v-for="tile in tiles.slice((r - 1) * width, r * width)"
+        :id="`${idPrefix}-${tile.cell}`"
         :key="tile.cell"
         class="cell"
         :class="{
@@ -241,6 +246,7 @@ function onKeydown(event: KeyboardEvent): void {
           >
             <path class="tile__casing" :d="tile.path" />
             <path class="tile__line" :d="tile.path" />
+            <path v-if="water[tile.cell]" class="tile__flow" :d="tile.path" />
             <circle v-if="tile.cell === source" class="tile__source" cx="0.5" cy="0.5" r="0.27" />
             <circle v-else-if="tile.single" class="tile__end" cx="0.5" cy="0.5" r="0.17" />
           </g>
@@ -252,7 +258,8 @@ function onKeydown(event: KeyboardEvent): void {
 
 <style scoped>
 .pipes-board {
-  --pipe-empty: color-mix(in srgb, var(--color-text) 38%, var(--color-surface));
+  /* ≥ 3:1 against normal and locked tiles (WCAG 1.4.11). */
+  --pipe-empty: color-mix(in srgb, var(--color-text) 60%, var(--color-surface));
   --pipe-casing: color-mix(in srgb, var(--color-text) 14%, var(--color-surface));
 
   display: grid;
@@ -328,6 +335,14 @@ function onKeydown(event: KeyboardEvent): void {
   stroke-width: 0.22;
   stroke-linecap: round;
   transition: stroke var(--dur-med);
+}
+
+/* Water is not shown by colour alone (WCAG 1.4.1): filled pipes get a light core line. */
+.tile__flow {
+  fill: none;
+  stroke: var(--color-surface);
+  stroke-width: 0.06;
+  stroke-linecap: round;
 }
 
 .tile__end {

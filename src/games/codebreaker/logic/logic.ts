@@ -14,28 +14,33 @@ export interface Feedback {
 }
 
 export function score(code: readonly number[], guess: readonly number[]): Feedback {
+  // Fixed-size counters (at most 8 colours): this runs for every possible code when counting.
+  const codeLeft = new Uint8Array(16)
+  const guessLeft = new Uint8Array(16)
   let exact = 0
-  const codeLeft = new Map<number, number>()
-  const guessLeft = new Map<number, number>()
-  code.forEach((color, i) => {
-    if (guess[i] === color) exact++
+  for (let i = 0; i < code.length; i++) {
+    if (guess[i] === code[i]) exact++
     else {
-      codeLeft.set(color, (codeLeft.get(color) ?? 0) + 1)
-      guessLeft.set(guess[i]!, (guessLeft.get(guess[i]!) ?? 0) + 1)
+      codeLeft[code[i]!]! += 1
+      guessLeft[guess[i]!]! += 1
     }
-  })
+  }
   let partial = 0
-  for (const [color, n] of guessLeft) partial += Math.min(n, codeLeft.get(color) ?? 0)
+  for (let c = 0; c < 16; c++) partial += Math.min(codeLeft[c]!, guessLeft[c]!)
   return { exact, partial }
 }
 
 /** A code that would have produced every feedback so far. */
 export function isConsistent(code: readonly number[], guesses: readonly (readonly number[])[], secret: readonly number[]): boolean {
-  return guesses.every((guess) => {
-    const expected = score(secret, guess)
-    const actual = score(code, guess)
-    return expected.exact === actual.exact && expected.partial === actual.partial
-  })
+  return fitsAll(code, guesses, guesses.map((guess) => score(secret, guess)))
+}
+
+function fitsAll(code: readonly number[], guesses: readonly (readonly number[])[], feedback: readonly Feedback[]): boolean {
+  for (let i = 0; i < guesses.length; i++) {
+    const actual = score(code, guesses[i]!)
+    if (actual.exact !== feedback[i]!.exact || actual.partial !== feedback[i]!.partial) return false
+  }
+  return true
 }
 
 const allowed = (code: readonly number[], params: Params) => params.repeats || new Set(code).size === code.length
@@ -56,10 +61,11 @@ const codeCount = (params: Params) => params.colors ** params.positions
 /** Number of codes that fit all feedback so far. */
 export function possibleCodes(puzzle: CodePuzzle, guesses: readonly (readonly number[])[]): number {
   const params = PARAMS[puzzle.difficulty]
+  const feedback = guesses.map((guess) => score(puzzle.code, guess))
   let count = 0
   for (let i = 0; i < codeCount(params); i++) {
     const code = codeAt(i, params)
-    if (allowed(code, params) && isConsistent(code, guesses, puzzle.code)) count++
+    if (allowed(code, params) && fitsAll(code, guesses, feedback)) count++
   }
   return count
 }
@@ -69,9 +75,10 @@ export function consistentGuess(puzzle: CodePuzzle, guesses: readonly (readonly 
   const params = PARAMS[puzzle.difficulty]
   const total = codeCount(params)
   const start = createRng(seed).int(total)
+  const feedback = guesses.map((guess) => score(puzzle.code, guess))
   for (let i = 0; i < total; i++) {
     const code = codeAt((start + i) % total, params)
-    if (allowed(code, params) && isConsistent(code, guesses, puzzle.code)) return code
+    if (allowed(code, params) && fitsAll(code, guesses, feedback)) return code
   }
   return [...puzzle.code] // unreachable: the secret itself always fits
 }

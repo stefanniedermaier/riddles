@@ -86,6 +86,7 @@ const views = computed(() =>
           <span v-if="symbols" class="layer__symbol" aria-hidden="true">{{ layer.symbol }}</span>
         </span>
       </span>
+      <span class="tube__n" aria-hidden="true">{{ tube.index + 1 }}</span>
     </button>
   </div>
 </template>
@@ -109,6 +110,19 @@ const views = computed(() =>
   cursor: pointer;
   touch-action: manipulation;
   transition: transform var(--dur-med) var(--ease-out);
+}
+
+.tube__n {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.tube--hint .tube__n,
+.tube--selected .tube__n {
+  color: var(--color-text);
 }
 
 .tube:disabled {

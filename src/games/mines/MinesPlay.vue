@@ -483,7 +483,10 @@ if (typeof route.query.new !== 'string' && !resume()) {
         </div>
       </div>
 
-      <div class="board-wrap" :style="{ '--ratio': game.puzzle.width / game.puzzle.height }">
+      <div
+        class="board-wrap"
+        :style="{ '--ratio': game.puzzle.width / game.puzzle.height, '--cols': game.puzzle.width }"
+      >
         <MinesBoard
           :width="game.puzzle.width"
           :height="game.puzzle.height"
@@ -699,7 +702,8 @@ if (typeof route.query.new !== 'string' && !resume()) {
     520px,
     calc((100dvh - 230px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * var(--ratio))
   );
-  min-width: min(100%, 220px);
+  /* Cells stay at least 26 px wide (WCAG 2.5.8); on short screens the page scrolls instead. */
+  min-width: min(100%, calc(var(--cols) * 28px + 8px));
 }
 
 .toolbar {

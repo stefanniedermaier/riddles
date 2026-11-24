@@ -17,7 +17,7 @@ const shape = computed(() => (props.color === null ? undefined : shapeColor(reso
     <text v-if="hidden" class="peg__question" x="12" y="16.5" text-anchor="middle">?</text>
     <circle v-else-if="color === null" class="peg__hole" cx="12" cy="12" r="10.5" />
     <template v-else>
-      <circle cx="12" cy="12" r="11" :fill="fill" />
+      <circle class="peg__disc" cx="12" cy="12" r="10.8" :fill="fill" />
       <path :d="SHAPES[color]" :fill="shape" />
     </template>
   </svg>
@@ -28,6 +28,16 @@ const shape = computed(() => (props.color === null ? undefined : shapeColor(reso
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* A dark edge keeps light pegs (yellow, cyan) visible on light backgrounds (≥ 3:1). */
+.peg__disc {
+  stroke: rgb(0 0 0 / 55%);
+  stroke-width: 1.2;
+}
+
+:root[data-theme='dark'] .peg__disc {
+  stroke: none;
 }
 
 .peg__hole {

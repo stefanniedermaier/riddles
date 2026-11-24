@@ -38,12 +38,24 @@ export function waterColor(theme: 'light' | 'dark', color: number): string {
   return list[color % list.length]!
 }
 
-/** Text colour for a symbol on a layer (black or white, whichever reads better). */
+/** Relative luminance (WCAG) of a #rrggbb colour. */
+function luminance(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  }) as [number, number, number]
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/** Black or white, whichever contrasts more (always ≥ 4.5:1). */
+function bestOn(hex: string): string {
+  const l = luminance(hex)
+  return (l + 0.05) / 0.05 >= 1.05 / (l + 0.05) ? '#000000' : '#ffffff'
+}
+
+/** Text colour for a symbol on a layer. */
 export function symbolColor(theme: 'light' | 'dark', color: number): string {
-  const hex = waterColor(theme, color)
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number]
-  const lum = 0.2126 * r ** 2.2 + 0.7152 * g ** 2.2 + 0.0722 * b ** 2.2
-  return lum > 0.25 ? '#111111' : '#ffffff'
+  return bestOn(waterColor(theme, color))
 }
 
 export function colorLabel(color: number): string {

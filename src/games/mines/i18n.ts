@@ -40,6 +40,8 @@ export const en = {
     number: '{count} nearby',
     mine: 'mine',
     noHint: 'No hint available.',
+    hintSafe: 'hint: safe',
+    hintMine: 'hint: mine',
   },
   hint: {
     title: 'Hint',
@@ -48,11 +50,11 @@ export const en = {
     removeWrong: 'Remove',
     safe: 'safe',
     mines: 'mines',
-    both: 'safe (green) or mines (red)',
+    both: 'safe (✓) or mines (!)',
     singleSafe:
       'The {number} in row {row}, column {col} already touches {number} flagged mines – its other neighbours are safe.',
     singleMines:
-      'The {number} in row {row}, column {col} needs {count} more and has exactly {count} covered neighbours left – they are all mines.',
+      'The {number} in row {row}, column {col} has exactly as many covered neighbours left as mines are missing – they are all mines.',
     pair: 'Compare the {a} in row {r1}, column {c1} with the {b} in row {r2}, column {c2}: the highlighted cells are {what}.',
     group: 'Try every possible arrangement of mines around the marked numbers: the highlighted cells are {what} in all of them.',
     count: 'Count the mines: only {left} are left, so the highlighted cells are {what}.',
@@ -115,6 +117,8 @@ export const de: Messages<typeof en> = {
     number: '{count} in der Nähe',
     mine: 'Mine',
     noHint: 'Kein Tipp verfügbar.',
+    hintSafe: 'Tipp: sicher',
+    hintMine: 'Tipp: Mine',
   },
   hint: {
     title: 'Tipp',
@@ -123,11 +127,11 @@ export const de: Messages<typeof en> = {
     removeWrong: 'Entfernen',
     safe: 'sicher',
     mines: 'Minen',
-    both: 'sicher (grün) oder Minen (rot)',
+    both: 'sicher (✓) oder Minen (!)',
     singleSafe:
       'Die {number} in Zeile {row}, Spalte {col} berührt schon {number} markierte Minen – ihre übrigen Nachbarn sind sicher.',
     singleMines:
-      'Der {number} in Zeile {row}, Spalte {col} fehlen noch {count} Minen, und sie hat genau {count} verdeckte Nachbarn – das sind alles Minen.',
+      'Die {number} in Zeile {row}, Spalte {col} hat genau so viele verdeckte Nachbarn, wie ihr noch Minen fehlen – das sind alles Minen.',
     pair: 'Vergleiche die {a} in Zeile {r1}, Spalte {c1} mit der {b} in Zeile {r2}, Spalte {c2}: Die markierten Felder sind {what}.',
     group: 'Probiere alle möglichen Verteilungen der Minen um die markierten Zahlen: Die hervorgehobenen Felder sind in jeder davon {what}.',
     count: 'Zähle die Minen: Es sind nur noch {left} übrig, also sind die markierten Felder {what}.',
