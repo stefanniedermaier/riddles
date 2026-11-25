@@ -1,4 +1,4 @@
-export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const
+export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
 /** Board size (columns × rows) per difficulty – at most 10 columns for phones. */
@@ -6,7 +6,6 @@ export const SIZES: Record<Difficulty, { width: number; height: number }> = {
   easy: { width: 5, height: 5 },
   medium: { width: 7, height: 7 },
   hard: { width: 8, height: 10 },
-  expert: { width: 10, height: 12 },
 }
 
 /** Pipe ends as bits: up, right, down, left. */

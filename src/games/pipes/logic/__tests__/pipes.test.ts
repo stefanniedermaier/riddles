@@ -76,7 +76,7 @@ describe('pipes generator', () => {
         const p = generatePuzzle(difficulty, seed)
         return sum + p.solution.filter((m) => DIRECTIONS.filter((d) => m & d).length >= 3).length / p.solution.length
       }, 0)
-    expect(tees('expert')).toBeGreaterThan(tees('easy'))
+    expect(tees('hard')).toBeGreaterThan(tees('easy'))
   })
 })
 

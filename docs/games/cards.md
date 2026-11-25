@@ -34,6 +34,9 @@ On low landscape screens (≤ 540 px high) status and toolbar move into a narrow
 right, so the table gets the full height. Example 780 × 300 px (phone in landscape, browser
 bar visible): Solitaire 52 px, Spider, FreeCell and TriPeaks 48 px wide cards.
 The card table isolates its stacking context, so dialogs stay above the cards.
+The installed app is locked to portrait by the manifest; the play view of the card games lifts
+the lock while it is open (`src/core/orientation.ts`, Screen Orientation API – where a browser
+refuses it, nothing changes).
 
 ## Saving and undo
 

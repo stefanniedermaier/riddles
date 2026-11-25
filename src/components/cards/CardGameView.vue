@@ -14,6 +14,7 @@ import { HINT_COST, UNDO_COST, WIN_BONUS, replay, timeBonus } from '@/core/cards
 import { formatDuration, formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
 import { returnTo } from '@/core/navigation'
+import { allowAnyOrientation } from '@/core/orientation'
 import { recordFinish, recordStart } from '@/core/stats'
 import { load, remove, save } from '@/core/storage'
 import { motionEnabled } from '@/core/theme'
@@ -146,7 +147,10 @@ function later(fn: () => void, ms: number): void {
   timers.add(id)
 }
 
+let restoreOrientation = () => {}
+
 onMounted(() => {
+  restoreOrientation = allowAnyOrientation()
   document.addEventListener('visibilitychange', onVisibilityChange)
   window.addEventListener('pagehide', persist)
   window.addEventListener('keydown', onKeydown)
@@ -154,6 +158,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  restoreOrientation()
   areaObserver?.disconnect()
   startToken++
   persist()

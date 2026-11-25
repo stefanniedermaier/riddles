@@ -19,7 +19,6 @@ const PARAMS: Record<Difficulty, Params> = {
   easy: { corridor: 0.75, crosses: false },
   medium: { corridor: 0.6, crosses: true },
   hard: { corridor: 0.45, crosses: true },
-  expert: { corridor: 0.3, crosses: true },
 }
 
 const bits = (mask: number) => DIRECTIONS.filter((dir) => mask & dir).length

@@ -25,7 +25,7 @@ Phone first: at most 10 columns.
 | Easy       | 5×5                 | few T-pieces, no crosses                    |
 | Medium     | 7×7                 |                                             |
 | Hard       | 8×10                |                                             |
-| Expert     | 10×12               | more T-pieces (harder to read)              |
+| Expert     | 10×12               | more T-pieces (harder to read)              | — *removed after device tests (too fiddly)*
 
 ## 3. Data model
 

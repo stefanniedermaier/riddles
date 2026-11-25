@@ -15,10 +15,13 @@ project adheres to [Semantic Versioning](https://semver.org/).
 - Statistics show best time and high score for the card games.
 - Card games in landscape: a wide layout with stock and foundations beside the columns, card
   size also fitted to the height (no page scrolling), status and toolbar at the side on low
-  screens; long columns are squeezed further before the table scrolls.
+  screens; long columns are squeezed further before the table scrolls. The installed app may
+  rotate to landscape in the card games (elsewhere it stays in portrait).
 
 ### Changed
 
+- Pipes: the Expert level (10×12) is gone – too fiddly on phones. Saved Expert games are
+  discarded.
 - Size budget for all JavaScript/CSS raised from 280 to 360 kB (gzip) for the card games.
 
 ### Fixed

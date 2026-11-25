@@ -30,7 +30,9 @@ with no open ends. Name, artwork and puzzles are original; every puzzle is gener
 | Easy       | 5×5    | long corridors (75 %), no crosses                |
 | Medium     | 7×7    | corridors 60 %                                   |
 | Hard       | 8×10   | corridors 45 %                                   |
-| Expert     | 10×12  | corridors 30 % – many T-pieces, hard to read     |
+
+An *Expert* level (10×12) was removed after testing on phones: the tiles were too small to
+turn reliably. Saved Expert games are discarded on loading.
 
 ## Generator (`logic/generator.ts`)
 
