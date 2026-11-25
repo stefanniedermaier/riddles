@@ -44,7 +44,11 @@ const pool = createPuzzlePool<Variant, { seed: number }>({
 
 const variantLabel = (variant: Variant): string => t(`spider.variants.${variant}`)
 
-function layout(state: State): PileView[] {
+/** Wide layout: completed runs left of the columns, the stock right. */
+const WIDE_TABLEAU_X = 1.2
+const WIDE_STOCK_X = 11.4
+
+function layout(state: State, wide: boolean): PileView[] {
   const deck = DECKS[state.variant]
   return [
     {
@@ -58,7 +62,7 @@ function layout(state: State): PileView[] {
     },
     {
       id: 's',
-      x: 9,
+      x: wide ? WIDE_STOCK_X : 9,
       y: 0,
       slots: state.s.map(faceDown),
       fan: 'none',
@@ -66,8 +70,8 @@ function layout(state: State): PileView[] {
     },
     ...state.t.map((pile, i) => ({
       id: `t${i}`,
-      x: i,
-      y: 1,
+      x: wide ? WIDE_TABLEAU_X + i : i,
+      y: wide ? 0 : 1,
       slots: pile,
       fan: 'down' as const,
       label: pileLabel(deck, `t${i}`, pile),
@@ -80,6 +84,7 @@ export const spider: CardGameDef<State, Move, Variant> = {
   rules,
   deck: (variant) => DECKS[variant],
   columns: 10,
+  wideColumns: WIDE_STOCK_X + 1,
   layout,
   canPick,
   dropMove,

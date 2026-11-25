@@ -12,12 +12,24 @@ so the shared parts live in `core` and `components`:
 | `src/core/cards/worker.ts`               | worker requests: solvable deal, solution from the current position |
 | `src/components/cards/PlayingCard.vue`   | one card as SVG (suit symbols as paths, no face illustrations) |
 | `src/components/cards/CardTable.vue`     | layout, fanning, drag & drop, tap, keyboard, move animation  |
+| `src/components/cards/sizing.ts`         | card size from the width and height of the table area        |
 | `src/components/cards/CardGameView.vue`  | the play view of all four games                              |
 | `src/components/cards/CardGameLobby.vue`, `CardGameSettings.vue` | lobby and settings panel                     |
 
 Each game folder holds its rules (`logic/rules.ts`), the worker handler, `game.ts` (a
 `CardGameDef`: layout, tap/drop moves, HUD, texts, deal pool, settings) and thin wrapper
 components.
+
+## Card size and landscape
+
+The card width follows the table width (20–110 px), but shrinks so that every pile plus
+about six fanned cards fits the height of the table area; wider tables are centred.
+Each game also has a **wide layout** (`wideColumns`, `layout(state, wide)`): stock, waste,
+free cells and foundations move beside the columns instead of above them. The play view
+uses it when it gives clearly larger cards (> 5 %), in practice on phones in landscape.
+On low landscape screens (≤ 540 px high) the toolbar moves to the right edge, so the table
+gets the height. Phone at 844 × 340 px (landscape, browser bars visible): Solitaire cards
+48 → 60 px, Spider and TriPeaks 34 → 59 px, FreeCell 41 → 59 px.
 
 ## Saving and undo
 

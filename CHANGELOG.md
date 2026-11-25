@@ -13,6 +13,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
   Original card design, drag & drop or tap, full keyboard support, unlimited undo, hints from a
   solver, *Only solvable deals*, scoring by **time or points**, optional four-colour suits.
 - Statistics show best time and high score for the card games.
+- Card games in landscape: a wide layout with stock and foundations beside the columns, card
+  size also fitted to the height, toolbar at the side on low screens.
 
 ### Changed
 

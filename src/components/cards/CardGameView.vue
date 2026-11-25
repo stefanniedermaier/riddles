@@ -20,6 +20,7 @@ import { motionEnabled } from '@/core/theme'
 import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
 import CardTable from './CardTable.vue'
+import { cardWidth } from './sizing'
 import type { CardGameDef } from './types'
 
 /**
@@ -56,7 +57,36 @@ const announcement = ref('')
 
 const pointsMode = computed(() => settings.value.scoring === 'points')
 const deck = computed(() => (run.value ? props.game.deck(run.value.variant) : []))
-const piles = computed(() => (state.value ? props.game.layout(state.value) : []))
+
+// The table area's size decides between the normal and the wide (landscape) layout: the
+// wide one is used when it gives clearly larger cards. Card sizes only depend on where the
+// piles are, not on the cards in them, so the choice stays put during a game.
+const tableArea = ref<HTMLElement | null>(null)
+const area = ref({ width: 0, height: 0 })
+let areaObserver: ResizeObserver | null = null
+watch(tableArea, (el) => {
+  areaObserver?.disconnect()
+  areaObserver = null
+  if (!el) return
+  const measure = () => {
+    area.value = { width: el.clientWidth, height: el.clientHeight }
+  }
+  measure()
+  if (typeof ResizeObserver !== 'undefined') {
+    areaObserver = new ResizeObserver(measure)
+    areaObserver.observe(el)
+  }
+})
+const wide = computed(() => {
+  const current = state.value
+  const wideColumns = props.game.wideColumns
+  const { width, height } = area.value
+  if (!current || !wideColumns || width <= 0 || height <= 0) return false
+  const normal = cardWidth(props.game.layout(current, false), props.game.columns, width, height)
+  return cardWidth(props.game.layout(current, true), wideColumns, width, height) > normal * 1.05
+})
+const columns = computed(() => (wide.value ? props.game.wideColumns! : props.game.columns))
+const piles = computed(() => (state.value ? props.game.layout(state.value, wide.value) : []))
 const actions = computed(() => run.value?.marks.length ?? 0)
 
 const winExtra = computed(() =>
@@ -124,6 +154,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  areaObserver?.disconnect()
   startToken++
   persist()
   clearInterval(autosave)
@@ -520,11 +551,11 @@ if (typeof route.query.new !== 'string' && !resume()) {
       </div>
       <p class="visually-hidden" aria-live="polite">{{ announcement }}</p>
 
-      <div class="table-area">
+      <div ref="tableArea" class="table-area">
         <CardTable
           :piles="piles"
           :deck="deck"
-          :columns="game.columns"
+          :columns="columns"
           :can-pick="(pile: string, index: number) => game.canPick(state!, pile, index)"
           :selected="selected"
           :hint="hintPiles"
@@ -623,7 +654,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  max-width: 760px;
+  max-width: 1200px;
   min-height: 0;
   margin: 0 auto;
   padding: var(--space-1) max(var(--space-3), env(safe-area-inset-right))
@@ -690,6 +721,40 @@ if (typeof route.query.new !== 'string' && !resume()) {
   width: 100%;
   min-height: 300px;
   overflow-y: auto;
+}
+
+/* Phones in landscape: the toolbar moves beside the table, so the table gets the height. */
+@media (orientation: landscape) and (max-height: 540px) {
+  .play {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
+    padding-top: 0;
+  }
+
+  .info {
+    grid-column: 1;
+    min-height: 40px;
+  }
+
+  .table-area {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+  }
+
+  .toolbar {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    flex-direction: column;
+    justify-content: center;
+    width: auto;
+  }
+
+  .toolbar > * {
+    flex: none;
+  }
 }
 
 .toolbar {

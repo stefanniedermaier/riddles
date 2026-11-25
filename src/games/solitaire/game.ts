@@ -45,7 +45,11 @@ const pool = createPuzzlePool<Variant, { seed: number }>({
 
 const variantLabel = (variant: Variant): string => t(`solitaire.variants.${variant}`)
 
-function layout(state: State): PileView[] {
+/** Wide layout: stock and waste left of the columns, the foundations in a 2 × 2 block right. */
+const WIDE_TABLEAU_X = 1.7
+const WIDE_FOUNDATION_X = 8.9
+
+function layout(state: State, wide: boolean): PileView[] {
   const left = recyclesLeft(state)
   const piles: PileView[] = [
     {
@@ -63,16 +67,16 @@ function layout(state: State): PileView[] {
     },
     {
       id: 'w',
-      x: 1,
-      y: 0,
+      x: wide ? 0 : 1,
+      y: wide ? 1 : 0,
       slots: state.w,
       fan: VARIANT_RULES[state.variant].draw === 3 ? 'right' : 'none',
       label: pileLabel(DECK, 'w', state.w),
     },
     ...state.f.map((pile, i) => ({
       id: `f${i}`,
-      x: 3 + i,
-      y: 0,
+      x: wide ? WIDE_FOUNDATION_X + (i % 2) : 3 + i,
+      y: wide ? Math.floor(i / 2) : 0,
       slots: pile,
       fan: 'none' as const,
       placeholder: 'A',
@@ -80,8 +84,8 @@ function layout(state: State): PileView[] {
     })),
     ...state.t.map((pile, i) => ({
       id: `t${i}`,
-      x: i,
-      y: 1,
+      x: wide ? WIDE_TABLEAU_X + i : i,
+      y: wide ? 0 : 1,
       slots: pile,
       fan: 'down' as const,
       placeholder: 'K',
@@ -103,6 +107,7 @@ export const solitaire: CardGameDef<State, Move, Variant> = {
   rules,
   deck: () => DECK,
   columns: 7,
+  wideColumns: WIDE_FOUNDATION_X + 2,
   layout,
   canPick,
   dropMove,

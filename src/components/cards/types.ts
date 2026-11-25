@@ -44,7 +44,12 @@ export interface CardGameDef<S, M, V extends string> {
   deck(variant: V): readonly CardDef[]
   /** Width of the table in card widths. */
   columns: number
-  layout(state: S): PileView[]
+  /**
+   * Width of the wide layout (landscape: stock and foundations beside the columns), if the
+   * game has one. It is used when it gives larger cards than the normal layout.
+   */
+  wideColumns?: number
+  layout(state: S, wide: boolean): PileView[]
   canPick(state: S, pile: string, index: number): boolean
   dropMove(state: S, from: string, index: number, to: string): M | null
   tapMove(state: S, pile: string, index: number): M | null

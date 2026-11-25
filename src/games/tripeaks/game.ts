@@ -45,7 +45,11 @@ const pool = createPuzzlePool<Variant, { seed: number }>({
 
 const variantLabel = (variant: Variant): string => t(`tripeaks.variants.${variant}`)
 
-function layout(state: State): PileView[] {
+/** Wide layout: stock and waste right of the peaks, level with the bottom row. */
+const WIDE_STOCK_X = 10.4
+const BOTTOM_ROW_Y = 3 * 0.42
+
+function layout(state: State, wide: boolean): PileView[] {
   const piles: PileView[] = []
   POSITIONS.forEach((position, i) => {
     if (isRemoved(state, i)) return
@@ -63,13 +67,13 @@ function layout(state: State): PileView[] {
   piles.push(
     {
       id: 's',
-      x: 3,
-      y: 2.55,
+      x: wide ? WIDE_STOCK_X : 3,
+      y: wide ? BOTTOM_ROW_Y : 2.55,
       slots: state.s.map(faceDown),
       fan: 'none',
       label: state.s.length ? t('cards.pileCount', { pile: pileName('s'), count: state.s.length }) : t('cards.stockDone'),
     },
-    { id: 'w', x: 5.5, y: 2.55, slots: state.w, fan: 'none', label: pileLabel(DECK, 'w', state.w) },
+    { id: 'w', x: wide ? WIDE_STOCK_X + 1.1 : 5.5, y: wide ? BOTTOM_ROW_Y : 2.55, slots: state.w, fan: 'none', label: pileLabel(DECK, 'w', state.w) },
   )
   return piles
 }
@@ -81,6 +85,7 @@ export const tripeaks: CardGameDef<State, Move, Variant> = {
   rules,
   deck: () => DECK,
   columns: 10,
+  wideColumns: WIDE_STOCK_X + 2.1,
   layout,
   canPick: (state, pile) => peakIndex(pile) >= 0 && isFree(state, peakIndex(pile)),
   dropMove: (state, from, _index, to) => {

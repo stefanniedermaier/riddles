@@ -44,20 +44,24 @@ const pool = createPuzzlePool<Variant, { seed: number }>({
 
 const variantLabel = (variant: Variant): string => t(`freecell.variants.${variant}`)
 
-function layout(state: State): PileView[] {
+/** Wide layout: free cells in a 2 × 2 block left of the columns, the foundations right. */
+const WIDE_TABLEAU_X = 2.2
+const WIDE_FOUNDATION_X = 10.4
+
+function layout(state: State, wide: boolean): PileView[] {
   return [
     ...state.c.map((card, i) => ({
       id: `c${i}`,
-      x: i,
-      y: 0,
+      x: wide ? i % 2 : i,
+      y: wide ? Math.floor(i / 2) : 0,
       slots: card >= 0 ? [card] : [],
       fan: 'none' as const,
       label: pileLabel(DECK, `c${i}`, card >= 0 ? [card] : []),
     })),
     ...state.f.map((pile, i) => ({
       id: `f${i}`,
-      x: 4 + i,
-      y: 0,
+      x: wide ? WIDE_FOUNDATION_X + (i % 2) : 4 + i,
+      y: wide ? Math.floor(i / 2) : 0,
       slots: pile,
       fan: 'none' as const,
       placeholder: 'A',
@@ -65,8 +69,8 @@ function layout(state: State): PileView[] {
     })),
     ...state.t.map((pile, i) => ({
       id: `t${i}`,
-      x: i,
-      y: 1,
+      x: wide ? WIDE_TABLEAU_X + i : i,
+      y: wide ? 0 : 1,
       slots: pile,
       fan: 'down' as const,
       label: pileLabel(DECK, `t${i}`, pile),
@@ -85,6 +89,7 @@ export const freecell: CardGameDef<State, Move, Variant> = {
   rules,
   deck: () => DECK,
   columns: 8,
+  wideColumns: WIDE_FOUNDATION_X + 2,
   layout,
   canPick,
   dropMove,

@@ -4,6 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { idOf, isUp, type CardDef } from '@/core/cards/cards'
 import { t } from '@/core/i18n'
 import PlayingCard from './PlayingCard.vue'
+import { CARD_RATIO, cardWidth, gapFor } from './sizing'
 import type { PileView } from './types'
 
 /**
@@ -38,23 +39,28 @@ let observer: ResizeObserver | null = null
 onMounted(() => {
   const el = table.value
   if (!el) return
+  // The height comes from the scroll area around the table (the table itself grows with
+  // its piles, so its own height would feed back into the card size).
+  const area = el.parentElement ?? el
   const measure = () => {
-    if (el.clientWidth > 0) size.value = { width: el.clientWidth, height: el.clientHeight || 560 }
+    if (el.clientWidth > 0) size.value = { width: el.clientWidth, height: area.clientHeight || 560 }
   }
   measure()
   if (typeof ResizeObserver !== 'undefined') {
     observer = new ResizeObserver(measure)
     observer.observe(el)
+    if (area !== el) observer.observe(area)
   }
 })
 onBeforeUnmount(() => observer?.disconnect())
 
-const gap = computed(() => (props.columns >= 10 ? 3 : 5))
-const cardW = computed(() => {
-  const byWidth = (size.value.width - gap.value * (props.columns - 1)) / props.columns
-  return Math.max(20, Math.min(byWidth, 110))
-})
-const cardH = computed(() => cardW.value * 1.4)
+const gap = computed(() => gapFor(props.columns))
+const cardW = computed(() => cardWidth(props.piles, props.columns, size.value.width, size.value.height))
+const cardH = computed(() => cardW.value * CARD_RATIO)
+/** Centres the table when the cards hit their maximum size. */
+const offsetX = computed(() =>
+  Math.max(0, (size.value.width - props.columns * cardW.value - (props.columns - 1) * gap.value) / 2),
+)
 
 interface Placed {
   id: number
@@ -81,7 +87,7 @@ const layout = computed(() => {
   const cards: Placed[] = []
   const boxes: PileBox[] = []
   props.piles.forEach((pile, pileIndex) => {
-    const x = pile.x * step
+    const x = offsetX.value + pile.x * step
     const y = pile.y * (h + gap.value * 2)
     let bottom = y + h
     if (pile.fan === 'down') {
