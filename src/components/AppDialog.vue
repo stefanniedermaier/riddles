@@ -101,7 +101,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   max-height: calc(100dvh - 2 * var(--space-4));
   overflow: auto;
   padding: var(--space-4) var(--space-5) var(--space-5);
-  border-radius: var(--radius-lg);
+  /* Square like the rest of the UI (design guide). */
+  border-radius: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-lg);
   outline: none;
@@ -128,14 +129,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   height: 36px;
   margin-right: calc(-1 * var(--space-2));
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: 0;
   background: transparent;
   cursor: pointer;
 }
 
-.dialog__close:active {
-  background: var(--color-surface-2);
-}
 
 .dialog__actions {
   display: flex;

@@ -9,6 +9,7 @@ import GameArt from '@/components/GameArt.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import GameOrderList from '@/components/GameOrderList.vue'
 import SegmentedControl from '@/components/SegmentedControl.vue'
+import { useDragScroll } from '@/core/dragScroll'
 import { formatDate } from '@/core/format'
 import { t } from '@/core/i18n'
 import { settings, type LocaleSetting, type MotionSetting, type ThemeSetting } from '@/core/settings'
@@ -98,6 +99,10 @@ async function revealSelectedGame(): Promise<void> {
 }
 
 watch(selectedGame, revealSelectedGame)
+
+/** The picker scrolls sideways; on desktop with the mouse wheel and by dragging. */
+const pickerEl = ref<HTMLElement | null>(null)
+useDragScroll(pickerEl)
 onMounted(revealSelectedGame)
 
 // --- Export ---------------------------------------------------------------
@@ -200,7 +205,7 @@ function resetAll(): void {
       <h2 class="section-title">{{ t('settings.gameSettings') }}</h2>
       <section class="card">
         <p class="muted info game-settings__hint">{{ t('settings.gameSettingsHint') }}</p>
-        <div class="game-picker" role="tablist" :aria-label="t('settings.gameSettings')">
+        <div ref="pickerEl" class="game-picker" role="tablist" :aria-label="t('settings.gameSettings')">
           <button
             v-for="game in configurableGames"
             :id="`game-tab-${game.id}`"
@@ -338,6 +343,22 @@ function resetAll(): void {
   overflow-x: auto;
   padding: var(--space-3) var(--space-4);
   scrollbar-width: none;
+  /* Fade at the edges: there is more to scroll to. */
+  -webkit-mask: linear-gradient(90deg, transparent, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent);
+  mask: linear-gradient(90deg, transparent, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent);
+}
+
+/* Mouse: the strip can be dragged sideways (useDragScroll). */
+@media (hover: hover) and (pointer: fine) {
+  .game-picker {
+    cursor: grab;
+  }
+}
+
+.game-picker.drag-scrolling,
+.game-picker.drag-scrolling .game-picker__item {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .game-picker__item {
@@ -349,7 +370,7 @@ function resetAll(): void {
   min-width: 68px;
   padding: var(--space-2) var(--space-1);
   border: 2px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   font-size: var(--text-xs);

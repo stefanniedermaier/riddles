@@ -1,3 +1,14 @@
+    :share="
+      result && result.kind !== 'lost'
+        ? {
+            game: 'shapes',
+            variant: result.kind === 'won' ? 'levels' : result.kind,
+            result: formatNumber(result.kind === 'won' ? result.total : result.score),
+            kind: 'score',
+            newBest: result.kind !== 'won' && result.newBest,
+          }
+        : undefined
+    "
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -21,6 +32,8 @@ import { getLevel, goalStatus } from './logic/levels'
 import { completeLevel, createRun, playMove, type ShapesRun } from './logic/modes'
 import type { Mode } from './logic/types'
 import { IDLE_HINT_MS, shapesSettings } from './settings'
+import BoardParticles from './BoardParticles.vue'
+import GardenBackdrop from './GardenBackdrop.vue'
 import ShapesBoard from './ShapesBoard.vue'
 import ShapesHud from './ShapesHud.vue'
 import ShapesRules from './ShapesRules.vue'
@@ -80,7 +93,7 @@ function addShownScore(points: number): void {
 
 function flyPoints(score: number, cells: number[]): void {
   if (score <= 0) return
-  const board = boardWrap.value?.getBoundingClientRect()
+  const board = boardWrap.value?.querySelector('.board')?.getBoundingClientRect()
   const target = document.querySelector('[data-score-target]')?.getBoundingClientRect()
   if (!motionEnabled.value || !board || !target || board.width === 0 || cells.length === 0) {
     addShownScore(score)
@@ -110,6 +123,73 @@ function flyPoints(score: number, cells: number[]): void {
   }, FLY_MS)
 }
 if (initial) animator.show(initial.board, initial.level?.field)
+
+// ---------------------------------------------------------------------------
+// Juice: praise for cascades and big clears, board shake for bombs and rockets
+
+const PRAISE = ['good', 'great', 'amazing', 'incredible'] as const
+type Praise = (typeof PRAISE)[number]
+
+const praise = ref<{ id: number; word: Praise } | null>(null)
+let praiseId = 1
+let praiseTimer: ReturnType<typeof setTimeout> | undefined
+
+function showPraise(word: Praise): void {
+  if (!motionEnabled.value) return
+  clearTimeout(praiseTimer)
+  clearTimeout(resultTimer)
+  praise.value = { id: praiseId++, word }
+  praiseTimer = setTimeout(() => (praise.value = null), 1100)
+}
+
+/**
+ * Tracks the clears of one move: the 2nd, 3rd, 4th and 5th cascade (or a very big single
+ * clear) earn an ever bigger word. Each word is shown at most once per move.
+ */
+function praiseTracker(): (cells: number[]) => void {
+  let clears = 0
+  let shown = -1
+  return (cells) => {
+    clears++
+    let tier = Math.min(clears, 5) - 2
+    if (cells.length >= 10) tier = Math.max(tier, 1)
+    if (cells.length >= 16) tier = Math.max(tier, 2)
+    if (cells.length >= 24) tier = Math.max(tier, 3)
+    if (tier > shown) {
+      shown = tier
+      showPraise(PRAISE[tier]!)
+    }
+  }
+}
+
+const SHAKE_STRONG: Keyframe[] = [
+  { transform: 'translate(0, 0)' },
+  { transform: 'translate(-6px, 3px) rotate(-0.6deg)' },
+  { transform: 'translate(5px, -4px) rotate(0.5deg)' },
+  { transform: 'translate(-4px, 2px)' },
+  { transform: 'translate(2px, -1px)' },
+  { transform: 'translate(0, 0)' },
+]
+const SHAKE_LIGHT: Keyframe[] = [
+  { transform: 'translate(0, 0)' },
+  { transform: 'translate(-2px, 1px)' },
+  { transform: 'translate(2px, -1px)' },
+  { transform: 'translate(0, 0)' },
+]
+let lastEffectId = 0
+
+watch(animator.effects, (effects) => {
+  const fresh = effects.filter((effect) => effect.id > lastEffectId)
+  if (fresh.length === 0) return
+  lastEffectId = Math.max(...fresh.map((effect) => effect.id))
+  const el = boardWrap.value
+  if (!el || typeof el.animate !== 'function' || !motionEnabled.value) return
+  if (fresh.some((effect) => effect.type === 'burst' || effect.type === 'prism')) {
+    el.animate(SHAKE_STRONG, { duration: 380, easing: 'ease-out' })
+  } else if (fresh.some((effect) => effect.type === 'line-h' || effect.type === 'line-v')) {
+    el.animate(SHAKE_LIGHT, { duration: 200, easing: 'ease-out' })
+  }
+})
 
 // ---------------------------------------------------------------------------
 // Time mode
@@ -232,8 +312,12 @@ async function onSwap(a: number, b: number): Promise<void> {
     persist()
   }
 
+  const onClearPraise = praiseTracker()
   await animator.play(outcome.result.phases, outcome.result.board, {
-    onClear: (score, cells) => flyPoints(score, cells),
+    onClear: (score, cells) => {
+      flyPoints(score, cells)
+      onClearPraise(cells)
+    },
     onShuffle: () => showToast(t('shapes.board.shuffled')),
   }, run.value?.level?.field)
   // Points still in the air land a moment later; then the shown score is exact again.
@@ -247,6 +331,31 @@ async function onSwap(a: number, b: number): Promise<void> {
   else if (timeUpPending.value) endTimeRun()
   else scheduleHint()
 }
+
+/**
+ * The result dialog opens right away for a win; after a loss the pieces first tumble off
+ * the board (`collapsing`), then the dialog follows.
+ */
+const resultOpen = ref(false)
+const collapsing = ref(false)
+const COLLAPSE_MS = 1100
+let resultTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(result, (r) => {
+  clearTimeout(resultTimer)
+  if (!r) {
+    resultOpen.value = false
+    collapsing.value = false
+    return
+  }
+  const lost = r.kind === 'lost' || (r.kind === 'time' && !r.newBest)
+  if (lost && motionEnabled.value) {
+    collapsing.value = true
+    resultTimer = setTimeout(() => (resultOpen.value = true), COLLAPSE_MS)
+  } else {
+    resultOpen.value = true
+  }
+})
 
 function endTimeRun(): void {
   const current = run.value
@@ -436,12 +545,14 @@ onMounted(() => {
 onBeforeUnmount(() => {
   persist()
   clearHint()
+  clearTimeout(praiseTimer)
   document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 </script>
 
 <template>
-  <AppBar :title="title" :back-to="{ name: 'shapes' }">
+  <GardenBackdrop />
+  <AppBar class="play-bar" :title="title" :back-to="{ name: 'shapes' }">
     <template #actions>
       <button type="button" class="icon-btn" :aria-label="t('common.rules')" @click="showRules = true">
         <AppIcon name="info" />
@@ -478,10 +589,21 @@ onBeforeUnmount(() => {
         :selected="selected"
         :hint="hint"
         :locked="locked"
+        :collapse="collapsing"
         @swap="onSwap"
         @select="selected = $event"
         @interact="scheduleHint"
       />
+      <BoardParticles
+        :effects="animator.effects.value"
+        :field="animator.field.value"
+        :animating="animator.animating.value"
+      />
+      <Transition name="praise">
+        <div v-if="praise" :key="praise.id" class="praise" :class="`praise--${praise.word}`" aria-hidden="true">
+          {{ t(`shapes.praise.${praise.word}`) }}
+        </div>
+      </Transition>
     </div>
     <div class="flights" aria-hidden="true">
       <span
@@ -518,7 +640,7 @@ onBeforeUnmount(() => {
   </AppDialog>
 
   <ResultDialog
-    :open="result !== null"
+    :open="resultOpen"
     :title="resultTitle"
     :subtitle="result?.kind === 'lost' ? t('shapes.result.levelFailedText') : undefined"
     :rows="resultRows"
@@ -528,6 +650,10 @@ onBeforeUnmount(() => {
         : undefined
     "
     :icon="result?.kind === 'lost' ? 'restart' : 'trophy'"
+    :celebrate="
+      result?.kind === 'won' ||
+      ((result?.kind === 'time' || result?.kind === 'zen') && result.newBest)
+    "
   >
     <template #actions>
       <template v-if="result?.kind === 'time' || result?.kind === 'zen'">
@@ -556,6 +682,10 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .play {
+  position: relative;
+  z-index: 1;
+  /* The particle canvas reaches beyond the board; never let it widen the page. */
+  overflow-x: clip;
   display: flex;
   flex-direction: column;
   padding-top: var(--space-2);
@@ -603,8 +733,42 @@ onBeforeUnmount(() => {
     520px,
     calc(100dvh - 210px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
   );
+  position: relative;
   min-width: 260px;
   margin: 0 auto;
+  /* Wooden frame around the board: bevel highlights, a dark outline and a drop shadow. */
+  padding: 7px;
+  border-radius: 23px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 22%), transparent 40%),
+    repeating-linear-gradient(92deg, #b97a43 0 9px, #a96c38 9px 15px, #c4864d 15px 26px);
+  box-shadow:
+    0 0 0 2.5px #5a3515,
+    inset 0 2px 0 rgb(255 230 190 / 60%),
+    inset 0 -3px 0 rgb(60 30 0 / 35%),
+    0 12px 26px rgb(30 20 0 / 40%);
+}
+
+:root[data-theme='dark'] .board-wrap {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 10%), transparent 40%),
+    repeating-linear-gradient(92deg, #6b4a32 0 9px, #5e402b 9px 15px, #74513a 15px 26px);
+  box-shadow:
+    0 0 0 2.5px #24160c,
+    inset 0 2px 0 rgb(255 220 180 / 25%),
+    inset 0 -3px 0 rgb(0 0 0 / 40%),
+    0 12px 26px rgb(0 0 0 / 55%);
+}
+
+/* The app bar floats over the garden sky. */
+.play-bar {
+  background: linear-gradient(180deg, rgb(255 255 255 / 45%), rgb(255 255 255 / 0%));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+:root[data-theme='dark'] .play-bar {
+  background: linear-gradient(180deg, rgb(10 12 30 / 55%), rgb(10 12 30 / 0%));
 }
 
 .board-wrap--levels {
@@ -613,6 +777,86 @@ onBeforeUnmount(() => {
     520px,
     calc(100dvh - 250px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
   );
+}
+
+/* --- Praise ("Great!") ---------------------------------------------------------- */
+
+.praise {
+  --praise-top: #fff6b0;
+  --praise-mid: #ffc21a;
+  --praise-bottom: #ff7a00;
+  --praise-edge: #7a3a00;
+
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  z-index: 7;
+  font-size: clamp(2rem, 11vw, 3.4rem);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  color: transparent;
+  background: linear-gradient(180deg, var(--praise-top) 15%, var(--praise-mid) 50%, var(--praise-bottom) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1.5px var(--praise-edge);
+  filter: drop-shadow(0 3px 0 var(--praise-edge)) drop-shadow(0 6px 10px rgb(0 0 0 / 35%));
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: praise-in 1.1s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+.praise--good {
+  --praise-top: #e4ffc8;
+  --praise-mid: #7ee05a;
+  --praise-bottom: #2a9a3a;
+  --praise-edge: #10501d;
+}
+
+.praise--great {
+  --praise-top: #e0f4ff;
+  --praise-mid: #59c8ff;
+  --praise-bottom: #2f6bff;
+  --praise-edge: #102c80;
+}
+
+.praise--amazing {
+  --praise-top: #ffe0f2;
+  --praise-mid: #ff6fc0;
+  --praise-bottom: #b02fd6;
+  --praise-edge: #4f0a63;
+}
+
+@keyframes praise-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-8deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.18) rotate(3deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(0.96) rotate(-1deg);
+  }
+  40%,
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80%) scale(1.05);
+  }
+}
+
+.praise-leave-active {
+  transition: opacity 0.15s;
+}
+
+.praise-leave-to {
+  opacity: 0;
 }
 
 .menu {

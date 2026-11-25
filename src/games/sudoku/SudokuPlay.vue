@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -17,7 +18,7 @@ import { showToast } from '@/core/toast'
 
 import { describeHint } from './explain'
 import HintPanel from './HintPanel.vue'
-import { isDifficulty, isMode, type Difficulty, type SudokuMode } from './logic/types'
+import { isDifficulty, isMode, statVariant, type Difficulty, type SudokuMode } from './logic/types'
 import NumberPad from './NumberPad.vue'
 import { sudokuSettings } from './settings'
 import SudokuBoard from './SudokuBoard.vue'
@@ -179,6 +180,7 @@ const resultRows = computed(() =>
   </AppBar>
 
   <main class="page play">
+    <GameBackdrop game="sudoku" />
     <LoadingOverlay v-if="status === 'loading' || status === 'idle'" :label="t('common.generating')" />
 
     <template v-else-if="game">
@@ -275,6 +277,17 @@ const resultRows = computed(() =>
   <ResultDialog
     :open="status === 'won' && result !== null"
     :title="t('common.solved')"
+    :share="
+      result && game
+        ? {
+            game: 'sudoku',
+            variant: statVariant(mode, game.puzzle.difficulty),
+            result: formatDuration(result.timeMs),
+            kind: 'time',
+            newBest: result.newBest,
+          }
+        : undefined
+    "
     :subtitle="t('sudoku.play.solvedSubtitle', { difficulty: difficultyLabel })"
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
@@ -364,7 +377,7 @@ const resultRows = computed(() =>
   min-height: var(--tap-min);
   padding: var(--space-1) 2px;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: transparent;
   color: var(--color-text-muted);
   font-size: var(--text-xs);

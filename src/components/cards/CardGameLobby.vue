@@ -3,7 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
-import AppButton from '@/components/AppButton.vue'
+import LobbyHero from '@/components/LobbyHero.vue'
+import ContinueButton from '@/components/ContinueButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import GameSettingsButton from '@/components/GameSettingsButton.vue'
@@ -63,18 +64,15 @@ onMounted(() => props.game.warm?.())
     </template>
   </AppBar>
 
-  <main class="page lobby">
+  <main class="page lobby" :style="{ '--lobby-accent': 'var(--game-' + game.id + ')' }">
+    <LobbyHero :game="game.id as GameId" />
     <RulesCard v-if="!hasPlayed" :title="t('cards.play.rules')" :accent="`var(--game-${game.id})`">
       <ul class="rules">
         <li v-for="key in game.rulesKeys" :key="key">{{ t(key) }}</li>
       </ul>
     </RulesCard>
 
-    <div v-if="hasSave" class="resume">
-      <AppButton variant="primary" icon="play" block @click="router.push({ name: `${game.id}-play` })">
-        {{ t('common.continue') }}
-      </AppButton>
-    </div>
+    <ContinueButton v-if="hasSave" @click="router.push({ name: `${game.id}-play` })" />
 
     <h2 class="section-title">{{ t('cards.lobby.newGame') }}</h2>
     <ChoiceList :items="items" @select="onSelect" />
@@ -99,14 +97,6 @@ onMounted(() => props.game.warm?.())
 <style scoped>
 .rules--bottom {
   margin-top: var(--space-5);
-}
-
-.resume {
-  margin-top: var(--space-4);
-}
-
-.resume:first-child {
-  margin-top: 0;
 }
 
 .rules {

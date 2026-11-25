@@ -127,6 +127,10 @@ export default defineConfig({
         start_url: './',
         scope: './',
         display: 'standalone',
+        // Shared links (challenges) open in the installed app where the browser supports it
+        // (Chromium: link capturing; Android opens in-scope links in the app anyway).
+        handle_links: 'preferred',
+        launch_handler: { client_mode: ['navigate-existing', 'auto'] },
         orientation: 'portrait',
         theme_color: '#f6f5f2',
         background_color: '#f6f5f2',

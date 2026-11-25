@@ -28,13 +28,14 @@ import { toasts } from '@/core/toast'
 
 .toast {
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  /* Material snackbar: inverse surface, square, elevation 3. */
+  border-radius: 0;
   background: var(--color-text);
   color: var(--color-bg);
   font-size: var(--text-sm);
   font-weight: 600;
-  text-align: center;
-  box-shadow: var(--shadow-md);
+  text-align: left;
+  box-shadow: var(--elevation-3);
 }
 
 .toast-enter-active,

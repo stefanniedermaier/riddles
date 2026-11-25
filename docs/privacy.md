@@ -47,7 +47,9 @@ GDPR). GitHub's privacy statement describes how long it keeps this data.
 ## Sharing
 
 The share button on the home screen hands the app link to the device's share sheet (or copies
-it to the clipboard). The app does not learn whether or with whom it was shared.
+it to the clipboard). After a win, *Share result* does the same with a challenge link that
+contains only the game, the difficulty and the time or points (no name, no device data). The
+app does not learn whether or with whom it was shared.
 
 The same information is shown in the app under **Settings → Your data → Privacy notice**.
 

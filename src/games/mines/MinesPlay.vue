@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } f
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -460,6 +461,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   </AppBar>
 
   <main class="play">
+    <GameBackdrop game="mines" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
     <template v-else>
@@ -607,6 +609,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   <ResultDialog
     :open="showResult"
     :title="t('common.solved')"
+    :share="result && game ? { game: 'mines', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
     :subtitle="t('mines.result.solvedText')"
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
@@ -729,7 +732,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   display: flex;
   gap: 2px;
   padding: 3px;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface-2);
 }
 
@@ -742,7 +745,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   min-height: 38px;
   padding: 0 var(--space-2);
   border: 0;
-  border-radius: calc(var(--radius-md) - 3px);
+  border-radius: 0;
   background: transparent;
   color: var(--color-text-muted);
   font-size: var(--text-sm);

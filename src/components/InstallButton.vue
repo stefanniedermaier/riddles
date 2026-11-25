@@ -59,7 +59,7 @@ async function install(): Promise<void> {
   margin-bottom: var(--space-4);
   padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: var(--color-accent-soft);
 }
 
@@ -98,7 +98,7 @@ async function install(): Promise<void> {
   padding: 6px;
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--color-accent-soft);
   color: var(--color-accent);
 }

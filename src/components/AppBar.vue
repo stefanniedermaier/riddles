@@ -95,15 +95,11 @@ function goBack(): void {
   height: var(--tap-min);
   padding: 0;
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: 0;
   background: transparent;
   color: var(--color-text);
   text-decoration: none;
   cursor: pointer;
 }
 
-.app-bar__icon-btn:active,
-.app-bar__actions :deep(.icon-btn:active) {
-  background: var(--color-surface-2);
-}
 </style>

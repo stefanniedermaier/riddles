@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -453,6 +454,7 @@ onBeforeUnmount(() => {
   </AppBar>
 
   <main v-if="run" class="play">
+    <GameBackdrop game="blocks" />
     <section class="hud">
       <div class="hud__stat">
         <span class="hud__label">{{ t('common.score') }}</span>
@@ -546,6 +548,8 @@ onBeforeUnmount(() => {
   <ResultDialog
     :open="result !== null"
     :title="t('blocks.result.gameOver')"
+    :share="result ? { game: 'blocks', variant: 'classic', result: formatNumber(result.score), kind: 'score', newBest: result.newBest } : undefined"
+    :celebrate="result?.newBest ?? false"
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
   >
@@ -586,7 +590,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   padding: var(--space-2);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
 }
@@ -668,7 +672,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   aspect-ratio: 1;
   min-height: 0;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
 }

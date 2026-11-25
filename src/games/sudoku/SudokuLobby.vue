@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import LobbyHero from '@/components/LobbyHero.vue'
+import ContinueButton from '@/components/ContinueButton.vue'
 import GameSettingsButton from '@/components/GameSettingsButton.vue'
-import AppIcon from '@/components/AppIcon.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import RulesCard from '@/components/RulesCard.vue'
@@ -35,6 +36,21 @@ const mode = computed<SudokuMode>({
     sudokuSettings.value.lastMode = value
   },
 })
+/**
+ * A challenge link names a statistics variant (`hard`, `mini-easy`): switch to its grid and
+ * mark its difficulty.
+ */
+const route = useRoute()
+const challenge = typeof route.query.challenge === 'string' ? route.query.challenge : undefined
+if (challenge?.startsWith('mini-')) mode.value = 'mini'
+else if (challenge) mode.value = 'classic'
+const challengeHighlight = computed(() => {
+  if (!challenge) return undefined
+  const mini = challenge.startsWith('mini-')
+  if (mini !== (mode.value === 'mini')) return ''
+  return mini ? challenge.slice(5) : challenge
+})
+
 const modeOptions = computed(() => [
   { value: 'classic' as SudokuMode, label: t('sudoku.modes.classic') },
   { value: 'mini' as SudokuMode, label: t('sudoku.modes.mini') },
@@ -95,30 +111,27 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
     </template>
   </AppBar>
 
-  <main class="page">
+  <main class="page lobby" style="--lobby-accent: var(--game-sudoku)">
+    <LobbyHero game="sudoku" />
     <RulesCard v-if="!hasPlayed" class="rules--top" :title="t('sudoku.rules.title')" accent="var(--game-sudoku)">
       <SudokuRules :mode="mode" />
     </RulesCard>
 
     <SegmentedControl v-model="mode" :options="modeOptions" :label="t('sudoku.modes.label')" />
 
-    <button v-if="saved" type="button" class="continue" @click="continueGame">
-      <span class="continue__text">
-        <span class="continue__label">{{ t('common.continue') }}</span>
-        <span class="continue__detail tabular">
-          {{
-            t('sudoku.lobby.continueDetail', {
-              difficulty: t(`difficulty.${saved.puzzle.difficulty}`),
-              time: formatDuration(saved.elapsedMs),
-            })
-          }}
-        </span>
-      </span>
-      <AppIcon name="play" />
-    </button>
+    <ContinueButton
+      v-if="saved"
+      :detail="
+        t('sudoku.lobby.continueDetail', {
+          difficulty: t(`difficulty.${saved.puzzle.difficulty}`),
+          time: formatDuration(saved.elapsedMs),
+        })
+      "
+      @click="continueGame"
+    />
 
     <h2 class="section-title">{{ t('sudoku.lobby.newGame') }}</h2>
-    <ChoiceList :items="items" @select="onSelect" />
+    <ChoiceList :items="items" :highlight="challengeHighlight" @select="onSelect" />
 
     <RulesCard v-if="hasPlayed" class="rules--bottom" :title="t('sudoku.rules.title')" accent="var(--game-sudoku)">
       <SudokuRules :mode="mode" />
@@ -144,45 +157,4 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
   margin-top: var(--space-5);
 }
 
-.continue {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  min-height: 72px;
-  margin-top: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 0;
-  border-radius: var(--radius-lg);
-  background: var(--game-sudoku);
-  color: #fff;
-  text-align: left;
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease-out);
-}
-
-:root[data-theme='dark'] .continue {
-  color: var(--color-bg);
-}
-
-.continue:active {
-  transform: scale(0.985);
-}
-
-.continue__text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-}
-
-.continue__label {
-  font-size: var(--text-lg);
-  font-weight: 800;
-}
-
-.continue__detail {
-  font-size: var(--text-sm);
-  opacity: 0.9;
-}
 </style>

@@ -23,6 +23,14 @@ export interface DisplayPiece {
   firing: boolean
   /** Transition duration for the next position change; 0 = jump. */
   durationMs: number
+  /** `fall`: accelerating like gravity (then a squash on landing); `move`: eased. */
+  ease: 'move' | 'fall'
+  /**
+   * Changes whenever the piece falls: the board restarts the landing squash, delayed by
+   * `landDelayMs` (the fall duration). 0 = never fell.
+   */
+  land: number
+  landDelayMs: number
 }
 
 /**
@@ -82,9 +90,12 @@ export function useBoardAnimator(motion: Ref<boolean>) {
   const effects = ref<BoardEffect[]>([])
   const animating = ref(false)
   let effectId = 1
+  let landId = 1
 
   function display(board: Board, durationFor: (id: number) => number = () => 0): DisplayPiece[] {
     const list: DisplayPiece[] = []
+    // Keep the landing state, so a finished squash is not replayed when the piece re-renders.
+    const landed = new Map(pieces.value.map((p) => [p.id, p] as const))
     board.forEach((piece, cell) => {
       if (!piece) return
       list.push({
@@ -96,6 +107,9 @@ export function useBoardAnimator(motion: Ref<boolean>) {
         clearing: false,
         firing: false,
         durationMs: durationFor(piece.id),
+        ease: 'move',
+        land: landed.get(piece.id)?.land ?? 0,
+        landDelayMs: landed.get(piece.id)?.landDelayMs ?? 0,
       })
     })
     return list.sort((a, b) => a.id - b.id)
@@ -196,12 +210,20 @@ export function useBoardAnimator(motion: Ref<boolean>) {
             clearing: false,
             firing: false,
             durationMs: 0,
+            ease: 'fall' as const,
+            land: 0,
+            landDelayMs: 0,
           }
         })
         pieces.value = [...pieces.value, ...spawned].sort((a, b) => a.id - b.id)
         await nextPaint()
         // … and then everything falls into place.
-        pieces.value = display(phase.board, (id) => durations.get(id) ?? 0)
+        pieces.value = display(phase.board, (id) => durations.get(id) ?? 0).map((p) => {
+          const duration = durations.get(p.id)
+          return duration === undefined
+            ? p
+            : { ...p, ease: 'fall' as const, land: landId++, landDelayMs: duration }
+        })
         await wait(Math.max(0, ...durations.values()))
         return
       }

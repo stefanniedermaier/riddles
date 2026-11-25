@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } f
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -355,6 +356,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   </AppBar>
 
   <main class="play">
+    <GameBackdrop game="crowns" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
     <template v-else>
@@ -436,6 +438,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   <ResultDialog
     :open="showResult"
     :title="t('common.solved')"
+    :share="result && game ? { game: 'crowns', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
     :subtitle="t('crowns.play.solvedText')"
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
@@ -532,7 +535,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   margin-right: calc(-1 * var(--space-2));
   padding: 0;
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: 0;
   background: transparent;
   cursor: pointer;
 }

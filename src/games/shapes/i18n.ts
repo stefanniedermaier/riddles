@@ -58,6 +58,17 @@ export const en = {
     burst: 'bomb',
     prism: 'rainbow ball',
   },
+  rules: {
+    specialsTitle: 'Special pieces',
+    obstaclesTitle: 'Obstacles in levels',
+    rocket: '4 in a row: clears a row or column',
+    bomb: 'L or T shape: clears the area around it',
+    prism: '5 in a row: clears one kind',
+    target: 'Garden bed: clear the piece on it',
+    chain: 'Chain: match the piece to free it',
+    crate: 'Crate: match next to it to break it',
+    item: 'Acorn: bring it to the bottom row',
+  },
   pause: {
     title: 'Paused',
     newGame: 'New game',
@@ -81,6 +92,12 @@ export const en = {
   settings: {
     idleHint: 'Hint when idle',
     idleHintInfo: 'Highlights a possible move after a few seconds without input.',
+  },
+  praise: {
+    good: 'Good!',
+    great: 'Great!',
+    amazing: 'Amazing!',
+    incredible: 'Incredible!',
   },
   board: {
     label: 'Game board, 8 by 8 pieces',
@@ -146,6 +163,17 @@ export const de: Messages<typeof en> = {
     burst: 'Bombe',
     prism: 'Regenbogenkugel',
   },
+  rules: {
+    specialsTitle: 'Sondersteine',
+    obstaclesTitle: 'Hindernisse in Leveln',
+    rocket: '4 in einer Reihe: räumt Reihe oder Spalte ab',
+    bomb: 'L- oder T-Form: räumt die Umgebung ab',
+    prism: '5 in einer Reihe: räumt eine Sorte ab',
+    target: 'Beet: räume den Stein darauf ab',
+    chain: 'Kette: bilde eine Reihe mit dem Stein',
+    crate: 'Kiste: bilde daneben eine Reihe',
+    item: 'Eichel: bringe sie in die unterste Reihe',
+  },
   pause: {
     title: 'Pause',
     newGame: 'Neues Spiel',
@@ -169,6 +197,12 @@ export const de: Messages<typeof en> = {
   settings: {
     idleHint: 'Hinweis bei Pause',
     idleHintInfo: 'Zeigt nach einigen Sekunden ohne Eingabe einen möglichen Zug.',
+  },
+  praise: {
+    good: 'Gut!',
+    great: 'Super!',
+    amazing: 'Fantastisch!',
+    incredible: 'Unglaublich!',
   },
   board: {
     label: 'Spielfeld mit 8 mal 8 Steinen',

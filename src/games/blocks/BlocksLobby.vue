@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import LobbyHero from '@/components/LobbyHero.vue'
+import ContinueButton from '@/components/ContinueButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -13,6 +15,8 @@ import BlocksRules from './BlocksRules.vue'
 import { loadRun } from './store'
 
 const router = useRouter()
+/** A challenge link names the only variant (`classic`); its entry here is "New game". */
+const challenged = useRoute().query.challenge === 'classic'
 
 // Storage is not reactive; the lobby remounts on every visit, so reading once is enough.
 const saved = loadRun()
@@ -22,22 +26,14 @@ const hasPlayed = stats.started > 0 || saved !== null
 
 const items = computed(() => {
   const best = stats.bestScore !== undefined ? t('blocks.lobby.best', { score: formatNumber(stats.bestScore) }) : undefined
-  const list = []
-  if (saved) {
-    list.push({
-      id: 'continue',
-      label: t('blocks.lobby.continue'),
-      detail: t('blocks.lobby.continueDetail', { score: formatNumber(saved.score) }),
+  return [
+    {
+      id: 'new',
+      label: t('blocks.lobby.newGame'),
+      detail: t('blocks.lobby.newGameDetail'),
       meta: best,
-    })
-  }
-  list.push({
-    id: 'new',
-    label: t('blocks.lobby.newGame'),
-    detail: t('blocks.lobby.newGameDetail'),
-    meta: saved ? undefined : best,
-  })
-  return list
+    },
+  ]
 })
 
 const confirmNew = ref(false)
@@ -47,20 +43,29 @@ function start(): void {
   void router.push({ name: 'blocks-play', query: { new: '1' } })
 }
 
-function select(id: string): void {
-  if (id === 'continue') void router.push({ name: 'blocks-play' })
-  else if (saved) confirmNew.value = true
+/** The only choice is a new game (continuing has its own button). */
+function select(): void {
+  if (saved) confirmNew.value = true
   else start()
 }
 </script>
 
 <template>
   <AppBar :title="t('blocks.name')" back-to="/" />
-  <main class="page lobby" :class="{ 'lobby--played': hasPlayed }">
+  <main class="page lobby" style="--lobby-accent: var(--game-blocks)" :class="{ 'lobby--played': hasPlayed }">
+    <LobbyHero game="blocks" />
     <RulesCard class="intro" :title="t('blocks.lobby.howToTitle')" accent="var(--game-blocks)">
       <BlocksRules />
     </RulesCard>
-    <ChoiceList :items="items" @select="select" />
+    <div class="choices-group">
+      <ContinueButton
+        v-if="saved"
+        :label="t('blocks.lobby.continue')"
+        :detail="t('blocks.lobby.continueDetail', { score: formatNumber(saved.score) })"
+        @click="router.push({ name: 'blocks-play' })"
+      />
+      <ChoiceList :items="items" :highlight="challenged ? 'new' : undefined" @select="select" />
+    </div>
   </main>
 
   <ConfirmDialog
@@ -78,6 +83,12 @@ function select(id: string): void {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.choices-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .lobby--played .intro {

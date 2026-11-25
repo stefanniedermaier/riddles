@@ -25,8 +25,11 @@ withDefaults(defineProps<{ title: string; accent?: string }>(), {
 
 <style scoped>
 .rules-card {
-  border-top: 4px solid var(--rules-accent);
   overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rules-accent) 25%, var(--color-border));
+  border-radius: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rules-accent) 10%, var(--color-surface)), var(--color-surface) 70px);
+  box-shadow: var(--elevation-1);
 }
 
 .rules-card__summary {
@@ -47,7 +50,11 @@ withDefaults(defineProps<{ title: string; accent?: string }>(), {
 }
 
 .rules-card__icon {
-  color: var(--rules-accent);
+  box-sizing: content-box;
+  padding: 7px;
+  border-radius: 0;
+  background: var(--rules-accent);
+  color: #fff;
 }
 
 .rules-card__title {
@@ -55,7 +62,11 @@ withDefaults(defineProps<{ title: string; accent?: string }>(), {
 }
 
 .rules-card__chevron {
-  color: var(--color-text-muted);
+  box-sizing: content-box;
+  padding: 4px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--rules-accent) 14%, transparent);
+  color: var(--rules-accent);
   transition: transform var(--dur-fast) var(--ease-out);
 }
 
@@ -64,6 +75,22 @@ withDefaults(defineProps<{ title: string; accent?: string }>(), {
 }
 
 .rules-card__body {
-  padding: 0 var(--space-4) var(--space-4);
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  border-top: 1px dashed color-mix(in srgb, var(--rules-accent) 30%, var(--color-border));
+}
+
+.rules-card[open] .rules-card__body {
+  animation: rules-open 0.3s var(--ease-out);
+}
+
+@keyframes rules-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+:root[data-motion='reduced'] .rules-card[open] .rules-card__body {
+  animation: none;
 }
 </style>

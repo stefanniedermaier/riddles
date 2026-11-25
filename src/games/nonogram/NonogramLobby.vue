@@ -3,8 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import LobbyHero from '@/components/LobbyHero.vue'
+import ContinueButton from '@/components/ContinueButton.vue'
 import GameSettingsButton from '@/components/GameSettingsButton.vue'
-import AppButton from '@/components/AppButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -68,17 +69,13 @@ onMounted(() => nonogramPool.warm(DIFFICULTIES))
     </template>
   </AppBar>
 
-  <main class="page lobby">
+  <main class="page lobby" style="--lobby-accent: var(--game-nonogram)">
+    <LobbyHero game="nonogram" />
     <RulesCard v-if="!hasPlayed" :title="t('nonogram.rules.title')" accent="var(--game-nonogram)">
       <NonogramRules />
     </RulesCard>
 
-    <div v-if="saved" class="resume">
-      <AppButton variant="primary" icon="play" block @click="resume">
-        {{ t('common.continue') }}
-      </AppButton>
-      <p class="resume__info muted tabular">{{ savedLabel }}</p>
-    </div>
+    <ContinueButton v-if="saved" :detail="savedLabel" @click="resume" />
 
     <h2 class="section-title">{{ t('nonogram.lobby.newGame') }}</h2>
     <ChoiceList :items="items" @select="onSelect" />
@@ -103,17 +100,4 @@ onMounted(() => nonogramPool.warm(DIFFICULTIES))
   margin-top: var(--space-5);
 }
 
-.resume {
-  margin-top: var(--space-4);
-}
-
-.resume:first-child {
-  margin-top: 0;
-}
-
-.resume__info {
-  margin-top: var(--space-1);
-  font-size: var(--text-sm);
-  text-align: center;
-}
 </style>

@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -298,6 +299,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   </AppBar>
 
   <main class="play">
+    <GameBackdrop game="arrows" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
     <template v-else>
@@ -371,6 +373,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
     :icon="status === 'won' ? 'trophy' : 'restart'"
+    :share="status === 'won' && result && game ? { game: 'arrows', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
   >
     <template #actions>
       <template v-if="status === 'won'">

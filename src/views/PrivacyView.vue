@@ -59,7 +59,10 @@ const sections: { title: MessageKey; text: MessageKey }[] = [
   display: flex;
   gap: var(--space-3);
   padding: var(--space-4);
-  border-left: 4px solid var(--color-success);
+  /* Square note with a coloured edge (design guide: square UI). */
+  border-left: 6px solid var(--color-success);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-success) 9%, var(--color-surface));
 }
 
 .summary__icon {
