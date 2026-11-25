@@ -23,13 +23,17 @@ components.
 ## Card size and landscape
 
 The card width follows the table width (20–110 px), but shrinks so that every pile plus
-about six fanned cards fits the height of the table area; wider tables are centred.
+about seven fanned cards fits the height of the table area; wider tables are centred. The play
+view has a fixed height (screen minus app bar), so the cards never make the page scroll. A long
+column is squeezed to fit: face-down cards first (down to 5 % of a card), then face-up cards
+(down to 20 %, the rank stays readable); only beyond that does the table area scroll.
 Each game also has a **wide layout** (`wideColumns`, `layout(state, wide)`): stock, waste,
 free cells and foundations move beside the columns instead of above them. The play view
 uses it when it gives clearly larger cards (> 5 %), in practice on phones in landscape.
-On low landscape screens (≤ 540 px high) the toolbar moves to the right edge, so the table
-gets the height. Phone at 844 × 340 px (landscape, browser bars visible): Solitaire cards
-48 → 60 px, Spider and TriPeaks 34 → 59 px, FreeCell 41 → 59 px.
+On low landscape screens (≤ 540 px high) status and toolbar move into a narrow column on the
+right, so the table gets the full height. Example 780 × 300 px (phone in landscape, browser
+bar visible): Solitaire 52 px, Spider, FreeCell and TriPeaks 48 px wide cards.
+The card table isolates its stacking context, so dialogs stay above the cards.
 
 ## Saving and undo
 

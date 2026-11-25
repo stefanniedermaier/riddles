@@ -14,11 +14,17 @@ project adheres to [Semantic Versioning](https://semver.org/).
   solver, *Only solvable deals*, scoring by **time or points**, optional four-colour suits.
 - Statistics show best time and high score for the card games.
 - Card games in landscape: a wide layout with stock and foundations beside the columns, card
-  size also fitted to the height, toolbar at the side on low screens.
+  size also fitted to the height (no page scrolling), status and toolbar at the side on low
+  screens; long columns are squeezed further before the table scrolls.
 
 ### Changed
 
 - Size budget for all JavaScript/CSS raised from 280 to 360 kB (gzip) for the card games.
+
+### Fixed
+
+- Card games: the rules dialog was partly covered by cards.
+- TriPeaks: the Medium label and the rules say that ace and king do not connect there.
 
 ## [0.11.0] – 2026-11-24
 

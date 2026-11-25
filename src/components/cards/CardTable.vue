@@ -91,17 +91,24 @@ const layout = computed(() => {
     const y = pile.y * (h + gap.value * 2)
     let bottom = y + h
     if (pile.fan === 'down') {
-      const downStep = h * 0.15
-      const upStep = h * 0.28
-      const steps = pile.slots.slice(0, -1).map((slot) => (isUp(slot) ? upStep : downStep))
-      const total = steps.reduce((a, b) => a + b, 0)
+      // A long column is squeezed to fit the height: face-down cards first, then face-up
+      // ones, but only down to the point where the rank in the corner stays readable.
       const room = size.value.height - y - h - 4
-      const factor = total > room && total > 0 ? Math.max(0.3, room / total) : 1
+      const above = pile.slots.slice(0, -1)
+      const downs = above.filter((slot) => !isUp(slot)).length
+      const ups = above.length - downs
+      let downStep = h * 0.15
+      let upStep = h * 0.28
+      if (downs * downStep + ups * upStep > room) {
+        if (downs) downStep = Math.max(h * 0.05, Math.min(downStep, (room - ups * upStep) / downs))
+        if (ups && downs * downStep + ups * upStep > room) upStep = Math.max(h * 0.2, (room - downs * downStep) / ups)
+      }
       let offset = 0
       pile.slots.forEach((slot, i) => {
         cards.push({ id: idOf(slot), pile: pile.id, index: i, x, y: y + offset, z: pileIndex * 200 + i, up: isUp(slot) })
-        offset += (steps[i] ?? 0) * factor
+        offset += isUp(slot) ? upStep : downStep
       })
+      offset -= pile.slots.length ? (isUp(pile.slots.at(-1)!) ? upStep : downStep) : 0
       bottom = y + offset + h
     } else {
       const visible = pile.fan === 'right' ? 3 : 1
@@ -351,6 +358,8 @@ function onFocus(pile: string, index: number): void {
 <style scoped>
 .card-table {
   position: relative;
+  /* Keeps the cards' z-indexes inside the table (dialogs stay on top). */
+  isolation: isolate;
   width: 100%;
   min-height: 100%;
   touch-action: none;

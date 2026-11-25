@@ -17,7 +17,7 @@ describe('cardWidth', () => {
   it('shrinks the cards so that the piles fit a low area', () => {
     const width = cardWidth(normal, 7, 800, 200)
     // Two rows plus room for a fanned column must fit 200 px.
-    expect(width * 1.4 * 3.6 + 10 + 4).toBeLessThanOrEqual(200.001)
+    expect(width * 1.4 * 4 + 10 + 4).toBeLessThanOrEqual(200.001)
   })
 
   it('gives larger cards with the wide layout in landscape, smaller ones in portrait', () => {

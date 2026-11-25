@@ -4,8 +4,8 @@ import type { PileView } from './types'
 export const CARD_RATIO = 1.4
 const MIN_WIDTH = 20
 const MAX_WIDTH = 110
-/** Room kept below a fanned column, in card heights (about six face-up cards). */
-const FAN_RESERVE = 1.6
+/** Room kept below a fanned column, in card heights (about seven face-up cards). */
+const FAN_RESERVE = 2
 
 export const gapFor = (columns: number): number => (columns >= 10 ? 3 : 5)
 

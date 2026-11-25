@@ -535,7 +535,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
         </p>
         <p v-else-if="thinking" class="info__hint muted">{{ t('cards.play.thinking') }}</p>
         <dl v-else class="hud tabular">
-          <div>
+          <div class="hud__wide">
             <dt>{{ t('common.difficulty') }}</dt>
             <dd class="hud__level">{{ game.variantLabel(run.variant) }}</dd>
           </div>
@@ -649,12 +649,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
 <style scoped>
 .play {
   display: flex;
-  flex: 1;
+  flex: none;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
   width: 100%;
   max-width: 1200px;
+  /* A fixed height, so the table area (and with it the card size) does not grow with the cards. */
+  height: calc(100dvh - var(--appbar-height));
   min-height: 0;
   margin: 0 auto;
   padding: var(--space-1) max(var(--space-3), env(safe-area-inset-right))
@@ -723,40 +725,6 @@ if (typeof route.query.new !== 'string' && !resume()) {
   overflow-y: auto;
 }
 
-/* Phones in landscape: the toolbar moves beside the table, so the table gets the height. */
-@media (orientation: landscape) and (max-height: 540px) {
-  .play {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto minmax(0, 1fr);
-    align-items: stretch;
-    padding-top: 0;
-  }
-
-  .info {
-    grid-column: 1;
-    min-height: 40px;
-  }
-
-  .table-area {
-    grid-column: 1;
-    grid-row: 2;
-    min-height: 0;
-  }
-
-  .toolbar {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    flex-direction: column;
-    justify-content: center;
-    width: auto;
-  }
-
-  .toolbar > * {
-    flex: none;
-  }
-}
-
 .toolbar {
   display: flex;
   flex: none;
@@ -784,5 +752,70 @@ if (typeof route.query.new !== 'string' && !resume()) {
   margin: 0;
   padding-left: var(--space-5);
   font-size: var(--text-sm);
+}
+/*
+ * Phones in landscape: the height is scarce, so the status and the toolbar move into a
+ * narrow column beside the table, and the table gets the full height.
+ */
+@media (orientation: landscape) and (max-height: 540px) {
+  .play {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: var(--space-2) var(--space-3);
+    padding-top: var(--space-2);
+    padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
+  }
+
+  .table-area {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-height: 0;
+  }
+
+  .info {
+    grid-column: 2;
+    grid-row: 1;
+    align-items: safe center;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .hud {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+
+  .hud div:not(.hud__wide) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .hud dd {
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+
+  .toolbar {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(2, var(--tap-min));
+    gap: var(--space-1);
+    justify-content: center;
+    width: auto;
+  }
+
+  .toolbar > * {
+    max-width: none;
+  }
+
+  .toolbar > :not(.toolbar__icon) {
+    grid-column: 1 / -1;
+  }
 }
 </style>
