@@ -1,6 +1,6 @@
 {
   "name": "riddles",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": true,
   "description": "Installable offline puzzle games as a Progressive Web App.",
   "license": "MIT",

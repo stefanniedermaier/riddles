@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.12.0] – 2026-11-25
+
 ### Added
 
 - Four card games on a shared card engine: **Solitaire** (draw 1 or 3, unlimited or limited
@@ -24,11 +26,6 @@ project adheres to [Semantic Versioning](https://semver.org/).
   and number, and networks must not connect. The old 10×12 board was too fiddly on phones;
   saved 10×12 games are discarded.
 - Size budget for all JavaScript/CSS raised from 280 to 360 kB (gzip) for the card games.
-
-### Fixed
-
-- Card games: the rules dialog was partly covered by cards.
-- TriPeaks: the Medium label and the rules say that ace and king do not connect there.
 
 ## [0.11.0] – 2026-11-24
 
