@@ -20,8 +20,9 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Pipes: the Expert level (10×12) is gone – too fiddly on phones. Saved Expert games are
-  discarded.
+- Pipes: Expert is now a 7×8 board with **three sources** – each network has its own colour
+  and number, and networks must not connect. The old 10×12 board was too fiddly on phones;
+  saved 10×12 games are discarded.
 - Size budget for all JavaScript/CSS raised from 280 to 360 kB (gzip) for the card games.
 
 ### Fixed

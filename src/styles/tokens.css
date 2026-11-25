@@ -35,6 +35,8 @@
   --game-shapes: #d6457a;
   --game-mines: #3f7a1f;
   --game-pipes: #0f6fb0;
+  --pipes-source-2: #b45309;
+  --pipes-source-3: #7e22ce;
   --game-watersort: #7c3aed;
   --game-codebreaker: #a3470d;
   --game-solitaire: #b42318;
@@ -112,6 +114,8 @@
   --game-shapes: #f0759f;
   --game-mines: #8fd162;
   --game-pipes: #5cb8f5;
+  --pipes-source-2: #fbbf24;
+  --pipes-source-3: #d8b4fe;
   --game-watersort: #b794ff;
   --game-codebreaker: #f59e5b;
   --game-solitaire: #f87171;

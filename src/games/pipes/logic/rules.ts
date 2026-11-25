@@ -1,7 +1,7 @@
 /**
  * Pipes rules: rotating tiles, water flow from the source, solved detection and hints.
  */
-import { DIRECTIONS, DOWN, LEFT, RIGHT, UP, type PipesPuzzle } from './types'
+import { DIRECTIONS, DOWN, LEFT, RIGHT, UP, sourcesOf, type PipesPuzzle } from './types'
 
 /** The mask turned clockwise by `turns` quarter turns. */
 export function rotate(mask: number, turns: number): number {
@@ -27,26 +27,38 @@ export function masks(puzzle: PipesPuzzle, turns: readonly number[]): number[] {
   return puzzle.solution.map((mask, cell) => rotate(mask, turns[cell]!))
 }
 
-/** Cells reached by water from the source (through matching ends). */
-export function flow(puzzle: PipesPuzzle, turns: readonly number[]): boolean[] {
+/** Water of a cell: index of the source that reaches it, `DRY` or `MIXED` (two sources). */
+export const DRY = -1
+export const MIXED = -2
+
+/** Per cell the source whose water reaches it through matching ends (see `DRY`, `MIXED`). */
+export function colors(puzzle: PipesPuzzle, turns: readonly number[]): number[] {
   const current = masks(puzzle, turns)
-  const reached = current.map(() => false)
-  reached[puzzle.source] = true
-  const queue = [puzzle.source]
-  while (queue.length > 0) {
-    const cell = queue.shift()!
-    for (const dir of DIRECTIONS) {
-      if (!(current[cell]! & dir)) continue
-      const next = step(puzzle.width, puzzle.height, cell, dir)
-      if (next < 0 || reached[next] || !(current[next]! & opposite(dir))) continue
-      reached[next] = true
-      queue.push(next)
+  const color = current.map(() => DRY)
+  sourcesOf(puzzle).forEach((source, index) => {
+    const seen = new Set([source])
+    const queue = [source]
+    while (queue.length > 0) {
+      const cell = queue.shift()!
+      color[cell] = color[cell] === DRY || color[cell] === index ? index : MIXED
+      for (const dir of DIRECTIONS) {
+        if (!(current[cell]! & dir)) continue
+        const next = step(puzzle.width, puzzle.height, cell, dir)
+        if (next < 0 || seen.has(next) || !(current[next]! & opposite(dir))) continue
+        seen.add(next)
+        queue.push(next)
+      }
     }
-  }
-  return reached
+  })
+  return color
 }
 
-/** Every tile is connected and no pipe end is open. */
+/** Cells with water from exactly one source. */
+export function flow(puzzle: PipesPuzzle, turns: readonly number[]): boolean[] {
+  return colors(puzzle, turns).map((color) => color >= 0)
+}
+
+/** Every tile has water from exactly one source and no pipe end is open. */
 export function isSolved(puzzle: PipesPuzzle, turns: readonly number[]): boolean {
   const current = masks(puzzle, turns)
   for (let cell = 0; cell < current.length; cell++) {
