@@ -25,8 +25,8 @@ const hasPlayed = saved !== null || Object.values(getStats('pipes')).some((s) =>
 
 const savedLabel = computed(() => {
   if (!saved) return ''
-  const { difficulty, width, height } = saved.puzzle
-  return `${t(`difficulty.${difficulty}`)} · ${t('pipes.sizeLabel', { width, height })} · ${formatDuration(saved.elapsedMs)}`
+  const { difficulty } = saved.puzzle
+  return `${t(`difficulty.${difficulty}`)} · ${sizeLabel(difficulty)} · ${formatDuration(saved.elapsedMs)}`
 })
 
 const items = computed(() =>

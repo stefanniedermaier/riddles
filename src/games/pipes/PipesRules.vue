@@ -8,6 +8,7 @@ import { t } from '@/core/i18n'
     <li>{{ t('pipes.rules.rotate') }}</li>
     <li>{{ t('pipes.rules.ends') }}</li>
     <li>{{ t('pipes.rules.lock') }}</li>
+    <li>{{ t('pipes.rules.sources') }}</li>
   </ul>
 </template>
 

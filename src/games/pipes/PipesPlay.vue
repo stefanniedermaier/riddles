@@ -20,8 +20,8 @@ import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
 import { DIFFICULTIES, SAVE_KEY, sizeLabel, type Difficulty } from './index'
 import { generatePuzzle } from './logic/generator'
-import { flow, getHint, isSolved } from './logic/rules'
-import { isPipesSave, type PipesPuzzle, type PipesSave } from './logic/types'
+import { colors, getHint, isSolved } from './logic/rules'
+import { isPipesSave, sourcesOf, type PipesPuzzle, type PipesSave } from './logic/types'
 import PipesBoard from './PipesBoard.vue'
 import PipesRules from './PipesRules.vue'
 
@@ -35,10 +35,11 @@ const game = ref<PipesSave | null>(null)
 const stopwatch = useStopwatch(0)
 const highlight = ref<number | null>(null)
 
-const water = computed(() => (game.value ? flow(game.value.puzzle, game.value.turns) : []))
+const water = computed(() => (game.value ? colors(game.value.puzzle, game.value.turns) : []))
+const sources = computed(() => (game.value ? sourcesOf(game.value.puzzle) : []))
 const lockedSet = computed(() => new Set(game.value?.locked ?? []))
 const waterPercent = computed(() =>
-  water.value.length ? Math.round((water.value.filter(Boolean).length / water.value.length) * 100) : 0,
+  water.value.length ? Math.round((water.value.filter((c) => c >= 0).length / water.value.length) * 100) : 0,
 )
 const levelLabel = computed(() =>
   game.value
@@ -312,7 +313,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
         <PipesBoard
           :width="game.puzzle.width"
           :height="game.puzzle.height"
-          :source="game.puzzle.source"
+          :sources="sources"
           :solution="game.puzzle.solution"
           :turns="game.turns"
           :locked="lockedSet"

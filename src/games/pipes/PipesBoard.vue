@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 
 import { t } from '@/core/i18n'
-import { rotate } from './logic/rules'
+import { MIXED, rotate } from './logic/rules'
 import { DIRECTIONS, DOWN, LEFT, RIGHT, UP } from './logic/types'
 
 /** How long a press must be held to lock a tile (ms). */
@@ -11,14 +11,15 @@ const LONG_PRESS_MS = 350
 const props = defineProps<{
   width: number
   height: number
-  source: number
+  /** Source cells; with several, each feeds its own network in its own colour. */
+  sources: readonly number[]
   /** Pipe ends per cell in the solution orientation. */
   solution: readonly number[]
   /** Clockwise quarter turns per cell. */
   turns: readonly number[]
   locked: ReadonlySet<number>
-  /** Cells with water. */
-  water: readonly boolean[]
+  /** Water per cell: source index, `DRY` (-1) or `MIXED` (-2), see `colors()`. */
+  water: readonly number[]
   highlight?: number | null
   disabled?: boolean
   solved?: boolean
@@ -69,8 +70,12 @@ const tiles = computed(() =>
           .join(', '),
       }),
     ]
-    if (cell === props.source) parts.push(t('pipes.play.source'))
-    if (props.water[cell]) parts.push(t('pipes.play.water'))
+    const source = props.sources.indexOf(cell)
+    const water = props.water[cell] ?? -1
+    const several = props.sources.length > 1
+    if (source >= 0) parts.push(several ? t('pipes.play.sourceN', { n: source + 1 }) : t('pipes.play.source'))
+    if (water === MIXED) parts.push(t('pipes.play.mixed'))
+    else if (water >= 0) parts.push(several ? t('pipes.play.waterN', { n: water + 1 }) : t('pipes.play.water'))
     if (props.locked.has(cell)) parts.push(t('pipes.play.locked'))
     return {
       cell,
@@ -78,6 +83,9 @@ const tiles = computed(() =>
       y: Math.floor(cell / props.width),
       path: ends.map((dir) => END[dir]).join(''),
       single: ends.length === 1,
+      source,
+      water,
+      number: several && source >= 0 ? String(source + 1) : '',
       label: parts.join(', '),
     }
   }),
@@ -241,15 +249,20 @@ function onKeydown(event: KeyboardEvent): void {
         <svg class="tile" viewBox="0 0 1 1" aria-hidden="true">
           <g
             class="tile__pipe"
-            :class="{ 'tile__pipe--water': water[tile.cell] }"
+            :class="[
+              tile.water >= 0 && `tile__pipe--water tile__pipe--c${tile.water}`,
+              tile.water === MIXED && 'tile__pipe--water tile__pipe--mixed',
+              tile.source >= 0 && `tile__pipe--s${tile.source}`,
+            ]"
             :style="{ transform: `rotate(${angles[tile.cell] ?? 0}deg)` }"
           >
             <path class="tile__casing" :d="tile.path" />
             <path class="tile__line" :d="tile.path" />
-            <path v-if="water[tile.cell]" class="tile__flow" :d="tile.path" />
-            <circle v-if="tile.cell === source" class="tile__source" cx="0.5" cy="0.5" r="0.27" />
+            <path v-if="tile.water >= 0" class="tile__flow" :d="tile.path" />
+            <circle v-if="tile.source >= 0" class="tile__source" cx="0.5" cy="0.5" r="0.27" />
             <circle v-else-if="tile.single" class="tile__end" cx="0.5" cy="0.5" r="0.17" />
           </g>
+          <text v-if="tile.number" class="tile__number" x="0.5" y="0.5">{{ tile.number }}</text>
         </svg>
       </div>
     </div>
@@ -352,18 +365,64 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .tile__source {
-  fill: var(--game-pipes);
+  fill: var(--source);
   stroke: var(--pipe-casing);
   stroke-width: 0.06;
 }
 
+.tile__number {
+  fill: var(--color-surface);
+  font-size: 0.32px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+/* One colour per source; the first is the game colour (single-source boards look as before). */
+.tile__pipe {
+  --source: var(--game-pipes);
+  --water: var(--game-pipes);
+}
+
+.tile__pipe--s1 {
+  --source: var(--pipes-source-2);
+}
+
+.tile__pipe--s2 {
+  --source: var(--pipes-source-3);
+}
+
+.tile__pipe--c1 {
+  --water: var(--pipes-source-2);
+}
+
+.tile__pipe--c2 {
+  --water: var(--pipes-source-3);
+}
+
+.tile__pipe--mixed {
+  --water: var(--color-error);
+}
+
 .tile__pipe--water .tile__line {
-  stroke: var(--game-pipes);
+  stroke: var(--water);
 }
 
 .tile__pipe--water .tile__end {
-  fill: var(--game-pipes);
-  stroke: var(--game-pipes);
+  fill: var(--water);
+  stroke: var(--water);
+}
+
+/* Not by colour alone (WCAG 1.4.1): the core line differs per source; mixed water has none. */
+.tile__pipe--c1 .tile__flow {
+  stroke-dasharray: 0.12 0.08;
+  stroke-linecap: butt;
+}
+
+.tile__pipe--c2 .tile__flow {
+  stroke-width: 0.08;
+  stroke-dasharray: 0 0.14;
 }
 
 .cell--pressing::after {

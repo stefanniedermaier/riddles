@@ -6,8 +6,11 @@ export const SIZES: Record<Difficulty, { width: number; height: number }> = {
   easy: { width: 5, height: 5 },
   medium: { width: 7, height: 7 },
   hard: { width: 8, height: 10 },
-  expert: { width: 10, height: 12 },
+  expert: { width: 7, height: 8 },
 }
+
+/** Number of sources (separate networks) per difficulty. */
+export const SOURCE_COUNT: Record<Difficulty, number> = { easy: 1, medium: 1, hard: 1, expert: 3 }
 
 /** Pipe ends as bits: up, right, down, left. */
 export const UP = 1
@@ -21,8 +24,10 @@ export interface PipesPuzzle {
   difficulty: Difficulty
   width: number
   height: number
-  /** The cell holding the source. */
+  /** The cell holding the (first) source. */
   source: number
+  /** All sources when there are several (first = `source`); absent: only `source`. */
+  sources?: number[]
   /** Pipe ends per cell in the generated solution (bit mask, see `UP` …). */
   solution: number[]
   /** Clockwise quarter turns per cell at the start (relative to the solution). */
@@ -41,6 +46,9 @@ export interface PipesSave {
   undo: number[]
 }
 
+/** All sources of a puzzle. */
+export const sourcesOf = (puzzle: PipesPuzzle): number[] => puzzle.sources ?? [puzzle.source]
+
 function isDifficulty(value: unknown): value is Difficulty {
   return (DIFFICULTIES as readonly unknown[]).includes(value)
 }
@@ -54,6 +62,19 @@ export function isPipesPuzzle(value: unknown): value is PipesPuzzle {
   if (!isInt(p.seed) || !isDifficulty(p.difficulty) || !isInt(p.width) || !isInt(p.height)) return false
   if (p.width < 2 || p.height < 2 || p.width * p.height > 400) return false
   const total = p.width * p.height
+  if (p.width !== SIZES[p.difficulty].width || p.height !== SIZES[p.difficulty].height) return false
+  if (
+    p.sources !== undefined &&
+    !(
+      Array.isArray(p.sources) &&
+      p.sources.length >= 1 &&
+      p.sources.length <= 4 &&
+      p.sources[0] === p.source &&
+      p.sources.every((cell) => inRange(cell, total)) &&
+      new Set(p.sources).size === p.sources.length
+    )
+  )
+    return false
   return (
     inRange(p.source, total) &&
     Array.isArray(p.solution) &&

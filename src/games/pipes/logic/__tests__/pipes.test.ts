@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { generatePuzzle } from '../generator'
-import { flow, getHint, isRight, isSolved, masks, opposite, rotate, step } from '../rules'
-import { DIFFICULTIES, DIRECTIONS, DOWN, LEFT, RIGHT, SIZES, UP, isPipesPuzzle, type PipesPuzzle } from '../types'
+import { MIXED, colors, flow, getHint, isRight, isSolved, masks, opposite, rotate, step } from '../rules'
+import { DIFFICULTIES, DIRECTIONS, DOWN, LEFT, RIGHT, SIZES, SOURCE_COUNT, UP, isPipesPuzzle, isPipesSave, sourcesOf, type PipesPuzzle } from '../types'
 
 const edgesOf = (puzzle: PipesPuzzle) =>
   puzzle.solution.reduce((sum, mask) => sum + DIRECTIONS.filter((dir) => mask & dir).length, 0) / 2
@@ -56,7 +56,8 @@ describe('pipes generator', () => {
         expect(puzzle.height).toBe(SIZES[difficulty].height)
         const zero = puzzle.solution.map(() => 0)
         expect(isSolved(puzzle, zero)).toBe(true) // connected, no open end
-        expect(edgesOf(puzzle)).toBe(puzzle.solution.length - 1) // a tree
+        expect(sourcesOf(puzzle)).toHaveLength(SOURCE_COUNT[difficulty])
+        expect(edgesOf(puzzle)).toBe(puzzle.solution.length - SOURCE_COUNT[difficulty]) // one tree per source
         expect(isSolved(puzzle, puzzle.scramble)).toBe(false)
         const off = puzzle.solution.filter((_, cell) => !isRight(puzzle, puzzle.scramble, cell)).length
         expect(off).toBeGreaterThanOrEqual(puzzle.solution.length / 2)
@@ -76,7 +77,53 @@ describe('pipes generator', () => {
         const p = generatePuzzle(difficulty, seed)
         return sum + p.solution.filter((m) => DIRECTIONS.filter((d) => m & d).length >= 3).length / p.solution.length
       }, 0)
-    expect(tees('expert')).toBeGreaterThan(tees('easy'))
+    expect(tees('hard')).toBeGreaterThan(tees('easy'))
+  })
+})
+
+describe('pipes with several sources', () => {
+  // 3×1: source 1 ─ end piece ─ source 2; the end piece joins the left source only.
+  const puzzle: PipesPuzzle = {
+    seed: 0,
+    difficulty: 'easy',
+    width: 3,
+    height: 1,
+    source: 0,
+    sources: [0, 2],
+    solution: [RIGHT, LEFT, LEFT],
+    scramble: [0, 0, 0],
+  }
+
+  it('colours water per source and marks mixed water', () => {
+    expect(colors(puzzle, [0, 0, 0])).toEqual([0, 0, 1])
+    expect(isSolved(puzzle, [0, 0, 0])).toBe(false) // the right source's end is open
+    // With a straight piece in the middle both sources connect: the water mixes.
+    const straight: PipesPuzzle = { ...puzzle, solution: [RIGHT, LEFT | RIGHT, LEFT] }
+    expect(colors(straight, [0, 0, 0])).toEqual([MIXED, MIXED, MIXED])
+    expect(flow(straight, [0, 0, 0])).toEqual([false, false, false])
+    expect(isSolved(straight, [0, 0, 0])).toBe(false)
+  })
+
+  it('generates spread-out sources with balanced networks that are solved by the solution', () => {
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const p = generatePuzzle('expert', seed)
+      const [a, b, c] = sourcesOf(p)
+      const dist = (x: number, y: number) =>
+        Math.abs(Math.floor(x / p.width) - Math.floor(y / p.width)) + Math.abs((x % p.width) - (y % p.width))
+      expect(Math.min(dist(a!, b!), dist(a!, c!), dist(b!, c!))).toBeGreaterThanOrEqual(4)
+      const zero = p.solution.map(() => 0)
+      const water = colors(p, zero)
+      expect(water.every((color) => color >= 0)).toBe(true)
+      for (const index of [0, 1, 2]) expect(water.filter((color) => color === index).length).toBeGreaterThanOrEqual(10)
+    }
+  })
+
+  it('accepts saves without `sources` and rejects boards of the wrong size', () => {
+    const base = generatePuzzle('medium', 3)
+    const save = { puzzle: base, turns: base.scramble, locked: [], moves: 0, elapsedMs: 0, hintsUsed: 0, undo: [] }
+    expect(isPipesSave(save)).toBe(true)
+    expect(isPipesSave({ ...save, puzzle: { ...base, difficulty: 'expert' } })).toBe(false)
+    expect(isPipesPuzzle({ ...base, sources: [base.source + 1] })).toBe(false)
   })
 })
 

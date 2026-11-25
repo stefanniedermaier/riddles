@@ -22,8 +22,10 @@ all data on the device. Every level is generated on the fly.
 | 12 | [Blocks](12-blocks.md)                       | Block-placing puzzle: three pieces, clear rows and columns     |
 | 13 | [Mines](13-minesweeper.md)                   | Minesweeper without guessing: pre-opened start, logic solver  |
 | 14 | [Pipes](14-pipes.md)                         | Rotation puzzle: spanning tree, flow, locks                   |
+| 18 | [Pipes: several sources](18-pipes-colors.md) | Expert with three sources, spanning forest, mixed water       |
 | 15 | [Water Sort](15-water-sort.md)               | Colour sorting with a solver-checked generator and hints      |
 | 16 | [Code Breaker](16-code-breaker.md)           | Code breaking with consistent-code hints                      |
+| 17 | [Card games](17-card-games.md)               | Solitaire, Spider, FreeCell, TriPeaks on a shared engine; points, pass limits |
 
 ## Decisions (from the kick-off wizard)
 

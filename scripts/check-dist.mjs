@@ -17,8 +17,11 @@ import { gzipSync } from 'node:zlib'
 const BUDGET_KB = {
   /** JavaScript and CSS referenced by index.html (needed before the first paint). */
   initial: 100,
-  /** All JavaScript and CSS, including lazily loaded games (precached for offline use). */
-  total: 280,
+  /**
+   * All JavaScript and CSS, including lazily loaded games (precached for offline use).
+   * Raised from 280 to 360 kB for the four card games on a shared engine (plan 17).
+   */
+  total: 360,
 }
 
 const dist = process.argv[2] ?? 'dist'
