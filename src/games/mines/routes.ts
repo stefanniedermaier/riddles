@@ -1,14 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
+import { standardRoutes } from '../routes'
 
-export const routes: RouteRecordRaw[] = [
-  {
-    path: '/mines',
-    name: 'mines',
-    component: () => import('./MinesLobby.vue'),
-  },
-  {
-    path: '/mines/play',
-    name: 'mines-play',
-    component: () => import('./MinesPlay.vue'),
-  },
-]
+export const routes = standardRoutes(
+  'mines',
+  () => import('./MinesLobby.vue'),
+  () => import('./MinesPlay.vue'),
+)

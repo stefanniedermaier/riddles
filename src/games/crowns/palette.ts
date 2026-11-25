@@ -5,7 +5,7 @@
  * distinct colours come first, so small grids only use those. Regions are also separated by
  * thick borders, so colour is never the only cue.
  */
-export const REGION_COLORS = {
+const REGION_COLORS = {
   light: [
     '#eb4773', // red
     '#47c2eb', // blue

@@ -4,6 +4,7 @@
  * Shares via the device's share sheet (Web Share API) or, where that is not available,
  * copies the text and link to the clipboard.
  */
+import type { GameId } from '@/games/types'
 import { computed, getCurrentInstance } from 'vue'
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 
@@ -60,7 +61,7 @@ export async function shareApp(title: string, text: string): Promise<ShareOutcom
 
 /** What a finished game shares: game, variant (difficulty/mode) and the result. */
 export interface ResultShare {
-  game: string
+  game: GameId
   /** Statistics variant, e.g. `easy`, `mini-hard`, `4x4`, `draw1`. */
   variant: string
   /** Formatted result (time like `3:09` or points like `12,340`), if any. */
@@ -109,4 +110,13 @@ export function useCurrentRoute() {
   return computed(
     () => (instance?.proxy as { $route?: RouteLocationNormalizedLoaded } | null)?.$route,
   )
+}
+
+/** Variant named by the `challenge` query of the current route (a shared result link). */
+export function useChallengeVariant() {
+  const route = useCurrentRoute()
+  return computed(() => {
+    const challenge = route.value?.query.challenge
+    return typeof challenge === 'string' ? challenge : undefined
+  })
 }

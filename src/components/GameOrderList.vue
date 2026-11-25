@@ -6,6 +6,7 @@ import { gameLayout, moveGame, orderedGames, setGameEnabled, visibleGames } from
 import type { GameId } from '@/games/types'
 import AppIcon from './AppIcon.vue'
 import GameArt from './GameArt.vue'
+import SwitchControl from './SwitchControl.vue'
 
 /**
  * Settings list to enable/disable games and change their order by drag & drop
@@ -198,17 +199,12 @@ function rowStyle(id: GameId): Record<string, string> | undefined {
         </button>
         <GameArt :game="game.id" class="order__art" />
         <span class="order__name">{{ t(`${game.id}.name`) }}</span>
-        <label class="order__switch">
-          <input
-            type="checkbox"
-            role="switch"
-            :checked="isEnabled(game.id)"
-            :disabled="isEnabled(game.id) && enabledCount <= 1"
-            :aria-label="t('settings.gameShow', { game: t(`${game.id}.name`) })"
-            @change="setGameEnabled(game.id, ($event.target as HTMLInputElement).checked)"
-          />
-          <span class="order__track" aria-hidden="true" />
-        </label>
+        <SwitchControl
+          :model-value="isEnabled(game.id)"
+          :disabled="isEnabled(game.id) && enabledCount <= 1"
+          :aria-label="t('settings.gameShow', { game: t(`${game.id}.name`) })"
+          @update:model-value="setGameEnabled(game.id, $event)"
+        />
       </li>
     </TransitionGroup>
 
@@ -223,16 +219,11 @@ function rowStyle(id: GameId): Record<string, string> | undefined {
           <span class="order__handle order__handle--none" aria-hidden="true" />
           <GameArt :game="game.id" class="order__art" />
           <span class="order__name">{{ t(`${game.id}.name`) }}</span>
-          <label class="order__switch">
-            <input
-              type="checkbox"
-              role="switch"
-              :checked="false"
-              :aria-label="t('settings.gameShow', { game: t(`${game.id}.name`) })"
-              @change="setGameEnabled(game.id, ($event.target as HTMLInputElement).checked)"
-            />
-            <span class="order__track" aria-hidden="true" />
-          </label>
+          <SwitchControl
+            :model-value="false"
+            :aria-label="t('settings.gameShow', { game: t(`${game.id}.name`) })"
+            @update:model-value="setGameEnabled(game.id, $event)"
+          />
         </li>
       </ul>
     </details>
@@ -359,77 +350,5 @@ function rowStyle(id: GameId): Record<string, string> | undefined {
   flex: 1;
   min-width: 0;
   font-weight: 700;
-}
-
-.order__switch {
-  position: relative;
-  display: inline-flex;
-  cursor: pointer;
-}
-
-.order__switch input {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.order__switch input:disabled {
-  cursor: not-allowed;
-}
-
-.order__track {
-  position: relative;
-  flex: none;
-  box-sizing: border-box;
-  width: 52px;
-  height: 32px;
-  /* Material 3 switch, square (design guide): outlined track and a small thumb when off,
-    filled track and a large thumb when on. */
-  border: 2px solid color-mix(in srgb, var(--color-text) 45%, transparent);
-  border-radius: 0;
-  background: var(--color-surface-3);
-  transition:
-    background-color var(--dur-fast) var(--ease-standard),
-    border-color var(--dur-fast) var(--ease-standard);
-}
-
-.order__track::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 6px;
-  width: 16px;
-  height: 16px;
-  border-radius: 0;
-  background: color-mix(in srgb, var(--color-text) 55%, transparent);
-  transform: translateY(-50%);
-  transition:
-    left var(--dur-med) var(--ease-emphasized),
-    width var(--dur-med) var(--ease-emphasized),
-    height var(--dur-med) var(--ease-emphasized),
-    background-color var(--dur-fast);
-}
-
-.order__switch input:checked + .order__track {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-}
-
-.order__switch input:checked + .order__track::after {
-  left: 22px;
-  width: 24px;
-  height: 24px;
-  background: var(--color-on-accent);
-}
-
-.order__switch input:disabled + .order__track {
-  opacity: 0.38;
-}
-
-.order__switch input:focus-visible + .order__track {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
 }
 </style>

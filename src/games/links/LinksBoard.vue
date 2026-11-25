@@ -115,6 +115,77 @@ function finish(event: PointerEvent): void {
   lastCell = -1
   emit('end')
 }
+
+// --- Keyboard input: a cursor; Enter/Space starts and ends a line, arrows draw ------
+
+const cursor = ref(0)
+const drawing = ref(false)
+
+/** Dot colour per cell, -1 if none. */
+const dotAt = computed(() => {
+  const dots = new Array<number>(total.value).fill(-1)
+  for (const e of props.endpoints) dots[e.a] = dots[e.b] = e.color
+  return dots
+})
+
+function cellLabel(cell: number): string {
+  const n = props.size
+  const parts = [t('links.play.cell', { row: Math.floor(cell / n) + 1, col: (cell % n) + 1 })]
+  const dot = dotAt.value[cell]!
+  const owner = owners.value[cell]!
+  if (dot >= 0) parts.push(t('links.play.dot', { color: colorLabel(dot) }))
+  else if (owner >= 0) parts.push(t('links.play.line', { color: colorLabel(owner) }))
+  return parts.join(', ')
+}
+
+function stopDrawing(): void {
+  if (!drawing.value) return
+  drawing.value = false
+  emit('end')
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (props.disabled) return
+  const n = props.size
+  let r = Math.floor(cursor.value / n)
+  let c = cursor.value % n
+  switch (event.key) {
+    case 'ArrowUp':
+      r = Math.max(0, r - 1)
+      break
+    case 'ArrowDown':
+      r = Math.min(n - 1, r + 1)
+      break
+    case 'ArrowLeft':
+      c = Math.max(0, c - 1)
+      break
+    case 'ArrowRight':
+      c = Math.min(n - 1, c + 1)
+      break
+    case ' ':
+    case 'Enter':
+      event.preventDefault()
+      if (drawing.value) stopDrawing()
+      else {
+        drawing.value = true
+        emit('start', cursor.value)
+      }
+      return
+    case 'Escape':
+      if (!drawing.value) return
+      event.preventDefault()
+      event.stopPropagation()
+      stopDrawing()
+      return
+    default:
+      return
+  }
+  event.preventDefault()
+  const next = r * n + c
+  if (next === cursor.value) return
+  cursor.value = next
+  if (drawing.value) emit('move', next)
+}
 </script>
 
 <template>
@@ -125,11 +196,14 @@ function finish(event: PointerEvent): void {
     :style="{ '--n': size }"
     role="grid"
     :aria-label="t('links.play.board', { size })"
+    tabindex="0"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
     @pointerup="finish"
     @pointercancel="finish"
     @lostpointercapture="finish"
+    @keydown="onKeydown"
+    @blur="stopDrawing"
     @contextmenu.prevent
   >
     <div
@@ -138,6 +212,8 @@ function finish(event: PointerEvent): void {
       class="cell"
       role="gridcell"
       :data-cell="cell - 1"
+      :aria-label="cellLabel(cell - 1)"
+      :aria-selected="drawing && cursor === cell - 1 ? true : undefined"
       :style="cellStyle(cell - 1)"
     />
 
@@ -163,6 +239,15 @@ function finish(event: PointerEvent): void {
           {{ colorLabel(dot.color) }}
         </text>
       </g>
+      <!-- Keyboard cursor (shown while the board has keyboard focus); solid while drawing. -->
+      <rect
+        class="cursor"
+        :class="{ 'cursor--drawing': drawing }"
+        :x="(cursor % size) + 0.06"
+        :y="Math.floor(cursor / size) + 0.06"
+        width="0.88"
+        height="0.88"
+      />
     </svg>
   </div>
 </template>
@@ -202,6 +287,22 @@ function finish(event: PointerEvent): void {
   border-right: 1px solid var(--links-grid);
   border-bottom: 1px solid var(--links-grid);
   transition: background-color var(--dur-fast);
+}
+
+.cursor {
+  display: none;
+  fill: none;
+  stroke: var(--color-text);
+  stroke-width: 0.08;
+  stroke-dasharray: 0.16 0.1;
+}
+
+.links-board:focus-visible .cursor {
+  display: block;
+}
+
+.cursor--drawing {
+  stroke-dasharray: none;
 }
 
 .overlay {

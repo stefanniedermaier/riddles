@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 
-import { t } from '@/core/i18n'
+import { gameName, t } from '@/core/i18n'
 import { appUrl, challengeUrl, isApplePlatform, shareLink, type ResultShare } from '@/core/share'
 import { renderResultCard, svgToImage } from '@/core/shareImage'
 import { showToast } from '@/core/toast'
-import type { GameDescriptor, GameId } from '@/games/types'
+import type { GameDescriptor } from '@/games/types'
 import AppButton from './AppButton.vue'
 import AppDialog from './AppDialog.vue'
 import AppIcon from './AppIcon.vue'
@@ -23,8 +23,8 @@ import type { IconName } from './icons'
  *
  * With `share`, a "Share result" button sends a challenge link (game lobby + difficulty +
  * result) to the share sheet, or copies it. An image of the result (trophy, game logo,
- * difficulty, result, "personal best" badge) is prepared when the dialog opens, shown as a
- * preview and shared along where the device can share files.
+ * difficulty, result, "personal best" badge) is prepared when the dialog opens and shared
+ * along where the device can share files; it is not shown in the dialog (no scrolling).
  */
 const props = withDefaults(
   defineProps<{
@@ -81,7 +81,7 @@ const shareInfo = computed(() => {
   if (!share) return null
   const game = descriptor.value?.id === share.game ? descriptor.value : null
   const params = {
-    game: t(`${share.game}.name` as 'sudoku.name'),
+    game: gameName(share.game),
     variant: game?.variantLabel(share.variant) ?? share.variant,
     result: share.result ?? '',
   }
@@ -97,11 +97,8 @@ const shareInfo = computed(() => {
 
 const artSource = ref<HTMLElement | null>(null)
 const imageFile = shallowRef<File | null>(null)
-const previewUrl = ref<string | null>(null)
 
 function dropImage(): void {
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
-  previewUrl.value = null
   imageFile.value = null
 }
 
@@ -131,8 +128,8 @@ async function prepareImage(): Promise<void> {
   // The dialog may have closed (or the game changed) while drawing.
   if (!blob || !props.open || props.share?.game !== share.game) return
   dropImage()
+  // Not shown in the dialog (it would make it scroll on phones) – it goes along when sharing.
   imageFile.value = new File([blob], `riddles-${share.game}.png`, { type: 'image/png' })
-  previewUrl.value = URL.createObjectURL(blob)
 }
 
 watch(
@@ -168,7 +165,7 @@ async function shareResult(): Promise<void> {
 </script>
 
 <template>
-  <AppDialog :open="open" :dismissible="false" @close="emit('close')">
+  <AppDialog :open="open" :label="title" :dismissible="false" @close="emit('close')">
     <div class="result" :class="festive ? 'result--festive' : 'result--gloomy'">
       <div class="result__icon-wrap" aria-hidden="true">
         <span v-if="festive" class="result__rays" />
@@ -182,7 +179,7 @@ async function shareResult(): Promise<void> {
           />
         </svg>
         <div class="result__icon">
-          <AppIcon :name="icon" :size="festive ? 40 : 36" />
+          <AppIcon :name="icon" :size="festive ? 34 : 32" />
         </div>
       </div>
       <h2 class="result__title">{{ title }}</h2>
@@ -208,25 +205,20 @@ async function shareResult(): Promise<void> {
         </div>
       </dl>
       <template v-if="share && festive">
-        <img
-          v-if="previewUrl"
-          :src="previewUrl"
-          class="result__preview"
-          :alt="shareInfo?.text"
-          width="160"
-          height="160"
-        />
-        <AppButton class="result__share" :icon="shareIcon" block @click="shareResult">
-          {{ t('share.result') }}
-        </AppButton>
         <!-- Source of the game logo for the image (drawn from the rendered SVG). -->
         <div ref="artSource" class="result__art-source theme-light" aria-hidden="true">
-          <GameArt :game="share.game as GameId" />
+          <GameArt :game="share.game" />
         </div>
       </template>
     </div>
     <template #actions>
-      <slot name="actions" />
+      <!-- Main action across the full width, the others side by side: no scrolling on phones. -->
+      <div class="result__actions">
+        <slot name="actions" />
+        <AppButton v-if="share && festive" class="result__share" :icon="shareIcon" block @click="shareResult">
+          {{ t('share.result') }}
+        </AppButton>
+      </div>
     </template>
   </AppDialog>
   <CelebrationBurst :active="open" :mood="festive ? 'win' : 'lose'" />
@@ -245,7 +237,7 @@ async function shareResult(): Promise<void> {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .result__icon {
@@ -292,43 +284,51 @@ async function shareResult(): Promise<void> {
   font-weight: 700;
 }
 
+/* Two columns of label-over-value pairs: half the height of a one-column table. */
 .result__rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--space-4);
   width: 100%;
-  margin: var(--space-4) 0 0;
+  margin: var(--space-3) 0 0;
+  text-align: left;
 }
 
 .result__row {
   display: flex;
-  justify-content: space-between;
-  padding: var(--space-2) 0;
+  flex-direction: column;
+  min-width: 0;
+  padding: 6px 0;
   border-bottom: 1px solid var(--color-border);
 }
 
 .result__row dt {
   color: var(--color-text-muted);
+  font-size: var(--text-xs);
 }
 
 .result__row dd {
+  overflow: hidden;
   margin: 0;
   font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+/* The first action (play again, next level …) spans the row; a last one left alone too. */
+.result__actions > :deep(:first-child),
+.result__actions > :deep(:last-child:nth-child(even)) {
+  grid-column: 1 / -1;
 }
 
 .result__value--highlight {
   color: var(--color-success);
-}
-
-.result__share {
-  margin-top: var(--space-3);
-}
-
-/* Preview of the shared image (square, elevation 1). */
-.result__preview {
-  display: block;
-  width: 160px;
-  height: 160px;
-  margin-top: var(--space-4);
-  box-shadow: var(--elevation-1);
-  animation: row-in 0.4s var(--ease-out) both;
 }
 
 .result__art-source {
@@ -342,14 +342,14 @@ async function shareResult(): Promise<void> {
 /* --- Celebration ------------------------------------------------------------------ */
 
 .result--festive .result__icon {
-  width: 76px;
-  height: 76px;
+  width: 64px;
+  height: 64px;
   border: 3px solid #fff;
-  background: radial-gradient(circle at 35% 30%, #fff6b0, #ffc21a 55%, #e08a00);
+  background: radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold) 55%, #e08a00);
   box-shadow:
-    0 0 0 3px #e3a000,
-    0 6px 16px rgb(200 120 0 / 45%),
-    inset 0 -4px 0 rgb(150 70 0 / 25%);
+    0 0 0 3px var(--gold-deep),
+    inset 0 -4px 0 rgb(150 70 0 / 25%),
+    var(--elevation-2);
   color: #fff;
   filter: drop-shadow(0 0 1px rgb(120 60 0 / 60%));
   animation: icon-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s both;
@@ -358,8 +358,8 @@ async function shareResult(): Promise<void> {
 /* Soft golden rays turning behind the icon. */
 .result__rays {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
   background: repeating-conic-gradient(rgb(255 200 40 / 38%) 0 10deg, transparent 10deg 24deg);
   -webkit-mask: radial-gradient(circle, #000 25%, transparent 68%);
@@ -374,7 +374,7 @@ async function shareResult(): Promise<void> {
 }
 
 .result--festive .result__star--on {
-  color: #ffc21a;
+  color: var(--gold);
   filter: drop-shadow(0 2px 0 #c77800) drop-shadow(0 0 6px rgb(255 200 40 / 70%));
   animation: star-pop 0.5s cubic-bezier(0.3, 1.8, 0.5, 1) calc(0.45s + var(--i) * 0.2s) both;
 }
@@ -441,8 +441,8 @@ async function shareResult(): Promise<void> {
   background: radial-gradient(circle at 35% 30%, #c9d3e3, #7d8ca6 60%, #56627a);
   box-shadow:
     0 0 0 3px #5d6a82,
-    0 6px 14px rgb(40 50 70 / 35%),
-    inset 0 -4px 0 rgb(20 30 50 / 25%);
+    inset 0 -4px 0 rgb(20 30 50 / 25%),
+    var(--elevation-2);
   color: #fff;
   animation: icon-drop 0.75s cubic-bezier(0.3, 1.4, 0.5, 1) both;
 }

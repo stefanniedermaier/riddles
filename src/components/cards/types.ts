@@ -1,3 +1,4 @@
+import type { GameId } from '@/games/types'
 import type { Ref } from 'vue'
 
 import type { CardDef, Slot } from '@/core/cards/cards'
@@ -39,7 +40,7 @@ interface HudItem {
  */
 export interface CardGameDef<S, M, V extends string> {
   /** Game id (route names `<id>` and `<id>-play`, storage prefix, i18n namespace). */
-  id: string
+  id: GameId
   rules: CardRules<S, M, V>
   deck(variant: V): readonly CardDef[]
   /** Width of the table in card widths. */

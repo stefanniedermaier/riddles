@@ -1,6 +1,6 @@
 /** Geometry helpers: cells of rows/columns and clues of lines. */
 
-export type LineKind = 'row' | 'col'
+type LineKind = 'row' | 'col'
 
 export interface LineRef {
   kind: LineKind

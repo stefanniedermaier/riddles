@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useId } from 'vue'
+import { ensureSvgDefs } from '@/core/svgDefs'
 
 /**
  * Original artwork for level obstacles (viewBox 0–100), used on the board and in the HUD.
@@ -10,13 +10,12 @@ import { useId } from 'vue'
 defineProps<{ type: 'target' | 'crate' | 'chain'; hp?: number }>()
 
 const LINKS = [10, 30, 50, 70, 90]
-const uid = useId()
-const soilId = `soil-${uid}`
-const steelId = `steel-${uid}`
-const goldId = `gold-${uid}`
-const woodId = `wood-${uid}`
-const frameId = `frame-${uid}`
-const metalId = `metal-${uid}`
+const soilId = 'ob-soil'
+const steelId = 'ob-steel'
+const goldId = 'ob-gold'
+const woodId = 'ob-wood'
+const frameId = 'ob-frame'
+const metalId = 'ob-metal'
 
 /** Light specks in the soil. */
 const SPECKS: [number, number, number][] = [
@@ -36,18 +35,43 @@ const CORNERS = [
   'M97 72v17a8 8 0 0 1-8 8H72V87h15V72z',
   'M28 97H11a8 8 0 0 1-8-8V72h10v15h15z',
 ]
+
+/** Gradients shared by every instance on the page (core/svgDefs.ts). */
+ensureSvgDefs('obstacle-defs', `
+<radialGradient id="ob-soil" cx="0.4" cy="0.35" r="0.8">
+<stop offset="0" stop-color="#9a6a3e" />
+<stop offset="0.6" stop-color="#7a4d26" />
+<stop offset="1" stop-color="#55331a" />
+</radialGradient>
+<linearGradient id="ob-wood" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#d9994f" />
+<stop offset="0.5" stop-color="#c07a35" />
+<stop offset="1" stop-color="#9c5d24" />
+</linearGradient>
+<linearGradient id="ob-frame" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#b06a2a" />
+<stop offset="1" stop-color="#7a4518" />
+</linearGradient>
+<linearGradient id="ob-metal" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#d7dde7" />
+<stop offset="0.45" stop-color="#8d96a6" />
+<stop offset="1" stop-color="#555d6c" />
+</linearGradient>
+<linearGradient id="ob-steel" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffffff" />
+<stop offset="0.45" stop-color="#c3cad6" />
+<stop offset="1" stop-color="#7c8698" />
+</linearGradient>
+<radialGradient id="ob-gold" cx="0.35" cy="0.3" r="0.8">
+<stop offset="0" stop-color="#fff3a8" />
+<stop offset="0.5" stop-color="#ffbf1f" />
+<stop offset="1" stop-color="#c77800" />
+</radialGradient>`)
 </script>
 
 <template>
   <svg class="obstacle" :class="`obstacle--${type}`" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
     <template v-if="type === 'target'">
-      <defs>
-        <radialGradient :id="soilId" cx="0.4" cy="0.35" r="0.8">
-          <stop offset="0" stop-color="#9a6a3e" />
-          <stop offset="0.6" stop-color="#7a4d26" />
-          <stop offset="1" stop-color="#55331a" />
-        </radialGradient>
-      </defs>
       <rect x="3" y="3" width="94" height="94" rx="18" :fill="`url(#${soilId})`" class="soil" />
       <circle v-for="([x, y, r], i) in SPECKS" :key="i" :cx="x" :cy="y" :r="r" class="soil__speck" />
       <rect x="3" y="3" width="94" height="94" rx="18" class="soil__rim" />
@@ -61,22 +85,6 @@ const CORNERS = [
     </template>
 
     <template v-else-if="type === 'crate'">
-      <defs>
-        <linearGradient :id="woodId" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#d9994f" />
-          <stop offset="0.5" stop-color="#c07a35" />
-          <stop offset="1" stop-color="#9c5d24" />
-        </linearGradient>
-        <linearGradient :id="frameId" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#b06a2a" />
-          <stop offset="1" stop-color="#7a4518" />
-        </linearGradient>
-        <linearGradient :id="metalId" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#d7dde7" />
-          <stop offset="0.45" stop-color="#8d96a6" />
-          <stop offset="1" stop-color="#555d6c" />
-        </linearGradient>
-      </defs>
       <!-- Back panel: three planks with dark gaps and a little grain. -->
       <rect x="5" y="5" width="90" height="90" rx="7" class="crate__shadow" />
       <rect x="5" y="5" width="90" height="90" rx="7" :fill="`url(#${woodId})`" />
@@ -127,18 +135,6 @@ const CORNERS = [
     </template>
 
     <template v-else>
-      <defs>
-        <linearGradient :id="steelId" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#ffffff" />
-          <stop offset="0.45" stop-color="#c3cad6" />
-          <stop offset="1" stop-color="#7c8698" />
-        </linearGradient>
-        <radialGradient :id="goldId" cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stop-color="#fff3a8" />
-          <stop offset="0.5" stop-color="#ffbf1f" />
-          <stop offset="1" stop-color="#c77800" />
-        </radialGradient>
-      </defs>
       <g v-for="(direction, d) in [45, -45]" :key="d" :transform="`rotate(${direction} 50 50)`">
         <template v-for="(x, i) in LINKS" :key="i">
           <rect
@@ -210,7 +206,7 @@ const CORNERS = [
 
 .daisy {
   fill: #fff;
-  stroke: #ffc21a;
+  stroke: var(--gold);
   stroke-width: 1.6;
 }
 

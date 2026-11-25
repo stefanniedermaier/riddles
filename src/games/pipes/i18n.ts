@@ -15,12 +15,6 @@ export const en = {
     lock: 'Press and hold (or right-click) a tile to lock it, so it cannot be turned by mistake.',
     sources: 'Expert has three numbered sources, each with its own colour. Every pipe needs water from exactly one source – if two networks connect, the water mixes (red) and the puzzle is not solved.',
   },
-  lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new puzzle?',
-    confirmNew: 'Your current puzzle will be lost.',
-    start: 'Start',
-  },
   play: {
     moves: 'Moves',
     connected: 'Water',
@@ -66,12 +60,6 @@ export const de: Messages<typeof en> = {
     ends: 'Gelöst, wenn jede Kachel Wasser hat und kein Rohr offen endet oder aus dem Feld zeigt.',
     lock: 'Halte eine Kachel gedrückt (oder Rechtsklick), um sie zu sperren – dann dreht sie sich nicht aus Versehen.',
     sources: 'Experte hat drei nummerierte Quellen mit je eigener Farbe. Jedes Rohr braucht Wasser aus genau einer Quelle – verbinden sich zwei Netze, mischt sich das Wasser (rot) und das Rätsel ist nicht gelöst.',
-  },
-  lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neues Rätsel starten?',
-    confirmNew: 'Dein aktuelles Rätsel geht verloren.',
-    start: 'Starten',
   },
   play: {
     moves: 'Züge',

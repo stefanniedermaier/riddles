@@ -1,3 +1,4 @@
+import { isCellHistory, type CellUndoStep } from '@/core/history'
 export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
@@ -24,6 +25,9 @@ export const FILLED = 1
 export const CROSSED = 2
 export type CellMark = typeof UNKNOWN | typeof FILLED | typeof CROSSED
 
+const isCellMark = (value: unknown): value is CellMark =>
+  value === UNKNOWN || value === FILLED || value === CROSSED
+
 export type Tool = 'fill' | 'cross'
 
 export interface NonogramPuzzle {
@@ -39,14 +43,8 @@ export interface NonogramPuzzle {
   passes: number
 }
 
-export interface CellChange {
-  cell: number
-  /** Mark before the step. */
-  from: CellMark
-}
-
 /** One undo step: the changed cells with their previous marks. */
-export type UndoStep = CellChange[]
+type UndoStep = CellUndoStep<CellMark>
 
 export interface NonogramSave {
   puzzle: NonogramPuzzle
@@ -60,7 +58,7 @@ export interface NonogramSave {
   undo: UndoStep[]
 }
 
-export function isDifficulty(value: unknown): value is Difficulty {
+function isDifficulty(value: unknown): value is Difficulty {
   return (DIFFICULTIES as readonly unknown[]).includes(value)
 }
 
@@ -108,19 +106,6 @@ export function isNonogramSave(value: unknown): value is NonogramSave {
     typeof s.hintsUsed === 'number' &&
     typeof s.mistakes === 'number' &&
     (s.checked === undefined || (Array.isArray(s.checked) && s.checked.every(Number.isInteger))) &&
-    Array.isArray(s.undo) &&
-    s.undo.every(
-      (step) =>
-        Array.isArray(step) &&
-        step.every(
-          (change) =>
-            typeof change === 'object' &&
-            change !== null &&
-            Number.isInteger(change.cell) &&
-            change.cell >= 0 &&
-            change.cell < cells &&
-            [0, 1, 2].includes(change.from),
-        ),
-    )
+    isCellHistory(s.undo, cells, isCellMark)
   )
 }

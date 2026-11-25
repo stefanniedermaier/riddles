@@ -57,6 +57,11 @@ export function createRng(seed: number): Rng {
   }
 }
 
+/** Random element of a non-empty array, unseeded (decoration such as particles). */
+export function pickRandom<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)]!
+}
+
 /** A random 32-bit seed from the platform's cryptographic RNG. */
 export function randomSeed(): number {
   const buffer = new Uint32Array(1)

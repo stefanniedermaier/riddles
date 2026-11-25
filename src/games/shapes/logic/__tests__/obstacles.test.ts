@@ -48,7 +48,7 @@ function expectValidLevelBoard(board: Board, f: Field) {
   }
   expect(findMatches(board)).toEqual([])
   expect(findAnyMove(board, f)).not.toBeNull()
-  const ids = board.filter((p) => p !== null).map((p) => p!.id)
+  const ids = board.filter((p) => p !== null).map((p) => p.id)
   expect(new Set(ids).size).toBe(ids.length)
 }
 

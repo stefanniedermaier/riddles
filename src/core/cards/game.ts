@@ -5,6 +5,11 @@
  * A running game is stored as its seed, variant and move list; the state is rebuilt by
  * replaying the moves (`replay`). Undo replays all but the last move.
  */
+/** Storage key of a card game's running game (`<id>:current:v1`). */
+export function cardSaveKey(gameId: string): string {
+  return `${gameId}:current:v1`
+}
+
 export interface Applied<S> {
   state: S
   /** Points of this move in points mode (may be negative). */

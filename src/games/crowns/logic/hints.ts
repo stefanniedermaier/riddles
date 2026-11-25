@@ -18,7 +18,7 @@ export function solutionCells(puzzle: CrownsPuzzle): Set<number> {
 }
 
 /** Logic board from the player's cells: marks are eliminations, crowns are placed. */
-export function boardFromCells(geo: Geometry, cells: readonly CellState[]): LogicBoard {
+function boardFromCells(geo: Geometry, cells: readonly CellState[]): LogicBoard {
   const board = new LogicBoard(geo)
   cells.forEach((state, cell) => {
     if (state === MARK) board.eliminate(cell)

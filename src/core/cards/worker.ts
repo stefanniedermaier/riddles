@@ -33,7 +33,7 @@ export function cardHandler<S, M, V extends string>(rules: CardRules<S, M, V>, o
       return { seed }
     }
     if (!request.moves.every((move) => rules.isMove(move))) throw new Error('bad moves')
-    const current = replay(rules, variant, request.seed, request.moves as M[])
+    const current = replay(rules, variant, request.seed, request.moves)
     if (!current) return { moves: null }
     return { moves: solve(rules, current.state, options.budget).moves }
   }

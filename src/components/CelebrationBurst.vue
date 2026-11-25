@@ -2,6 +2,7 @@
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import { ParticleLayer, rand, type ParticleInit } from '@/core/particles'
+import { pickRandom as pick } from '@/core/rng'
 import { motionEnabled } from '@/core/theme'
 
 /**
@@ -23,7 +24,6 @@ const running = ref(false)
 let layer: ParticleLayer | null = null
 let timers: ReturnType<typeof setTimeout>[] = []
 
-const pick = <T,>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)]!
 
 function cannon(fromLeft: boolean, width: number, height: number): ParticleInit[] {
   const list: ParticleInit[] = []
@@ -142,7 +142,7 @@ onBeforeUnmount(stop)
 .celebration {
   position: fixed;
   inset: 0;
-  z-index: 101;
+  z-index: var(--z-celebration);
   width: 100%;
   height: 100%;
   pointer-events: none;

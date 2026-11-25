@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { MAX_UNDO_STEPS, diffCells, parseHistory, pushStep, revertStep } from '../history'
-import type { CellState } from '../types'
+import { MAX_UNDO_STEPS, diffCells, isCellHistory, pushStep, revertStep } from '../history'
 
-describe('crowns undo history', () => {
+type CellState = 0 | 1 | 2
+const isState = (value: unknown): value is CellState => value === 0 || value === 1 || value === 2
+
+describe('cell undo history', () => {
   it('records only changed cells and reverts them', () => {
     const before: CellState[] = [0, 1, 2, 0]
     const after: CellState[] = [1, 1, 0, 0]
@@ -22,11 +24,13 @@ describe('crowns undo history', () => {
     for (let i = 0; i < MAX_UNDO_STEPS + 10; i++) history = pushStep(history, [{ cell: 1, from: 1 }])
     expect(history).toHaveLength(MAX_UNDO_STEPS)
     expect(history[0]).toEqual([{ cell: 1, from: 1 }])
+    // Non-array steps (Sudoku) are always kept.
+    expect(pushStep([{ a: 1 }], { a: 2 })).toEqual([{ a: 1 }, { a: 2 }])
   })
 
   it('reverts several steps in reverse order back to the start', () => {
     let cells: CellState[] = [0, 0, 0]
-    let history = pushStep([], diffCells(cells, [1, 0, 0]))
+    let history = pushStep([], diffCells<CellState>(cells, [1, 0, 0]))
     cells = [1, 0, 0]
     history = pushStep(history, diffCells(cells, [2, 1, 1]))
     cells = [2, 1, 1]
@@ -35,9 +39,9 @@ describe('crowns undo history', () => {
   })
 
   it('validates persisted history', () => {
-    expect(parseHistory([[{ cell: 3, from: 2 }]], 4)).toEqual([[{ cell: 3, from: 2 }]])
-    expect(parseHistory([[{ cell: 4, from: 0 }]], 4)).toBeUndefined()
-    expect(parseHistory([[{ cell: 1, from: 3 }]], 4)).toBeUndefined()
-    expect(parseHistory('nope', 4)).toBeUndefined()
+    expect(isCellHistory([[{ cell: 3, from: 2 }]], 4, isState)).toBe(true)
+    expect(isCellHistory([[{ cell: 4, from: 0 }]], 4, isState)).toBe(false)
+    expect(isCellHistory([[{ cell: 1, from: 3 }]], 4, isState)).toBe(false)
+    expect(isCellHistory('nope', 4, isState)).toBe(false)
   })
 })

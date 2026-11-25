@@ -27,7 +27,7 @@ watch(offlineReady, (ready) => {
   position: fixed;
   left: 50%;
   bottom: max(var(--space-4), env(safe-area-inset-bottom));
-  z-index: 150;
+  z-index: var(--z-banner);
   display: flex;
   align-items: center;
   gap: var(--space-3);

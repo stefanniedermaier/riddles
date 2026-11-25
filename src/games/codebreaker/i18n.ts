@@ -14,12 +14,6 @@ export const en = {
     order: 'The dots do not tell you which pegs they belong to.',
     repeats: 'On Easy every colour appears at most once; from Medium on colours can repeat.',
   },
-  lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new code?',
-    confirmNew: 'Your current game will be lost.',
-    start: 'Start',
-  },
   play: {
     guessesLeft: 'Guesses left',
     possible: 'Possible',
@@ -78,12 +72,6 @@ export const de: Messages<typeof en> = {
       'Nach jedem Versuch bedeutet ein voller Punkt: richtige Farbe an der richtigen Stelle, ein Ring: richtige Farbe an der falschen Stelle.',
     order: 'Die Punkte verraten nicht, zu welchem Stecker sie gehören.',
     repeats: 'Bei Leicht kommt jede Farbe höchstens einmal vor, ab Mittel können sich Farben wiederholen.',
-  },
-  lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neuen Code starten?',
-    confirmNew: 'Dein aktuelles Spiel geht verloren.',
-    start: 'Starten',
   },
   play: {
     guessesLeft: 'Versuche',

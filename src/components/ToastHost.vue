@@ -15,8 +15,9 @@ import { toasts } from '@/core/toast'
   position: fixed;
   left: 50%;
   bottom: max(var(--space-5), env(safe-area-inset-bottom));
-  /* Below modal dialogs (z-index 100), so a toast never covers dialog buttons. */
-  z-index: 90;
+  /* Above the dialog scrim (Material snackbar), so the toast after "Share" in the result
+    dialog is not dimmed. It never takes pointer input. */
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   align-items: center;

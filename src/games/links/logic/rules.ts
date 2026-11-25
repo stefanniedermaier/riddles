@@ -10,7 +10,7 @@ import { areAdjacent } from './grid'
 import type { LinksPuzzle } from './types'
 
 /** Colour of the dot at each cell, or -1. */
-export function dotColors(puzzle: LinksPuzzle): Int16Array {
+function dotColors(puzzle: LinksPuzzle): Int16Array {
   const dots = new Int16Array(puzzle.size * puzzle.size).fill(-1)
   for (const e of puzzle.endpoints) {
     dots[e.a] = e.color
@@ -20,7 +20,7 @@ export function dotColors(puzzle: LinksPuzzle): Int16Array {
 }
 
 /** Colour whose path covers each cell, or -1. */
-export function cellOwners(size: number, paths: readonly (readonly number[])[]): Int16Array {
+function cellOwners(size: number, paths: readonly (readonly number[])[]): Int16Array {
   const owners = new Int16Array(size * size).fill(-1)
   paths.forEach((path, color) => path.forEach((cell) => (owners[cell] = color)))
   return owners

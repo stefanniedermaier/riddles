@@ -1,14 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
+import { standardRoutes } from '../routes'
 
-export const routes: RouteRecordRaw[] = [
-  {
-    path: '/arrows',
-    name: 'arrows',
-    component: () => import('./ArrowsLobby.vue'),
-  },
-  {
-    path: '/arrows/play',
-    name: 'arrows-play',
-    component: () => import('./ArrowsPlay.vue'),
-  },
-]
+export const routes = standardRoutes(
+  'arrows',
+  () => import('./ArrowsLobby.vue'),
+  () => import('./ArrowsPlay.vue'),
+)

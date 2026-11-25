@@ -42,7 +42,7 @@ export function createLogicState(values: readonly number[]): LogicState | null {
   return state
 }
 
-export function placeDigit(state: LogicState, cell: number, digit: number): void {
+function placeDigit(state: LogicState, cell: number, digit: number): void {
   state.values[cell] = digit
   state.cands[cell] = 0
   const bit = ~(1 << digit)
@@ -56,14 +56,6 @@ export function applyStep(state: LogicState, step: Step): void {
 
 export function isComplete(state: LogicState): boolean {
   return state.values.every((d) => d !== 0)
-}
-
-/** `true` if an empty cell has no candidates left. */
-export function hasContradiction(state: LogicState): boolean {
-  for (let cell = 0; cell < state.values.length; cell++) {
-    if (state.values[cell] === 0 && state.cands[cell] === 0) return true
-  }
-  return false
 }
 
 // ---------------------------------------------------------------------------

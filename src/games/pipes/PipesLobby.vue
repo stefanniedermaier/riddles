@@ -1,100 +1,25 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-
-import AppBar from '@/components/AppBar.vue'
-import LobbyHero from '@/components/LobbyHero.vue'
-import ContinueButton from '@/components/ContinueButton.vue'
-import GameSettingsButton from '@/components/GameSettingsButton.vue'
-import ChoiceList from '@/components/ChoiceList.vue'
-import RulesCard from '@/components/RulesCard.vue'
-import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import PuzzleLobby from '@/components/PuzzleLobby.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
-import { getStats, getVariantStats } from '@/core/stats'
-import { load } from '@/core/storage'
 import PipesRules from './PipesRules.vue'
-import { DIFFICULTIES, SAVE_KEY, sizeLabel, type Difficulty } from './index'
-import { isPipesSave } from './logic/types'
+import { DIFFICULTIES, saveSlot, sizeLabel } from './index'
+import type { PipesSave } from './logic/types'
 
-const router = useRouter()
-
-const saved = load(SAVE_KEY, null, (raw) => (isPipesSave(raw) ? raw : undefined))
-
-/** First-time players see the rules first; afterwards they move below the menu. */
-const hasPlayed = saved !== null || Object.values(getStats('pipes')).some((s) => s.started > 0)
-
-const savedLabel = computed(() => {
-  if (!saved) return ''
+function savedLabel(saved: PipesSave): string {
   const { difficulty } = saved.puzzle
   return `${t(`difficulty.${difficulty}`)} · ${sizeLabel(difficulty)} · ${formatDuration(saved.elapsedMs)}`
-})
-
-const items = computed(() =>
-  DIFFICULTIES.map((difficulty) => {
-    const best = getVariantStats('pipes', difficulty).bestTimeMs
-    return {
-      id: difficulty,
-      label: t(`difficulty.${difficulty}`),
-      detail: sizeLabel(difficulty),
-      meta: best !== undefined ? `${t('common.best')} ${formatDuration(best)}` : undefined,
-    }
-  }),
-)
-
-const pending = ref<Difficulty | null>(null)
-
-function start(difficulty: Difficulty): void {
-  void router.push({ name: 'pipes-play', query: { new: difficulty } })
-}
-
-function onSelect(id: string): void {
-  const difficulty = id as Difficulty
-  if (saved) pending.value = difficulty
-  else start(difficulty)
-}
-
-function resume(): void {
-  void router.push({ name: 'pipes-play' })
 }
 </script>
 
 <template>
-  <AppBar :title="t('pipes.name')" back-to="/">
-    <template #actions>
-      <GameSettingsButton game="pipes" />
-    </template>
-  </AppBar>
-
-  <main class="page lobby" style="--lobby-accent: var(--game-pipes)">
-    <LobbyHero game="pipes" />
-    <RulesCard v-if="!hasPlayed" :title="t('pipes.rules.title')" accent="var(--game-pipes)">
-      <PipesRules />
-    </RulesCard>
-
-    <ContinueButton v-if="saved" :detail="savedLabel" @click="resume" />
-
-    <h2 class="section-title">{{ t('pipes.lobby.newGame') }}</h2>
-    <ChoiceList :items="items" @select="onSelect" />
-
-    <RulesCard v-if="hasPlayed" class="rules--bottom" :title="t('pipes.rules.title')" accent="var(--game-pipes)">
-      <PipesRules />
-    </RulesCard>
-  </main>
-
-  <ConfirmDialog
-    :open="pending !== null"
-    :title="t('pipes.lobby.confirmNewTitle')"
-    :message="t('pipes.lobby.confirmNew')"
-    :confirm-label="t('pipes.lobby.start')"
-    @confirm="pending && start(pending)"
-    @cancel="pending = null"
-  />
+  <PuzzleLobby
+    game="pipes"
+    :variants="DIFFICULTIES"
+    :save="saveSlot"
+    :saved-label="savedLabel"
+    :variant-detail="sizeLabel"
+  >
+    <template #rules><PipesRules /></template>
+  </PuzzleLobby>
 </template>
-
-<style scoped>
-.rules--bottom {
-  margin-top: var(--space-5);
-}
-
-</style>

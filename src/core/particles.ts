@@ -6,7 +6,7 @@
  * idle layer costs nothing. Coordinates are CSS pixels relative to the canvas.
  */
 
-export type ParticleShape = 'drop' | 'spark' | 'star' | 'confetti' | 'ring'
+type ParticleShape = 'drop' | 'spark' | 'star' | 'confetti' | 'ring'
 
 export interface Particle {
   shape: ParticleShape

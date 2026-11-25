@@ -13,12 +13,6 @@ export const en = {
     controls:
       'Tap a cell once to mark it with ✕, twice for a star and a third time to clear it. Drag across cells to mark several at once.',
   },
-  lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new game?',
-    confirmNew: 'Your current game will be lost.',
-    start: 'Start',
-  },
   play: {
     clear: 'Clear',
     clearConfirm: 'Remove all stars and marks?',
@@ -81,12 +75,6 @@ export const de: Messages<typeof en> = {
     touch: 'Sterne dürfen sich nicht berühren – auch nicht diagonal.',
     controls:
       'Tippe einmal auf ein Feld, um es mit ✕ zu markieren, zweimal für einen Stern und ein drittes Mal zum Leeren. Ziehe über mehrere Felder, um sie gemeinsam zu markieren.',
-  },
-  lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neues Spiel starten?',
-    confirmNew: 'Dein aktuelles Spiel geht dabei verloren.',
-    start: 'Starten',
   },
   play: {
     clear: 'Leeren',

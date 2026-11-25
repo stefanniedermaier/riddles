@@ -11,9 +11,9 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { idOf, isUp } from '@/core/cards/cards'
-import { HINT_COST, UNDO_COST, WIN_BONUS, replay, timeBonus } from '@/core/cards/game'
+import { HINT_COST, UNDO_COST, WIN_BONUS, cardSaveKey, replay, timeBonus } from '@/core/cards/game'
 import { formatDuration, formatNumber } from '@/core/format'
-import { t } from '@/core/i18n'
+import { gameName, t } from '@/core/i18n'
 import { returnTo } from '@/core/navigation'
 import { allowAnyOrientation } from '@/core/orientation'
 import { recordFinish, recordStart } from '@/core/stats'
@@ -23,7 +23,6 @@ import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
 import CardTable from './CardTable.vue'
 import { cardWidth } from './sizing'
-import type { GameId } from '@/games/types'
 import type { CardGameDef } from './types'
 
 /**
@@ -46,7 +45,7 @@ interface Save {
   elapsedMs: number
 }
 
-const saveKey = computed(() => `${props.game.id}:current:v1`)
+const saveKey = computed(() => cardSaveKey(props.game.id))
 const settings = props.game.settings
 
 type Status = 'loading' | 'playing' | 'won' | 'lost'
@@ -513,7 +512,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
 </script>
 
 <template>
-  <AppBar :title="t(`${game.id}.name` as 'app.name')" :back-to="`/${game.id}`">
+  <AppBar :title="gameName(game.id)" :back-to="`/${game.id}`">
     <template #actions>
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="pointsMode ? t('cards.play.score') : t('common.time')">
         <template v-if="pointsMode">
@@ -532,7 +531,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   </AppBar>
 
   <main class="play" :style="{ '--card-back': `var(--game-${game.id})`, '--game-text': `var(--game-${game.id})` }">
-    <GameBackdrop :game="game.id as GameId" />
+    <GameBackdrop :game="game.id" />
     <LoadingOverlay v-if="status === 'loading' || !run || !state" :label="t('common.generating')" />
 
     <template v-else>
@@ -575,7 +574,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
       </div>
 
       <div v-if="hint" class="toolbar">
-        <AppButton class="toolbar__icon" icon="close" :aria-label="t('common.close')" :title="t('common.close')" @click="hint = null" />
+        <AppButton class="toolbar__icon" icon="close" :label="t('common.close')" @click="hint = null" />
         <AppButton variant="primary" @click="applyHint">{{ t('common.apply') }}</AppButton>
       </div>
       <div v-else class="toolbar">
@@ -583,16 +582,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
           class="toolbar__icon"
           icon="undo"
           :disabled="!canUndo"
-          :aria-label="t('cards.play.undo')"
-          :title="t('cards.play.undo')"
+          :label="t('cards.play.undo')"
           @click="undo"
         />
         <AppButton
           class="toolbar__icon"
           icon="hint"
           :disabled="status !== 'playing' || thinking"
-          :aria-label="t('common.hint')"
-          :title="t('common.hint')"
+          :label="t('common.hint')"
           @click="requestHint"
         />
         <AppButton v-if="finishMoves" variant="primary" icon="check" @click="finish">{{ t('cards.play.autoFinish') }}</AppButton>
@@ -600,8 +597,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
           class="toolbar__icon"
           icon="restart"
           :disabled="status !== 'playing'"
-          :aria-label="t('cards.play.restart')"
-          :title="t('cards.play.restart')"
+          :label="t('cards.play.restart')"
           @click="confirm = 'restart'"
         />
         <AppButton

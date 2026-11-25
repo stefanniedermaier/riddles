@@ -9,7 +9,7 @@
  */
 import { ref, watch, type Ref } from 'vue'
 
-export const STORAGE_PREFIX = 'riddles:'
+const STORAGE_PREFIX = 'riddles:'
 
 function backend(): Storage | null {
   try {
@@ -102,7 +102,7 @@ export function usePersistentRef<T>(
 
   const state = ref(load(key, fallback, options.parse)) as Ref<T>
   watch(state, (value) => save(key, value), { deep: true, flush: 'sync' })
-  persistentRefs.set(key, state as Ref<unknown>)
+  persistentRefs.set(key, state)
   return state
 }
 

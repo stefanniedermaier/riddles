@@ -1,4 +1,4 @@
-import { parseHistory, type UndoStep } from './history'
+import { isCellHistory, type CellUndoStep } from '@/core/history'
 
 export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
@@ -16,6 +16,8 @@ export const MARK = 1
 export const CROWN = 2
 /** 0 = empty, 1 = marked (✕), 2 = crown. */
 export type CellState = typeof EMPTY | typeof MARK | typeof CROWN
+
+const isCellState = (value: unknown): value is CellState => value === EMPTY || value === MARK || value === CROWN
 
 export interface CrownsPuzzle {
   seed: number
@@ -35,7 +37,7 @@ export interface CrownsSave {
   elapsedMs: number
   hintsUsed: number
   /** Undo history (optional for saves written before undo existed). */
-  undo?: UndoStep[]
+  undo?: CellUndoStep<CellState>[]
   /** Mistakes found by "Check" (optional for older saves). */
   mistakes?: number
   /** Wrong cells found by the last "Check" (highlighted while they are still wrong). */
@@ -75,6 +77,6 @@ export function isCrownsSave(value: unknown): value is CrownsSave {
     typeof s.hintsUsed === 'number' &&
     (s.mistakes === undefined || typeof s.mistakes === 'number') &&
     (s.checked === undefined || (Array.isArray(s.checked) && s.checked.every(Number.isInteger))) &&
-    (s.undo === undefined || parseHistory(s.undo, s.puzzle.size * s.puzzle.size) !== undefined)
+    (s.undo === undefined || isCellHistory(s.undo, s.puzzle.size * s.puzzle.size, isCellState))
   )
 }

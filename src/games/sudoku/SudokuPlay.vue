@@ -8,6 +8,7 @@ import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import HintPanel from '@/components/HintPanel.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { formatDuration } from '@/core/format'
@@ -17,7 +18,6 @@ import { checkMessage } from '@/core/check'
 import { showToast } from '@/core/toast'
 
 import { describeHint } from './explain'
-import HintPanel from './HintPanel.vue'
 import { isDifficulty, isMode, statVariant, type Difficulty, type SudokuMode } from './logic/types'
 import NumberPad from './NumberPad.vue'
 import { sudokuSettings } from './settings'
@@ -202,11 +202,15 @@ const resultRows = computed(() =>
       <div class="controls">
         <HintPanel
           v-if="hintView"
-          :view="hintView"
+          :title="hintView.title"
           :action-label="hintAction"
           @apply="sudoku.applyHint"
           @close="sudoku.closeHint"
-        />
+        >
+          <p v-for="(line, i) in hintView.lines" :key="i">
+            <strong v-if="line.label">{{ line.label }} </strong>{{ line.text }}
+          </p>
+        </HintPanel>
         <template v-else>
           <div class="tools">
             <button type="button" class="tool" :disabled="!canUndo" @click="sudoku.undo">

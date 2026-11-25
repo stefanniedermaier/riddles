@@ -4,17 +4,16 @@
  */
 import { computed, onBeforeUnmount, ref, shallowRef } from 'vue'
 
+import { pushStep } from '@/core/history'
 import { randomSeed } from '@/core/rng'
 import { recordFinish, recordStart } from '@/core/stats'
-import { load, remove, save as saveToStorage } from '@/core/storage'
 import { useStopwatch } from '@/core/timer'
 
 import { poolOf } from './generate'
-import { saveKeyOf } from './index'
+import { saveSlotOf } from './index'
 import { geometryOfCells, type Geometry } from './logic/board'
 import { findMistakes, getHint, type Hint } from './logic/hints'
 import {
-  isSudokuSave,
   modeOfPuzzle,
   sizeOfMode,
   statVariant,
@@ -38,9 +37,7 @@ export interface WinResult {
 const AUTOSAVE_INTERVAL_MS = 5000
 
 export function loadSavedGame(mode: SudokuMode = 'classic'): SudokuSave | null {
-  return load<SudokuSave | null>(saveKeyOf(mode), null, (raw) =>
-    isSudokuSave(raw) && modeOfPuzzle(raw.puzzle) === mode ? raw : undefined,
-  )
+  return saveSlotOf(mode).load()
 }
 
 export function useSudokuGame() {
@@ -56,10 +53,28 @@ export function useSudokuGame() {
 
   // --- persistence --------------------------------------------------------
 
+  /**
+   * Whether the player did something in this game: only then it counts as started in the
+   * statistics and gets saved (merely opening a puzzle leaves no "Continue" behind).
+   */
+  let started = false
+
+  function markStarted(): void {
+    if (started || !game.value) return
+    started = true
+    recordStart('sudoku', statVariant(mode.value, game.value.puzzle.difficulty))
+  }
+
+  /** After a player action: count the game as started and save it. */
+  function saveProgress(): void {
+    markStarted()
+    persist()
+  }
+
   function persist(): void {
-    if (!game.value || status.value !== 'playing') return
+    if (!game.value || status.value !== 'playing' || !started) return
     game.value.elapsedMs = Math.round(stopwatch.elapsedMs.value)
-    saveToStorage(saveKeyOf(mode.value), game.value)
+    saveSlotOf(mode.value).save(game.value)
   }
 
   const autosave = setInterval(() => {
@@ -72,7 +87,12 @@ export function useSudokuGame() {
   document.addEventListener('visibilitychange', onVisibilityChange)
   window.addEventListener('pagehide', persist)
 
+  // Bumped by every start/resume and on unmount: a generation that finishes after the
+  // player left or started something else is dropped (no start recorded, nothing saved).
+  let startToken = 0
+
   onBeforeUnmount(() => {
+    startToken++
     persist()
     clearInterval(autosave)
     document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -93,6 +113,7 @@ export function useSudokuGame() {
   }
 
   async function startNew(difficulty: Difficulty, newMode: SudokuMode = 'classic'): Promise<void> {
+    const token = ++startToken
     status.value = 'loading'
     stopwatch.pause()
     let puzzle: SudokuPuzzle
@@ -103,7 +124,8 @@ export function useSudokuGame() {
       const { generatePuzzle } = await import('./logic/generator')
       puzzle = generatePuzzle(difficulty, randomSeed(), { size: sizeOfMode(newMode) })
     }
-    recordStart('sudoku', statVariant(newMode, puzzle.difficulty))
+    if (token !== startToken) return
+    started = false
     const cells = puzzle.givens.length
     begin({
       puzzle,
@@ -114,13 +136,14 @@ export function useSudokuGame() {
       selected: null,
       history: [],
     })
-    persist()
   }
 
   /** Resumes the stored game of a mode; returns `false` if there is none. */
   function resume(resumeMode: SudokuMode = 'classic'): boolean {
     const saved = loadSavedGame(resumeMode)
     if (!saved) return false
+    startToken++
+    started = true
     begin(saved)
     return true
   }
@@ -131,7 +154,7 @@ export function useSudokuGame() {
     const timeMs = Math.round(stopwatch.elapsedMs.value)
     const variant = statVariant(mode.value, game.value.puzzle.difficulty)
     const { newBestTime } = recordFinish('sudoku', variant, { timeMs })
-    remove(saveKeyOf(mode.value))
+    saveSlotOf(mode.value).clear()
     result.value = {
       timeMs,
       hintsUsed: game.value.hintsUsed,
@@ -167,7 +190,7 @@ export function useSudokuGame() {
       }
     }
     if (changes.length === 0) return false
-    ;(g.history ??= []).push({ changes, selected })
+    g.history = pushStep(g.history ?? [], { changes, selected })
     return true
   }
 
@@ -185,7 +208,7 @@ export function useSudokuGame() {
     }
     g.selected = step.selected
     hint.value = null
-    persist()
+    saveProgress()
   }
 
   // --- input ---------------------------------------------------------------
@@ -212,7 +235,7 @@ export function useSudokuGame() {
   function setDigit(cell: number, digit: number): void {
     if (!game.value || isGiven(cell)) return
     mutate((g) => writeDigit(g, cell, digit))
-    persist()
+    saveProgress()
     checkWin()
   }
 
@@ -222,7 +245,7 @@ export function useSudokuGame() {
     mutate((state) => {
       state.notes[cell]! ^= 1 << digit
     })
-    persist()
+    saveProgress()
   }
 
   /** Number pad / keyboard input for the selected cell. */
@@ -244,7 +267,7 @@ export function useSudokuGame() {
       state.values[cell] = 0
       state.notes[cell] = 0
     })
-    persist()
+    saveProgress()
   }
 
   function moveSelection(dRow: number, dCol: number): void {
@@ -266,7 +289,7 @@ export function useSudokuGame() {
       state.notes = new Array<number>(state.puzzle.givens.length).fill(0)
     })
     hint.value = null
-    persist()
+    saveProgress()
   }
 
   // --- hints ---------------------------------------------------------------
@@ -277,7 +300,7 @@ export function useSudokuGame() {
     const next = getHint(g.values, g.puzzle.solution)
     if (next.kind !== 'solved') g.hintsUsed++
     hint.value = next
-    persist()
+    saveProgress()
   }
 
   /** Executes the hint's action: fill in the deduced digit or erase wrong entries. */
@@ -294,7 +317,7 @@ export function useSudokuGame() {
         }
       })
       g.selected = current.cells[0] ?? g.selected
-      persist()
+      saveProgress()
     } else if (current.kind === 'step' || current.kind === 'reveal') {
       const { cell, digit } = current.placement
       g.selected = cell
@@ -327,7 +350,7 @@ export function useSudokuGame() {
     const counted = new Set(checkedWrong.value)
     g.mistakes = (g.mistakes ?? 0) + found.filter((cell) => !counted.has(cell)).length
     g.checked = found
-    persist()
+    saveProgress()
     return found.length
   }
 

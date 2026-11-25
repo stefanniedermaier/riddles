@@ -5,8 +5,9 @@
  * (`url(#sp-…)`) from every piece. That keeps the 64 pieces on the board small (no `<defs>`
  * per piece, no duplicate ids) while giving them a glossy, three-dimensional look.
  *
- * The hidden svg must not use `display: none` – some browsers then drop the gradients.
+ * See `core/svgDefs.ts`.
  */
+import { ensureSvgDefs } from '@/core/svgDefs'
 
 const DEFS_ID = 'shape-piece-defs'
 
@@ -55,15 +56,5 @@ const DEFS = [
 
 /** Adds the gradient definitions to the document once. */
 export function ensurePieceDefs(): void {
-  if (typeof document === 'undefined' || document.getElementById(DEFS_ID)) return
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.id = DEFS_ID
-  svg.setAttribute('aria-hidden', 'true')
-  svg.setAttribute('width', '0')
-  svg.setAttribute('height', '0')
-  svg.style.position = 'absolute'
-  svg.style.overflow = 'hidden'
-  svg.style.pointerEvents = 'none'
-  svg.innerHTML = `<defs>${DEFS}</defs>`
-  document.body.prepend(svg)
+  ensureSvgDefs(DEFS_ID, DEFS)
 }

@@ -22,6 +22,11 @@ export interface GameDescriptor {
   variantLabel: (variant: string) => string
   /** `true` if there is a game that can be continued. */
   hasSavedGame: () => boolean
+  /**
+   * Converts or removes data of older versions; run once at start-up (`core/migrations.ts`).
+   * Must be idempotent.
+   */
+  migrate?: () => void
   /** Optional settings section rendered in the settings view. */
   settingsComponent?: () => Promise<Component | { default: Component }>
 }

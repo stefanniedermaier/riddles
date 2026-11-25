@@ -2,6 +2,7 @@
  * Local statistics per game and variant (difficulty or mode).
  * Persisted under `riddles:stats:v1`.
  */
+import type { GameId } from '@/games/types'
 import { usePersistentRef } from './storage'
 
 export interface VariantStats {
@@ -32,7 +33,7 @@ function emptyStats(): VariantStats {
   return { started: 0, finished: 0, totalTimeMs: 0 }
 }
 
-function entry(gameId: string, variant: string): VariantStats {
+function entry(gameId: GameId, variant: string): VariantStats {
   const game = (store.value[gameId] ??= {})
   return (game[variant] ??= emptyStats())
 }
@@ -95,7 +96,7 @@ export function getActivity(): ActivitySummary {
 
 // ---------------------------------------------------------------------------
 
-export function recordStart(gameId: string, variant: string): void {
+export function recordStart(gameId: GameId, variant: string): void {
   const stats = entry(gameId, variant)
   stats.started += 1
   stats.lastPlayedAt = new Date().toISOString()
@@ -108,7 +109,7 @@ export interface FinishResult {
 }
 
 export function recordFinish(
-  gameId: string,
+  gameId: GameId,
   variant: string,
   result: { timeMs?: number; score?: number },
 ): FinishResult {
@@ -139,11 +140,11 @@ export function recordFinish(
 }
 
 /** Reactive stats of one game (read-only use). */
-export function getStats(gameId: string): Record<string, VariantStats> {
+export function getStats(gameId: GameId): Record<string, VariantStats> {
   return store.value[gameId] ?? {}
 }
 
-export function getVariantStats(gameId: string, variant: string): VariantStats {
+export function getVariantStats(gameId: GameId, variant: string): VariantStats {
   return store.value[gameId]?.[variant] ?? emptyStats()
 }
 

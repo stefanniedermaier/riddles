@@ -14,10 +14,6 @@ export const en = {
       'Tapping a blocked arrow costs one of your three hearts. Find the right order – there always is one.',
   },
   lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new puzzle?',
-    confirmNew: 'Your current puzzle will be lost.',
-    start: 'Start',
     savedInfo: '{difficulty} · {size} · {left} arrows left · {time}',
   },
   play: {
@@ -70,10 +66,6 @@ export const de: Messages<typeof en> = {
       'Ein blockierter Pfeil kostet eines deiner drei Herzen. Finde die richtige Reihenfolge – es gibt immer eine.',
   },
   lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neues Rätsel starten?',
-    confirmNew: 'Dein aktuelles Rätsel geht verloren.',
-    start: 'Starten',
     savedInfo: '{difficulty} · {size} · noch {left} Pfeile · {time}',
   },
   play: {

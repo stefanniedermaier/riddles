@@ -83,7 +83,7 @@ export function dependencyDepth(puzzle: ArrowsPuzzle): number {
     for (const dep of deps[id]!) best = Math.max(best, visit(dep))
     state[id] = 2
     depth[id] = best + 1
-    return depth[id]!
+    return depth[id]
   }
 
   let max = 0

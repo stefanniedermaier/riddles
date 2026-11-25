@@ -419,7 +419,7 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .flag__knob {
-  fill: #ffc21a;
+  fill: var(--gold);
   stroke: #a86800;
   stroke-width: 0.6;
 }

@@ -1,3 +1,5 @@
+import { isInt } from '@/core/guards'
+
 export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
@@ -61,7 +63,6 @@ function isDifficulty(value: unknown): value is Difficulty {
   return (DIFFICULTIES as readonly unknown[]).includes(value)
 }
 
-const isInt = (value: unknown): value is number => Number.isInteger(value)
 
 const isCellList = (value: unknown, size: number): value is number[] =>
   Array.isArray(value) && value.every((cell) => isInt(cell) && cell >= 0 && cell < size)

@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Riddles</title>
     <meta name="description" content="Sudoku, Crowns and Shapes – puzzle games that work offline." />
-    <meta name="theme-color" content="#f6f5f2" />
+    <!-- Browser / status bar colour per system theme (a fixed theme from the settings
+         overrides both at runtime, src/core/theme.ts). -->
+    <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15141b" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
     <meta name="referrer" content="no-referrer" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />

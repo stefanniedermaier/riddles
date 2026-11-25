@@ -1,14 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
+import { standardRoutes } from '../routes'
 
-export const routes: RouteRecordRaw[] = [
-  {
-    path: '/nonogram',
-    name: 'nonogram',
-    component: () => import('./NonogramLobby.vue'),
-  },
-  {
-    path: '/nonogram/play',
-    name: 'nonogram-play',
-    component: () => import('./NonogramPlay.vue'),
-  },
-]
+export const routes = standardRoutes(
+  'nonogram',
+  () => import('./NonogramLobby.vue'),
+  () => import('./NonogramPlay.vue'),
+)

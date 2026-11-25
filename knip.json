@@ -1,10 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "rules": {
-    "exports": "warn",
-    "types": "warn",
-    "nsExports": "warn",
-    "nsTypes": "warn",
-    "duplicates": "warn"
+    "exports": "error",
+    "types": "error",
+    "nsExports": "error",
+    "nsTypes": "error",
+    "duplicates": "error"
   }
 }

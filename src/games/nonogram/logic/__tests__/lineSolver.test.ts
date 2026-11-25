@@ -24,7 +24,7 @@ function bruteForce(cells: readonly Known[], clue: readonly number[]): Known[] |
   return Array.from({ length: n }, (_, i) => {
     const f = (canFill >> i) & 1
     const e = (canEmpty >> i) & 1
-    return (f && e ? -1 : f ? 1 : 0) as Known
+    return (f && e ? -1 : f ? 1 : 0)
   })
 }
 

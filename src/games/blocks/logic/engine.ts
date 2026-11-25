@@ -7,13 +7,14 @@
  * piece in the tray fits. The RNG state is part of the run, so a reloaded game continues
  * exactly as it would have.
  */
+import { isNonNegativeInt } from '@/core/guards'
 import { createRng, type Rng } from '@/core/rng'
 
 import { COLOR_COUNT, SHAPES, type Cell } from './pieces'
 
 export const SIZE = 8
 export const CELLS = SIZE * SIZE
-export const TRAY_SIZE = 3
+const TRAY_SIZE = 3
 /** Bonus when a clear leaves the board completely empty. */
 export const CLEAR_BOARD_BONUS = 300
 
@@ -194,22 +195,21 @@ export function place(run: BlocksRun, slot: number, anchor: number): PlaceResult
 export function parseRun(raw: unknown): BlocksRun | undefined {
   if (typeof raw !== 'object' || raw === null) return undefined
   const r = raw as Partial<BlocksRun>
-  const isInt = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0
   if (!Array.isArray(r.board) || r.board.length !== CELLS) return undefined
-  if (!r.board.every((v) => isInt(v) && v <= COLOR_COUNT)) return undefined
+  if (!r.board.every((v) => isNonNegativeInt(v) && v <= COLOR_COUNT)) return undefined
   if (!Array.isArray(r.tray) || r.tray.length !== TRAY_SIZE) return undefined
   const trayOk = r.tray.every(
     (p) =>
       p === null ||
       (typeof p === 'object' &&
-        isInt(p.shape) &&
+        isNonNegativeInt(p.shape) &&
         p.shape < SHAPES.length &&
-        isInt(p.color) &&
+        isNonNegativeInt(p.color) &&
         p.color >= 1 &&
         p.color <= COLOR_COUNT),
   )
   if (!trayOk || r.tray.every((p) => p === null)) return undefined
-  if (![r.score, r.combo, r.moves, r.lines, r.rngState].every(isInt)) return undefined
+  if (![r.score, r.combo, r.moves, r.lines, r.rngState].every(isNonNegativeInt)) return undefined
   if (typeof r.over !== 'boolean') return undefined
   return r as BlocksRun
 }

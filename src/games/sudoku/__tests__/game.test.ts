@@ -21,6 +21,16 @@ function mountGame() {
   return { api, wrapper }
 }
 
+/** A first action (a note set and cleared again): the game now counts as started and is saved. */
+function touch(api: ReturnType<typeof useSudokuGame>): void {
+  const cell = api.game.value!.values.indexOf(0)
+  api.notesMode.value = true
+  api.select(cell)
+  api.input(1)
+  api.input(1)
+  api.notesMode.value = false
+}
+
 describe('useSudokuGame', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -31,8 +41,9 @@ describe('useSudokuGame', () => {
     const { api, wrapper } = mountGame()
     await api.startNew('easy')
     expect(api.status.value).toBe('playing')
-    expect(has(SAVE_KEY)).toBe(true)
-    expect(getVariantStats('sudoku', 'easy').started).toBe(1)
+    // Merely opening a puzzle neither saves it nor counts it as started.
+    expect(has(SAVE_KEY)).toBe(false)
+    expect(getVariantStats('sudoku', 'easy').started).toBe(0)
 
     const game = api.game.value!
     const empty = game.values.flatMap((digit, cell) => (digit === 0 ? [cell] : []))
@@ -44,6 +55,8 @@ describe('useSudokuGame', () => {
     api.select(first!)
     api.input(digit)
     expect(game.notes[first!]).toBe(1 << digit)
+    expect(has(SAVE_KEY)).toBe(true)
+    expect(getVariantStats('sudoku', 'easy').started).toBe(1)
     api.notesMode.value = false
 
     // A wrong entry is reported by the hint …
@@ -70,6 +83,18 @@ describe('useSudokuGame', () => {
     expect(has(SAVE_KEY)).toBe(false)
     expect(getVariantStats('sudoku', 'easy').finished).toBe(1)
     wrapper.unmount()
+  })
+
+  it('drops a puzzle that is generated after leaving', async () => {
+    const { api, wrapper } = mountGame()
+    const pending = api.startNew('easy')
+    expect(api.status.value).toBe('loading')
+    wrapper.unmount()
+    await pending
+    expect(api.game.value).toBeNull()
+    expect(api.stopwatch.running.value).toBe(false)
+    expect(has(SAVE_KEY)).toBe(false)
+    expect(getVariantStats('sudoku', 'easy').started).toBe(0)
   })
 
   it('resumes a saved game', async () => {
@@ -178,6 +203,7 @@ describe('useSudokuGame', () => {
   it('loads saves of older versions without undo history', async () => {
     const first = mountGame()
     await first.api.startNew('easy')
+    touch(first.api)
     first.wrapper.unmount()
     const raw = JSON.parse(localStorage.getItem('riddles:' + SAVE_KEY)!)
     delete raw.history
@@ -195,6 +221,7 @@ describe('useSudokuGame', () => {
     const game = api.game.value!
     expect(api.mode.value).toBe('mini')
     expect(game.values).toHaveLength(36)
+    touch(api)
     expect(has(MINI_SAVE_KEY)).toBe(true)
     expect(has(SAVE_KEY)).toBe(false)
     expect(getVariantStats('sudoku', 'mini-easy').started).toBe(1)
@@ -215,9 +242,11 @@ describe('useSudokuGame', () => {
   it('resumes classic and mini games independently', async () => {
     const classic = mountGame()
     await classic.api.startNew('easy')
+    touch(classic.api)
     classic.wrapper.unmount()
     const mini = mountGame()
     await mini.api.startNew('medium', 'mini')
+    touch(mini.api)
     mini.wrapper.unmount()
 
     expect(loadSavedGame('classic')?.values).toHaveLength(81)

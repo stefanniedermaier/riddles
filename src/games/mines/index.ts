@@ -1,12 +1,15 @@
 import { t } from '@/core/i18n'
-import { has } from '@/core/storage'
+import { defineSaveSlot } from '@/core/saveSlot'
 import type { GameDescriptor } from '../types'
-import { DIFFICULTIES, SIZES, type Difficulty } from './logic/types'
+import { DIFFICULTIES, SIZES, type Difficulty, isMinesSave } from './logic/types'
 
 export { DIFFICULTIES, type Difficulty }
 
 /** Storage key of the running game. */
 export const SAVE_KEY = 'mines:current:v1'
+
+/** The running game (validated, shared by Home, lobby and play view). */
+export const saveSlot = defineSaveSlot(SAVE_KEY, isMinesSave)
 
 /** "8×10 · 12 mines" etc. (columns × rows). */
 export function sizeLabel(difficulty: Difficulty): string {
@@ -22,6 +25,6 @@ export const descriptor: GameDescriptor = {
       difficulty: t(`difficulty.${variant as Difficulty}`),
       size: t('mines.boardLabel', { ...SIZES[variant as Difficulty] }),
     }),
-  hasSavedGame: () => has(SAVE_KEY),
+  hasSavedGame: () => saveSlot.exists(),
   settingsComponent: () => import('./MinesSettings.vue'),
 }

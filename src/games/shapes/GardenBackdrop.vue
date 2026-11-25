@@ -331,6 +331,13 @@ const BUSH_FLOWERS = [
   animation: flap 0.28s ease-in-out infinite alternate;
 }
 
+/* Clouds and butterflies rest while a dialog is open or nobody plays (core/stillness.ts). */
+:root[data-still] .garden__cloud,
+:root[data-still] .garden__butterfly,
+:root[data-still] .wings {
+  animation-play-state: paused;
+}
+
 :root[data-theme='dark'] .garden__butterfly {
   display: none;
 }

@@ -1,8 +1,9 @@
+import type { GameId } from '@/games/types'
 import { usePersistentRef } from './storage'
 
-export type LocaleSetting = 'system' | 'en' | 'de'
-export type ThemeSetting = 'system' | 'light' | 'dark'
-export type MotionSetting = 'system' | 'full' | 'reduced'
+type LocaleSetting = 'system' | 'en' | 'de'
+type ThemeSetting = 'system' | 'light' | 'dark'
+type MotionSetting = 'system' | 'full' | 'reduced'
 
 export interface AppSettings {
   locale: LocaleSetting
@@ -38,7 +39,7 @@ export const settings = usePersistentRef<AppSettings>('settings', defaults, {
  * persisted under `riddles:<gameId>:settings`.
  */
 export function useGameSettings<T extends Record<string, boolean | string | number>>(
-  gameId: string,
+  gameId: GameId,
   gameDefaults: T,
 ) {
   return usePersistentRef<T>(`${gameId}:settings`, { ...gameDefaults }, {

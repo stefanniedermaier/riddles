@@ -36,13 +36,24 @@ export const motionEnabled = computed<boolean>(() => {
 /** Background colours per theme – keep in sync with `--color-bg` in tokens.css. */
 const themeColors = { light: '#f6f5f2', dark: '#15141b' } as const
 
+/**
+ * `index.html` has one `theme-color` per system theme (`media="(prefers-color-scheme: …)"`),
+ * so the browser and status bars match the system before any script runs. With "System"
+ * each keeps its own colour; a fixed theme from the settings gives both its colour.
+ */
+function syncThemeColor(): void {
+  const fixed = settings.value.theme === 'system' ? null : resolvedTheme.value
+  for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
+    const own = meta.getAttribute('media')?.includes('dark') ? 'dark' : 'light'
+    meta.setAttribute('content', themeColors[fixed ?? own])
+  }
+}
+
 export function installTheme(): void {
   watchEffect(() => {
     const root = document.documentElement
     root.dataset.theme = resolvedTheme.value
     root.dataset.motion = motionEnabled.value ? 'full' : 'reduced'
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', themeColors[resolvedTheme.value])
+    syncThemeColor()
   })
 }

@@ -27,6 +27,7 @@ all data on the device. Every level is generated on the fly.
 | 16 | [Code Breaker](16-code-breaker.md)           | Code breaking with consistent-code hints                      |
 | 17 | [Card games](17-card-games.md)               | Solitaire, Spider, FreeCell, TriPeaks on a shared engine; points, pass limits |
 | 19 | [Shared puzzles](19-shared-puzzles.md)         | Evaluation: seed links for the same puzzle, versioning, daily puzzle |
+| 20 | [QA & cleanup](20-qa-cleanup.md)             | App-wide review: shared lobby/session, a11y, performance, tooling, tests |
 
 ## Decisions (from the kick-off wizard)
 

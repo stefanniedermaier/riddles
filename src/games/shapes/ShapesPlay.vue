@@ -1,14 +1,3 @@
-    :share="
-      result && result.kind !== 'lost'
-        ? {
-            game: 'shapes',
-            variant: result.kind === 'won' ? 'levels' : result.kind,
-            result: formatNumber(result.kind === 'won' ? result.total : result.score),
-            kind: 'score',
-            newBest: result.kind !== 'won' && result.newBest,
-          }
-        : undefined
-    "
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -27,6 +16,7 @@ import { motionEnabled } from '@/core/theme'
 import { useCountdown } from '@/core/timer'
 import { showToast } from '@/core/toast'
 import { useBoardAnimator } from './animator'
+import { useShapesJuice } from './useShapesJuice'
 import { findAnyMove } from './logic/board'
 import { getLevel, goalStatus } from './logic/levels'
 import { completeLevel, createRun, playMove, type ShapesRun } from './logic/modes'
@@ -63,133 +53,18 @@ const finished = ref(false)
 const animator = useBoardAnimator(motionEnabled)
 const displayScore = ref(initial?.score ?? 0)
 
-// ---------------------------------------------------------------------------
-// Points flying from the cleared pieces to the score
-
-interface Flight {
-  id: number
-  x: number
-  y: number
-  dx: number
-  dy: number
-  text: string
-}
-
-const FLY_MS = 650
 const boardWrap = ref<HTMLElement | null>(null)
-const flights = ref<Flight[]>([])
-const scoreBump = ref(0)
-let flightId = 1
-/** Changes with every new run, so points of an old run never land in a new one. */
-let runToken = 0
-
-/** Adds points to the shown score without overtaking the real one. */
-function addShownScore(points: number): void {
-  const cap = run.value?.score ?? 0
-  if (displayScore.value >= cap) return
-  displayScore.value = Math.min(cap, displayScore.value + points)
-  scoreBump.value++
-}
-
-function flyPoints(score: number, cells: number[]): void {
-  if (score <= 0) return
-  const board = boardWrap.value?.querySelector('.board')?.getBoundingClientRect()
-  const target = document.querySelector('[data-score-target]')?.getBoundingClientRect()
-  if (!motionEnabled.value || !board || !target || board.width === 0 || cells.length === 0) {
-    addShownScore(score)
-    return
-  }
-  const cell = board.width / 8
-  const row = cells.reduce((sum, c) => sum + Math.floor(c / 8), 0) / cells.length
-  const col = cells.reduce((sum, c) => sum + (c % 8), 0) / cells.length
-  const x = board.left + (col + 0.5) * cell
-  const y = board.top + (row + 0.5) * cell
-  const id = flightId++
-  const token = runToken
-  flights.value = [
-    ...flights.value,
-    {
-      id,
-      x,
-      y,
-      dx: target.left + target.width / 2 - x,
-      dy: target.top + target.height / 2 - y,
-      text: `+${formatNumber(score)}`,
-    },
-  ]
-  setTimeout(() => {
-    flights.value = flights.value.filter((flight) => flight.id !== id)
-    if (token === runToken) addShownScore(score)
-  }, FLY_MS)
-}
-if (initial) animator.show(initial.board, initial.level?.field)
-
-// ---------------------------------------------------------------------------
-// Juice: praise for cascades and big clears, board shake for bombs and rockets
-
-const PRAISE = ['good', 'great', 'amazing', 'incredible'] as const
-type Praise = (typeof PRAISE)[number]
-
-const praise = ref<{ id: number; word: Praise } | null>(null)
-let praiseId = 1
-let praiseTimer: ReturnType<typeof setTimeout> | undefined
-
-function showPraise(word: Praise): void {
-  if (!motionEnabled.value) return
-  clearTimeout(praiseTimer)
-  clearTimeout(resultTimer)
-  praise.value = { id: praiseId++, word }
-  praiseTimer = setTimeout(() => (praise.value = null), 1100)
-}
-
-/**
- * Tracks the clears of one move: the 2nd, 3rd, 4th and 5th cascade (or a very big single
- * clear) earn an ever bigger word. Each word is shown at most once per move.
- */
-function praiseTracker(): (cells: number[]) => void {
-  let clears = 0
-  let shown = -1
-  return (cells) => {
-    clears++
-    let tier = Math.min(clears, 5) - 2
-    if (cells.length >= 10) tier = Math.max(tier, 1)
-    if (cells.length >= 16) tier = Math.max(tier, 2)
-    if (cells.length >= 24) tier = Math.max(tier, 3)
-    if (tier > shown) {
-      shown = tier
-      showPraise(PRAISE[tier]!)
-    }
-  }
-}
-
-const SHAKE_STRONG: Keyframe[] = [
-  { transform: 'translate(0, 0)' },
-  { transform: 'translate(-6px, 3px) rotate(-0.6deg)' },
-  { transform: 'translate(5px, -4px) rotate(0.5deg)' },
-  { transform: 'translate(-4px, 2px)' },
-  { transform: 'translate(2px, -1px)' },
-  { transform: 'translate(0, 0)' },
-]
-const SHAKE_LIGHT: Keyframe[] = [
-  { transform: 'translate(0, 0)' },
-  { transform: 'translate(-2px, 1px)' },
-  { transform: 'translate(2px, -1px)' },
-  { transform: 'translate(0, 0)' },
-]
-let lastEffectId = 0
-
-watch(animator.effects, (effects) => {
-  const fresh = effects.filter((effect) => effect.id > lastEffectId)
-  if (fresh.length === 0) return
-  lastEffectId = Math.max(...fresh.map((effect) => effect.id))
-  const el = boardWrap.value
-  if (!el || typeof el.animate !== 'function' || !motionEnabled.value) return
-  if (fresh.some((effect) => effect.type === 'burst' || effect.type === 'prism')) {
-    el.animate(SHAKE_STRONG, { duration: 380, easing: 'ease-out' })
-  } else if (fresh.some((effect) => effect.type === 'line-h' || effect.type === 'line-v')) {
-    el.animate(SHAKE_LIGHT, { duration: 200, easing: 'ease-out' })
-  }
+const juice = useShapesJuice({
+  boardWrap,
+  displayScore,
+  realScore: () => run.value?.score ?? 0,
+  effects: animator.effects,
+  // A praise word holds back a pending result dialog (it would cover the praise).
+  onPraise: () => clearTimeout(resultTimer),
 })
+const { flights, scoreBump, praise } = juice
+
+if (initial) animator.show(initial.board, initial.level?.field)
 
 // ---------------------------------------------------------------------------
 // Time mode
@@ -312,19 +187,16 @@ async function onSwap(a: number, b: number): Promise<void> {
     persist()
   }
 
-  const onClearPraise = praiseTracker()
+  const onClearPraise = juice.praiseTracker()
   await animator.play(outcome.result.phases, outcome.result.board, {
     onClear: (score, cells) => {
-      flyPoints(score, cells)
+      juice.flyPoints(score, cells)
       onClearPraise(cells)
     },
     onShuffle: () => showToast(t('shapes.board.shuffled')),
   }, run.value?.level?.field)
   // Points still in the air land a moment later; then the shown score is exact again.
-  const token = runToken
-  setTimeout(() => {
-    if (token === runToken && !finished.value) displayScore.value = run.value?.score ?? 0
-  }, FLY_MS + 50)
+  juice.settleScore(() => finished.value)
 
   if (outcome.levelState === 'won') finishLevel(true)
   else if (outcome.levelState === 'lost') finishLevel(false)
@@ -398,8 +270,7 @@ function finishLevel(won: boolean): void {
 
 /** Replaces the current run (new game, next level, retry). */
 function startRun(next: ShapesRun): void {
-  runToken++
-  flights.value = []
+  juice.resetForRun()
   run.value = next
   finished.value = false
   result.value = null
@@ -544,8 +415,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   persist()
+  // The rest of a move's animation belongs to this view only (the juice cleans up itself).
+  animator.stop()
   clearHint()
-  clearTimeout(praiseTimer)
+  clearTimeout(resultTimer)
   document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 </script>
@@ -644,6 +517,17 @@ onBeforeUnmount(() => {
     :title="resultTitle"
     :subtitle="result?.kind === 'lost' ? t('shapes.result.levelFailedText') : undefined"
     :rows="resultRows"
+    :share="
+      result && result.kind !== 'lost'
+        ? {
+            game: 'shapes',
+            variant: result.kind === 'won' ? 'levels' : result.kind,
+            result: formatNumber(result.kind === 'won' ? result.total : result.score),
+            kind: 'score',
+            newBest: result.kind !== 'won' && result.newBest,
+          }
+        : undefined
+    "
     :badge="
       (result?.kind === 'time' || result?.kind === 'zen') && result.newBest
         ? t('common.newBest')
@@ -694,7 +578,7 @@ onBeforeUnmount(() => {
 .flights {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: var(--z-flight);
   pointer-events: none;
 }
 
@@ -763,8 +647,6 @@ onBeforeUnmount(() => {
 /* The app bar floats over the garden sky. */
 .play-bar {
   background: linear-gradient(180deg, rgb(255 255 255 / 45%), rgb(255 255 255 / 0%));
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 :root[data-theme='dark'] .play-bar {
@@ -783,14 +665,14 @@ onBeforeUnmount(() => {
 
 .praise {
   --praise-top: #fff6b0;
-  --praise-mid: #ffc21a;
+  --praise-mid: var(--gold);
   --praise-bottom: #ff7a00;
   --praise-edge: #7a3a00;
 
   position: absolute;
   top: 42%;
   left: 50%;
-  z-index: 7;
+  z-index: var(--z-board-praise);
   font-size: clamp(2rem, 11vw, 3.4rem);
   font-weight: 900;
   letter-spacing: 0.01em;
@@ -852,7 +734,7 @@ onBeforeUnmount(() => {
 }
 
 .praise-leave-active {
-  transition: opacity 0.15s;
+  transition: opacity var(--dur-fast);
 }
 
 .praise-leave-to {

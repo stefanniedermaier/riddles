@@ -65,6 +65,13 @@ describe('WaterSortPlay', () => {
     expect(getVariantStats('watersort', 'easy').started).toBe(1)
     await button('Undo').trigger('click')
     expect(saved()?.tubes[4]).toEqual([])
+    // Ctrl/⌘+Z undoes as well.
+    await tap(0)
+    await tap(4)
+    expect(saved()!.tubes[4]!.length).toBeGreaterThan(0)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Z', metaKey: true }))
+    await flushPromises()
+    expect(saved()?.tubes[4]).toEqual([])
     wrapper.unmount()
   })
 

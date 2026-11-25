@@ -1,15 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
+import { standardRoutes } from '../routes'
 
-export const routes: RouteRecordRaw[] = [
-  {
-    path: '/blocks',
-    name: 'blocks',
-    component: () => import('./BlocksLobby.vue'),
-  },
-  {
-    // `?new=1` starts a new game; without it the saved game is resumed.
-    path: '/blocks/play',
-    name: 'blocks-play',
-    component: () => import('./BlocksPlay.vue'),
-  },
-]
+export const routes = standardRoutes(
+  'blocks',
+  () => import('./BlocksLobby.vue'),
+  () => import('./BlocksPlay.vue'),
+)

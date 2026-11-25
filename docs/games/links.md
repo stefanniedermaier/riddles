@@ -97,7 +97,7 @@ and cut at the first cell the new line uses – that is why cut lines come back 
 
 | Key (prefix `riddles:`) | Content                                                                   |
 | ----------------------- | ------------------------------------------------------------------------- |
-| `links:current:v1`      | running game: puzzle, lines, elapsed time, hints, moves, last colour, undo steps (previous lines) |
+| `links:current:v1`      | running game (saved after the first action): puzzle, lines, elapsed time, hints, moves, last colour, undo steps (previous lines) |
 | `links:pool:v1`         | one prefetched puzzle per difficulty                                      |
 | `links:settings`        | `showLabels`                                                              |
 | `stats:v1` → `links`    | statistics per difficulty (started, solved, best/total time)              |

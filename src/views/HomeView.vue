@@ -126,13 +126,9 @@ async function share(): Promise<void> {
   padding: 2px var(--space-2);
   border-radius: 0;
   background: var(--card-accent);
-  color: #fff;
+  color: var(--on-game);
   font-size: var(--text-xs);
   font-weight: 700;
-}
-
-:root[data-theme='dark'] .game-card__badge {
-  color: var(--color-bg);
 }
 
 .footer {

@@ -8,11 +8,11 @@ import type { Hint } from './logic/hints'
 import type { Step, Unit } from './logic/types'
 
 /** "R3C5" style cell name; `size` is the grid size (9 classic, 6 mini). */
-export function cellName(cell: number, size: GridSize = 9): string {
+function cellName(cell: number, size: GridSize = 9): string {
   return t('sudoku.units.cell', { row: Math.floor(cell / size) + 1, col: (cell % size) + 1 })
 }
 
-export function unitName(unit: Unit): string {
+function unitName(unit: Unit): string {
   return t(`sudoku.units.${unit.kind}`, { n: unit.index + 1 })
 }
 

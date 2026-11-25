@@ -1,25 +1,20 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref, shallowRef } from 'vue'
 
-import AppBar from '@/components/AppBar.vue'
-import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
-import AppDialog from '@/components/AppDialog.vue'
-import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import PlayBar from '@/components/PlayBar.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 import { checkMessage } from '@/core/check'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
-import { returnTo } from '@/core/navigation'
-import { recordFinish, recordStart } from '@/core/stats'
-import { load, remove, save } from '@/core/storage'
 import { motionEnabled } from '@/core/theme'
-import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
-import { DIFFICULTIES, SAVE_KEY, type Difficulty } from './index'
+import { usePuzzleSession } from '@/core/usePuzzleSession'
+import { DIFFICULTIES, saveSlot } from './index'
 import { puzzleInfo } from './logic/board'
 import { applyHint, getHint, type Hint } from './logic/hints'
 import {
@@ -34,22 +29,47 @@ import {
   wrongFlags,
   type MoveResult,
 } from './logic/rules'
-import { FLAGGED, REVEALED, isMinesSave, type CellState, type MinesPuzzle, type MinesSave } from './logic/types'
+import { FLAGGED, REVEALED, type MinesPuzzle, type MinesSave } from './logic/types'
 import MinesBoard from './MinesBoard.vue'
 import MinesRules from './MinesRules.vue'
 import { minesPool } from './pool'
 import { minesSettings } from './settings'
 
-const route = useRoute()
-const router = useRouter()
-
-type Status = 'loading' | 'playing' | 'lost' | 'won'
 type Tool = 'reveal' | 'flag'
 
-const status = ref<Status>('loading')
-const game = ref<MinesSave | null>(null)
-const stopwatch = useStopwatch(0)
 const tool = ref<Tool>('reveal')
+const toolOptions = computed(() => [
+  { value: 'reveal' as const, label: t('mines.play.reveal') },
+  { value: 'flag' as const, label: t('mines.play.flag') },
+])
+const hint = shallowRef<Hint | null>(null)
+const showHit = ref(false)
+
+function freshAttempt(next: MinesPuzzle): MinesSave {
+  return { puzzle: next, cells: initialCells(next), actions: 0, elapsedMs: 0, hintsUsed: 0, mistakes: 0 }
+}
+
+const session = usePuzzleSession({
+  gameId: 'mines',
+  slot: saveSlot,
+  variants: DIFFICULTIES,
+  variantOf: (save) => save.puzzle.difficulty,
+  create: async (difficulty) => freshAttempt(await minesPool.take(difficulty)),
+  onShow: (save, reason) => {
+    hint.value = null
+    showHit.value = false
+    tool.value = 'reveal'
+    // A saved attempt that ended on a mine comes back with the "mine hit" dialog.
+    if (reason === 'resume' && save.hit !== undefined) {
+      status.value = 'lost'
+      stopwatch.pause()
+      showHit.value = true
+    }
+  },
+  // The attempt stays saved after a hit (it can still be undone).
+  savedWhile: ['playing', 'lost'],
+})
+const { status, game, stopwatch, result, showResult, showRules, later, markStarted, persist } = session
 
 const puzzle = computed(() => game.value?.puzzle ?? null)
 const counts = computed(() => (puzzle.value ? puzzleInfo(puzzle.value).counts : new Int8Array()))
@@ -79,108 +99,11 @@ const wrong = computed(() => {
   return checked.length ? new Set(checked) : null
 })
 
-// --- Persistence ------------------------------------------------------------------
-
-/** Saves the attempt – but only once the player actually did something. */
-function persist(): void {
-  const g = game.value
-  if (!g || g.actions === 0 || (status.value !== 'playing' && status.value !== 'lost')) return
-  save(SAVE_KEY, { ...toRaw(g), elapsedMs: Math.round(stopwatch.elapsedMs.value) })
-}
-
-function onVisibilityChange(): void {
-  if (document.hidden) persist()
-}
-
-let autosave: ReturnType<typeof setInterval> | undefined
-const timers = new Set<ReturnType<typeof setTimeout>>()
-
-function later(fn: () => void, ms: number): void {
-  const id = setTimeout(() => {
-    timers.delete(id)
-    fn()
-  }, ms)
-  timers.add(id)
-}
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibilityChange)
-  window.addEventListener('pagehide', persist)
-  autosave = setInterval(persist, 5000)
-})
-
-onBeforeUnmount(() => {
-  startToken++ // invalidate a generation that is still running
-  persist()
-  clearInterval(autosave)
-  for (const id of timers) clearTimeout(id)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  window.removeEventListener('pagehide', persist)
-})
-
-// --- Starting / resuming ------------------------------------------------------------
-
-let startToken = 0
-
-function freshAttempt(next: MinesPuzzle): MinesSave {
-  return { puzzle: next, cells: initialCells(next), actions: 0, elapsedMs: 0, hintsUsed: 0, mistakes: 0 }
-}
-
-function resetView(): void {
-  hint.value = null
-  result.value = null
-  showResult.value = false
-  showHit.value = false
-}
-
-async function startNew(difficulty: Difficulty): Promise<void> {
-  const token = ++startToken
-  status.value = 'loading'
-  resetView()
-  stopwatch.reset(0)
-  // The player confirmed a new board: the old save is gone. Drop ?new= before awaiting.
-  remove(SAVE_KEY)
-  void router.replace({ name: 'mines-play' })
-  const next = await minesPool.take(difficulty)
-  if (token !== startToken) return
-  game.value = freshAttempt(next)
-  tool.value = 'reveal'
-  status.value = 'playing'
-  stopwatch.start()
-}
-
-/** Starts the same board again (after a mine hit or via Restart). */
-function restartAttempt(): void {
-  if (!game.value) return
-  resetView()
-  remove(SAVE_KEY)
-  game.value = freshAttempt(game.value.puzzle)
-  tool.value = 'reveal'
-  status.value = 'playing'
-  stopwatch.reset(0)
-  stopwatch.start()
-}
-
-function resume(): boolean {
-  const saved = load(SAVE_KEY, null, (raw) => (isMinesSave(raw) ? raw : undefined))
-  if (!saved) return false
-  game.value = saved
-  stopwatch.reset(saved.elapsedMs)
-  if (saved.hit !== undefined) {
-    status.value = 'lost'
-    showHit.value = true
-  } else {
-    status.value = 'playing'
-    stopwatch.start()
-  }
-  return true
-}
-
 // --- Playing -----------------------------------------------------------------------
 
 /** Counts the move; the first move of an attempt starts the statistics entry. */
 function countAction(g: MinesSave): void {
-  if (g.actions === 0) recordStart('mines', g.puzzle.difficulty)
+  markStarted()
   g.actions += 1
 }
 
@@ -242,8 +165,6 @@ function onFlag(cell: number): void {
 
 // --- Mine hit ----------------------------------------------------------------------
 
-const showHit = ref(false)
-
 /** Back to the board before the fatal move – counts as a mistake. */
 function undoHit(): void {
   const g = game.value
@@ -282,8 +203,6 @@ function check(): void {
 }
 
 // --- Hints -----------------------------------------------------------------------------
-
-const hint = shallowRef<Hint | null>(null)
 
 function position(cell: number): { row: number; col: number } {
   const width = puzzle.value?.width ?? 1
@@ -365,6 +284,11 @@ function applyCurrentHint(): void {
 
 const confirmRestart = ref(false)
 
+/** Starts the same board again (after a mine hit or via Restart). */
+function restartAttempt(): void {
+  if (game.value) session.restart(freshAttempt(game.value.puzzle))
+}
+
 function confirmedRestart(): void {
   confirmRestart.value = false
   restartAttempt()
@@ -372,22 +296,13 @@ function confirmedRestart(): void {
 
 // --- Win -------------------------------------------------------------------------------
 
-const result = ref<{ timeMs: number; newBest: boolean } | null>(null)
-const showResult = ref(false)
-
 function win(): void {
   const g = game.value
   if (!g) return
-  stopwatch.pause()
-  status.value = 'won'
   hint.value = null
-  g.cells = flagAllMines(g.puzzle, g.cells) as CellState[]
-  const timeMs = Math.round(stopwatch.elapsedMs.value)
-  const { newBestTime } = recordFinish('mines', g.puzzle.difficulty, { timeMs })
-  remove(SAVE_KEY)
-  result.value = { timeMs, newBest: newBestTime }
-  // Show the finished board before the dialog covers it.
-  later(() => (showResult.value = true), motionEnabled.value ? 900 : 0)
+  g.cells = flagAllMines(g.puzzle, g.cells)
+  // Shows the finished board before the dialog covers it.
+  session.win()
 }
 
 const resultRows = computed(() => {
@@ -413,54 +328,31 @@ const hitRows = computed(() => {
 })
 
 function newPuzzle(): void {
-  showResult.value = false
   showHit.value = false
-  void startNew(game.value?.puzzle.difficulty ?? 'easy')
-}
-
-function goToMenu(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'mines' })
+  session.playAgain()
 }
 
 function goHome(): void {
-  showResult.value = false
   showHit.value = false
-  void returnTo(router, { name: 'home' })
+  session.goHome()
 }
 
-const showRules = ref(false)
-
-// Start a new game (?new=<difficulty>) or resume the saved one.
-watch(
-  () => route.query.new,
-  (value) => {
-    if (typeof value === 'string' && (DIFFICULTIES as readonly string[]).includes(value)) {
-      void startNew(value as Difficulty)
-    }
-  },
-  { immediate: true },
-)
-
-if (typeof route.query.new !== 'string' && !resume()) {
-  void router.replace({ name: 'mines' })
-}
+session.init()
 </script>
 
 <template>
-  <AppBar :title="t('mines.name')" back-to="/mines">
-    <template #actions>
-      <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
-        <AppIcon name="clock" :size="18" />
-        {{ formatDuration(stopwatch.elapsedMs.value) }}
-      </span>
-      <button type="button" class="icon-btn" :aria-label="t('mines.play.rules')" @click="showRules = true">
-        <AppIcon name="info" />
-      </button>
-    </template>
-  </AppBar>
+  <PlayBar
+    v-model:rules-open="showRules"
+    :title="t('mines.name')"
+    back-to="/mines"
+    :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
+    :rules-label="t('mines.play.rules')"
+    :rules-title="t('mines.rules.title')"
+  >
+    <MinesRules />
+  </PlayBar>
 
-  <main class="play">
+  <main class="puzzle-play">
     <GameBackdrop game="mines" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
@@ -513,8 +405,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
         <AppButton
           class="toolbar__icon"
           icon="close"
-          :aria-label="t('common.close')"
-          :title="t('common.close')"
+          :label="t('common.close')"
           @click="hint = null"
         />
         <AppButton variant="primary" @click="applyCurrentHint">
@@ -522,65 +413,40 @@ if (typeof route.query.new !== 'string' && !resume()) {
         </AppButton>
       </div>
       <div v-else class="toolbar">
-        <div class="tools" role="radiogroup" :aria-label="t('mines.play.tool')">
-          <button
-            type="button"
-            role="radio"
-            class="tool"
-            :class="{ 'tool--active': tool === 'reveal' }"
-            :aria-checked="tool === 'reveal'"
-            @click="tool = 'reveal'"
-          >
-            <span class="tool__swatch" aria-hidden="true" />
-            {{ t('mines.play.reveal') }}
-          </button>
-          <button
-            type="button"
-            role="radio"
-            class="tool"
-            :class="{ 'tool--active': tool === 'flag' }"
-            :aria-checked="tool === 'flag'"
-            @click="tool = 'flag'"
-          >
-            <svg class="tool__flag" viewBox="0 0 24 24" aria-hidden="true">
+        <SegmentedControl v-model="tool" :options="toolOptions" :label="t('mines.play.tool')">
+          <template #icon="{ value }">
+            <span v-if="value === 'reveal'" class="tool__swatch" aria-hidden="true" />
+            <svg v-else class="tool__flag" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M7 3.5v17M4.5 20.5h7" />
               <path class="tool__cloth" d="M8 4.2l10 4.3-10 4.3z" />
             </svg>
-            {{ t('mines.play.flag') }}
-          </button>
-        </div>
+          </template>
+        </SegmentedControl>
         <AppButton
           v-if="!minesSettings.instantMistakes"
           class="toolbar__icon"
           icon="inspect"
           :disabled="status !== 'playing'"
-          :aria-label="t('common.check')"
-          :title="t('common.check')"
+          :label="t('common.check')"
           @click="check"
         />
         <AppButton
           class="toolbar__icon"
           icon="hint"
           :disabled="status !== 'playing'"
-          :aria-label="t('common.hint')"
-          :title="t('common.hint')"
+          :label="t('common.hint')"
           @click="requestHint"
         />
         <AppButton
           class="toolbar__icon"
           icon="restart"
           :disabled="status !== 'playing'"
-          :aria-label="t('mines.play.restart')"
-          :title="t('mines.play.restart')"
+          :label="t('mines.play.restart')"
           @click="confirmRestart = true"
         />
       </div>
     </template>
   </main>
-
-  <AppDialog :open="showRules" :title="t('mines.rules.title')" @close="showRules = false">
-    <MinesRules />
-  </AppDialog>
 
   <ConfirmDialog
     :open="confirmRestart"
@@ -616,34 +482,18 @@ if (typeof route.query.new !== 'string' && !resume()) {
   >
     <template #actions>
       <AppButton variant="primary" block @click="newPuzzle">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="goToMenu">{{ t('mines.play.toMenu') }}</AppButton>
+      <AppButton block @click="session.goToMenu">{{ t('mines.play.toMenu') }}</AppButton>
       <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
 
 <style scoped>
-.play {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
+.puzzle-play {
   gap: var(--space-2);
-  width: 100%;
-  max-width: var(--content-max);
   min-height: 0;
-  margin: 0 auto;
   padding: var(--space-1) max(var(--space-3), env(safe-area-inset-right))
     max(var(--space-3), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
-}
-
-.timer {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
-  font-weight: 600;
-  color: var(--color-text-muted);
 }
 
 /* Fixed height so the board does not jump when a hint is shown. */
@@ -666,33 +516,6 @@ if (typeof route.query.new !== 'string' && !resume()) {
   text-align: center;
 }
 
-.hud {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-4);
-}
-
-.hud__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.hud__label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.hud__value {
-  font-size: var(--text-lg);
-  font-weight: 800;
-  line-height: 28px;
-}
-
 .hud__value--level {
   font-size: var(--text-md);
   color: var(--game-mines);
@@ -710,54 +533,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
 }
 
 .toolbar {
-  display: flex;
   flex: none;
-  gap: var(--space-2);
-  justify-content: center;
-  width: 100%;
 }
 
 .toolbar > * {
-  flex: 1;
   max-width: 260px;
+  white-space: normal;
 }
 
-.toolbar > .toolbar__icon {
-  flex: none;
-  width: var(--tap-min);
-  padding: 0;
-}
-
-.tools {
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 0;
-  background: var(--color-surface-2);
-}
-
-.tool {
-  display: inline-flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  min-height: 38px;
-  padding: 0 var(--space-2);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.tool--active {
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
-}
 
 .tool__swatch {
   width: 14px;

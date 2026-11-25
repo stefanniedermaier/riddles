@@ -5,14 +5,7 @@ import { t } from '@/core/i18n'
 import { resolvedTheme } from '@/core/theme'
 import type { Direction } from './logic/engine'
 import { tileColors } from './palette'
-
-export interface DisplayTile {
-  id: number
-  value: number
-  cell: number
-  /** `new`: just spawned, `merged`: created by a merge in the last move. */
-  state: 'normal' | 'new' | 'merged'
-}
+import type { DisplayTile } from './boardTypes'
 
 const props = defineProps<{
   size: number

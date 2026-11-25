@@ -1,6 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
+import { standardRoutes } from '../routes'
 
-export const routes: RouteRecordRaw[] = [
-  { path: '/solitaire', name: 'solitaire', component: () => import('./SolitaireLobby.vue') },
-  { path: '/solitaire/play', name: 'solitaire-play', component: () => import('./SolitairePlay.vue') },
-]
+export const routes = standardRoutes(
+  'solitaire',
+  () => import('./SolitaireLobby.vue'),
+  () => import('./SolitairePlay.vue'),
+)

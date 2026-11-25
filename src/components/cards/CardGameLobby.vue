@@ -10,17 +10,19 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import { formatDuration, formatNumber } from '@/core/format'
-import { t } from '@/core/i18n'
+import { gameName, t } from '@/core/i18n'
+import { useChallengeVariant } from '@/core/share'
 import { getStats, getVariantStats } from '@/core/stats'
+import { cardSaveKey } from '@/core/cards/game'
 import { has } from '@/core/storage'
-import type { GameId } from '@/games/types'
 import type { CardGameDef } from './types'
 
 /** Lobby shared by the card games: continue, variants with best values, rules. */
 const props = defineProps<{ game: CardGameDef<S, M, V> }>()
 
 const router = useRouter()
-const hasSave = has(`${props.game.id}:current:v1`)
+const challenge = useChallengeVariant()
+const hasSave = has(cardSaveKey(props.game.id))
 const hasPlayed = hasSave || Object.values(getStats(props.game.id)).some((s) => s.started > 0)
 const points = computed(() => props.game.settings.value.scoring === 'points')
 
@@ -58,14 +60,14 @@ onMounted(() => props.game.warm?.())
 </script>
 
 <template>
-  <AppBar :title="t(`${game.id}.name` as 'app.name')" back-to="/">
+  <AppBar :title="gameName(game.id)" back-to="/">
     <template #actions>
-      <GameSettingsButton :game="game.id as GameId" />
+      <GameSettingsButton :game="game.id" />
     </template>
   </AppBar>
 
   <main class="page lobby" :style="{ '--lobby-accent': 'var(--game-' + game.id + ')' }">
-    <LobbyHero :game="game.id as GameId" />
+    <LobbyHero :game="game.id" />
     <RulesCard v-if="!hasPlayed" :title="t('cards.play.rules')" :accent="`var(--game-${game.id})`">
       <ul class="rules">
         <li v-for="key in game.rulesKeys" :key="key">{{ t(key) }}</li>
@@ -74,8 +76,8 @@ onMounted(() => props.game.warm?.())
 
     <ContinueButton v-if="hasSave" @click="router.push({ name: `${game.id}-play` })" />
 
-    <h2 class="section-title">{{ t('cards.lobby.newGame') }}</h2>
-    <ChoiceList :items="items" @select="onSelect" />
+    <h2 class="section-title">{{ t('common.newGame') }}</h2>
+    <ChoiceList :items="items" :highlight="challenge" @select="onSelect" />
 
     <RulesCard v-if="hasPlayed" class="rules--bottom" :title="t('cards.play.rules')" :accent="`var(--game-${game.id})`">
       <ul class="rules">
@@ -86,9 +88,9 @@ onMounted(() => props.game.warm?.())
 
   <ConfirmDialog
     :open="pending !== null"
-    :title="t('cards.lobby.confirmNewTitle')"
-    :message="t('cards.lobby.confirmNew')"
-    :confirm-label="t('cards.lobby.start')"
+    :title="t('common.confirmNewTitle')"
+    :message="t('common.confirmNew')"
+    :confirm-label="t('common.start')"
     @confirm="pending && start(pending)"
     @cancel="pending = null"
   />

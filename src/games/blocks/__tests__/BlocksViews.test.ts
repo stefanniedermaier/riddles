@@ -89,11 +89,8 @@ describe('Blocks views', () => {
     await key(wrapper, '1')
     await key(wrapper, 'ArrowRight') // cell 1 is free
     await key(wrapper, 'Enter')
-    await flushPromises()
-    await new Promise((resolve) => setTimeout(resolve, 10))
-    await flushPromises()
-
-    expect(document.body.textContent).toContain('No more space')
+    // The run ends on a zero-delay timer (reduced motion).
+    await vi.waitFor(() => expect(document.body.textContent).toContain('No more space'))
     expect(localStorage.getItem(`riddles:${SAVE_KEY}`)).toBeNull()
     expect(getVariantStats('blocks', 'classic').bestScore).toBe(51)
     wrapper.unmount()

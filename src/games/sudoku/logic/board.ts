@@ -110,10 +110,6 @@ export function geometry(size: GridSize): Geometry {
   return GEOMETRIES[size]
 }
 
-export function isGridSize(value: unknown): value is GridSize {
-  return value === 9 || value === 6
-}
-
 /** Grid size for a grid with the given number of cells (81 → 9, 36 → 6). */
 export function sizeOfCells(cellCount: number): GridSize {
   if (cellCount === 81) return 9
@@ -127,19 +123,13 @@ export function geometryOfCells(cellCount: number): Geometry {
 
 // --- Classic 9×9 shortcuts (used by classic-only code and tests) --------------------------
 
-export const CLASSIC = GEOMETRIES[9]
+const CLASSIC = GEOMETRIES[9]
 export const MINI = GEOMETRIES[6]
-
-export const rowOf = (cell: number): number => Math.floor(cell / 9)
-export const colOf = (cell: number): number => cell % 9
-export const boxOf = (cell: number): number => CLASSIC.boxOf[cell]!
 
 export const ROWS = CLASSIC.rows
 export const COLS = CLASSIC.cols
 export const BOXES = CLASSIC.boxes
-export const ALL_UNITS = CLASSIC.allUnits
 export const PEERS = CLASSIC.peers
-export const IS_PEER = CLASSIC.isPeer
 
 export function unitCells(unit: Unit, geo: Geometry = CLASSIC): readonly number[] {
   const list = unit.kind === 'row' ? geo.rows : unit.kind === 'col' ? geo.cols : geo.boxes
@@ -149,10 +139,7 @@ export function unitCells(unit: Unit, geo: Geometry = CLASSIC): readonly number[
 /** Bits 1..9 set (classic). */
 export const ALL_DIGITS = CLASSIC.allDigits
 
-const POPCOUNT = new Uint8Array(1024)
-for (let i = 1; i < 1024; i++) POPCOUNT[i] = (i & 1) + POPCOUNT[i >> 1]!
-
-export const popcount = (mask: number): number => POPCOUNT[mask & 0x3ff]!
+export { popcount } from '@/core/bits'
 
 /** Digits (1–9) contained in a candidate mask, ascending. */
 export function digitsOf(mask: number): number[] {

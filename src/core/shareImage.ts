@@ -39,6 +39,30 @@ function luminance(hex: string): number {
 }
 
 /**
+ * Copies the definitions an svg references but does not contain (shared gradients from
+ * `core/svgDefs.ts`) into it, so it still draws them as a standalone image.
+ */
+function inlineSharedDefs(svg: SVGSVGElement): void {
+  const own = new Set([...svg.querySelectorAll('[id]')].map((el) => el.id))
+  const missing = new Set<string>()
+  for (const el of [svg, ...svg.querySelectorAll('*')]) {
+    for (const attr of el.attributes) {
+      for (const [, id] of attr.value.matchAll(/url\(\s*["']?#([^"')\s]+)["']?\s*\)/g)) {
+        if (id && !own.has(id)) missing.add(id)
+      }
+    }
+  }
+  const found = [...missing].flatMap((id) => {
+    const def = document.getElementById(id)
+    return def ? [def.cloneNode(true)] : []
+  })
+  if (found.length === 0) return
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+  defs.append(...found)
+  svg.prepend(defs)
+}
+
+/**
  * Turns an inline SVG of the page into an image. CSS variables in its attributes would not
  * resolve in a standalone image, so the computed colours and fonts are copied onto a clone.
  */
@@ -56,12 +80,15 @@ export function svgToImage(svg: SVGSVGElement): Promise<HTMLImageElement | null>
       return
     }
     for (const prop of ['fill', 'stroke'] as const) {
+      // Paint servers (gradients) stay referenced by id; only plain colours are resolved.
+      if (out.getAttribute(prop)?.startsWith('url(')) continue
       const value = style[prop]
       if (value && !value.startsWith('url(')) out.setAttribute(prop, value)
     }
     if (tag === 'text') out.setAttribute('font-family', style.fontFamily)
     out.removeAttribute('class')
   })
+  inlineSharedDefs(clone)
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
   clone.setAttribute('width', '256')
   clone.setAttribute('height', '256')

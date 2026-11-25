@@ -11,11 +11,13 @@
  * | 3     | forced elimination |
  * | 4     | group confinement  |
  */
-import { colOf, rowOf, unitFromId, type Geometry, type Unit } from './geometry'
+import { colOf, rowOf } from '@/core/grid'
+import { popcount } from '@/core/bits'
+import { unitFromId, type Geometry, type Unit } from './geometry'
 
-export type TechniqueId = 'lastCell' | 'confinement' | 'forced' | 'groupConfinement'
+type TechniqueId = 'lastCell' | 'confinement' | 'forced' | 'groupConfinement'
 
-export const TECHNIQUE_LEVEL: Record<TechniqueId, number> = {
+const TECHNIQUE_LEVEL: Record<TechniqueId, number> = {
   lastCell: 1,
   confinement: 2,
   forced: 3,
@@ -43,7 +45,7 @@ export interface LogicStep {
   focusCells: number[]
 }
 
-export const ELIMINATED = 0
+const ELIMINATED = 0
 export const CANDIDATE = 1
 export const PLACED = 2
 
@@ -226,14 +228,6 @@ function findForced(board: LogicBoard): LogicStep | null {
 // ---------------------------------------------------------------------------
 // Level 4 – k regions confined to k lines (or k lines confined to k regions).
 
-function popcount(x: number): number {
-  let count = 0
-  while (x) {
-    x &= x - 1
-    count++
-  }
-  return count
-}
 
 function* combinations<T>(items: readonly T[], k: number, start = 0): Generator<T[]> {
   if (k === 0) {

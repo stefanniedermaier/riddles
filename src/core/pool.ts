@@ -30,7 +30,7 @@ export function createPuzzlePool<D extends string, P>(
   options: PuzzlePoolOptions<D, P>,
 ): PuzzlePool<D, P> {
   const stored = load<Partial<Record<D, P>>>(options.key, {}, (raw) =>
-    typeof raw === 'object' && raw !== null ? (raw as Partial<Record<D, P>>) : undefined,
+    typeof raw === 'object' && raw !== null ? (raw) : undefined,
   )
   // A Map, because the keys come from storage (possibly an imported backup) and must never
   // be able to touch Object.prototype (e.g. a "__proto__" key).

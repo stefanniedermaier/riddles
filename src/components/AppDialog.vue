@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 
+import { pushDialog } from '@/core/dialogs'
 import { t } from '@/core/i18n'
 import AppIcon from './AppIcon.vue'
 
@@ -8,23 +9,28 @@ const props = withDefaults(
   defineProps<{
     open: boolean
     title?: string
+    /** Accessible name for dialogs without a visible title. */
+    label?: string
     /** Close when tapping the backdrop or pressing Escape. */
     dismissible?: boolean
   }>(),
-  { title: undefined, dismissible: true },
+  { title: undefined, label: undefined, dismissible: true },
 )
 
 const emit = defineEmits<{ close: [] }>()
 
 const panel = ref<HTMLElement | null>(null)
+const titleId = useId()
 let previouslyFocused: Element | null = null
+let release: (() => void) | null = null
 
 function close(): void {
   if (props.dismissible) emit('close')
 }
 
-function onKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') close()
+function unregister(): void {
+  release?.()
+  release = null
 }
 
 watch(
@@ -32,18 +38,20 @@ watch(
   async (open) => {
     if (open) {
       previouslyFocused = document.activeElement
-      document.addEventListener('keydown', onKeydown)
+      release ??= pushDialog({ panel: () => panel.value, onEscape: close })
       await nextTick()
       panel.value?.focus()
-    } else {
-      document.removeEventListener('keydown', onKeydown)
+    } else if (release) {
+      unregister()
+      // The page stops being inert on the next render; only then can it take focus again.
+      await nextTick()
       if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus()
     }
   },
   { immediate: true },
 )
 
-onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
+onBeforeUnmount(unregister)
 </script>
 
 <template>
@@ -55,11 +63,12 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
           class="dialog"
           role="dialog"
           aria-modal="true"
-          :aria-label="title"
+          :aria-labelledby="title ? titleId : undefined"
+          :aria-label="title ? undefined : label"
           tabindex="-1"
         >
           <header v-if="title || dismissible" class="dialog__header">
-            <h2 class="dialog__title">{{ title }}</h2>
+            <h2 v-if="title" :id="titleId" class="dialog__title">{{ title }}</h2>
             <button
               v-if="dismissible"
               type="button"
@@ -86,7 +95,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 .dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--z-dialog);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,9 +134,12 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin-right: calc(-1 * var(--space-2));
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin-left: auto;
+  margin-right: calc(-1 * var(--space-3));
+  /* 44 px tap target without making the header taller than before. */
+  margin-block: calc(-1 * var(--space-1));
   border: 0;
   border-radius: 0;
   background: transparent;

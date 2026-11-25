@@ -1,17 +1,18 @@
 import { t } from '@/core/i18n'
-import { has } from '@/core/storage'
+import { defineSaveSlot, type SaveSlot } from '@/core/saveSlot'
 import type { GameDescriptor } from '../types'
 import {
   DIFFICULTIES,
   MINI_DIFFICULTIES,
-  MODES,
   isDifficulty,
+  isSudokuSave,
+  modeOfPuzzle,
   statVariant,
-  type Difficulty,
   type SudokuMode,
+  type SudokuSave,
 } from './logic/types'
 
-export { DIFFICULTIES, MINI_DIFFICULTIES, MODES, type Difficulty, type SudokuMode }
+export type { SudokuMode }
 
 /** Storage key of the running classic game (format unchanged since v1). */
 export const SAVE_KEY = 'sudoku:current:v1'
@@ -19,10 +20,18 @@ export const SAVE_KEY = 'sudoku:current:v1'
 export const MINI_SAVE_KEY = 'sudoku:mini:current:v1'
 
 /** Storage keys of the prefetched puzzles (one per difficulty). */
-export const POOL_KEY = 'sudoku:pool:v1'
-export const MINI_POOL_KEY = 'sudoku:mini:pool:v1'
+const POOL_KEY = 'sudoku:pool:v1'
+const MINI_POOL_KEY = 'sudoku:mini:pool:v1'
 
-export const saveKeyOf = (mode: SudokuMode): string => (mode === 'mini' ? MINI_SAVE_KEY : SAVE_KEY)
+const slotFor = (key: string, mode: SudokuMode): SaveSlot<SudokuSave> =>
+  defineSaveSlot(key, (raw): raw is SudokuSave => isSudokuSave(raw) && modeOfPuzzle(raw.puzzle) === mode)
+const SLOTS: Record<SudokuMode, SaveSlot<SudokuSave>> = {
+  classic: slotFor(SAVE_KEY, 'classic'),
+  mini: slotFor(MINI_SAVE_KEY, 'mini'),
+}
+
+/** The running game of a mode (validated, shared by Home, lobby and play view). */
+export const saveSlotOf = (mode: SudokuMode): SaveSlot<SudokuSave> => SLOTS[mode]
 export const poolKeyOf = (mode: SudokuMode): string => (mode === 'mini' ? MINI_POOL_KEY : POOL_KEY)
 
 /** Statistics variants: classic difficulties keep their plain ids, mini ones are prefixed. */
@@ -39,6 +48,6 @@ export const descriptor: GameDescriptor = {
     const label = t(`difficulty.${difficulty}`)
     return mini ? `${t('sudoku.modes.miniShort')} · ${label}` : label
   },
-  hasSavedGame: () => has(SAVE_KEY) || has(MINI_SAVE_KEY),
+  hasSavedGame: () => SLOTS.classic.exists() || SLOTS.mini.exists(),
   settingsComponent: () => import('./SudokuSettings.vue'),
 }

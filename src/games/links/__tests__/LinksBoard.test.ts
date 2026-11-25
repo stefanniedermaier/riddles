@@ -47,6 +47,23 @@ describe('LinksBoard', () => {
     expect(wrapper.emitted('end')).toHaveLength(1)
   })
 
+  it('draws with the keyboard: Enter starts, arrows extend, Enter ends', async () => {
+    const wrapper = mountBoard()
+    const board = wrapper.find('.links-board')
+    expect(board.attributes('tabindex')).toBe('0')
+    expect(wrapper.find('.cell[data-cell="0"]').attributes('aria-label')).toBe('Row 1, column 1, dot A')
+    await board.trigger('keydown', { key: 'ArrowRight' }) // cursor without drawing: no event
+    expect(wrapper.emitted('move')).toBeUndefined()
+    await board.trigger('keydown', { key: 'ArrowLeft' })
+    await board.trigger('keydown', { key: 'Enter' })
+    await board.trigger('keydown', { key: 'ArrowDown' })
+    await board.trigger('keydown', { key: 'ArrowRight' })
+    await board.trigger('keydown', { key: ' ' })
+    expect(wrapper.emitted('start')).toEqual([[0]])
+    expect(wrapper.emitted('move')).toEqual([[3], [4]])
+    expect(wrapper.emitted('end')).toHaveLength(1)
+  })
+
   it('prefers browser hit testing when available', async () => {
     const wrapper = mountBoard()
     const target = wrapper.find('[data-cell="8"]').element

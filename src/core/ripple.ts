@@ -8,7 +8,7 @@
  */
 
 /** UI controls that get a ripple; keep in sync with the state-layer list in base.css. */
-export const RIPPLE_TARGETS = [
+const RIPPLE_TARGETS = [
   '.app-btn',
   '.icon-btn',
   '.app-bar__icon-btn',

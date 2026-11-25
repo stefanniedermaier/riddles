@@ -28,12 +28,13 @@ function makeRouter() {
 
 const saved = () => load(SAVE_KEY, null, (raw) => (isNonogramSave(raw) ? raw : undefined))
 
-async function start(puzzle?: NonogramPuzzle) {
-  if (puzzle) vi.spyOn(nonogramPool, 'take').mockResolvedValue(puzzle)
+/** Starts a game with a fixed puzzle (no generation in the test). */
+async function start(puzzle: NonogramPuzzle = generatePuzzle('easy', 1)) {
+  vi.spyOn(nonogramPool, 'take').mockResolvedValue(puzzle)
   const router = makeRouter()
   await router.push('/nonogram/play?new=easy')
   const wrapper = mount(NonogramPlay, { global: { plugins: [router] }, attachTo: document.body })
-  await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(25), { timeout: 10_000 })
+  await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(25))
   return { router, wrapper }
 }
 
@@ -54,7 +55,9 @@ describe('NonogramPlay', () => {
   it('starts a game, can be solved with hints and shows the result', async () => {
     const { router, wrapper } = await start()
     expect(router.currentRoute.value.query.new).toBeUndefined()
-    expect(saved()?.cells.every((m) => m === 0)).toBe(true)
+    // Merely opening a puzzle neither saves it nor counts it as started.
+    expect(saved()).toBeNull()
+    expect(getVariantStats('nonogram', 'easy').started).toBe(0)
 
     for (let i = 0; i < 40 && !document.body.textContent?.includes('Solved!'); i++) {
       await wrapper.find('.toolbar button[aria-label="Hint"]').trigger('click')
@@ -89,7 +92,7 @@ describe('NonogramPlay', () => {
     expect(wrapper.findAll('.cell--wrong')).toHaveLength(wrongInRow)
 
     // Cross tool on a single cell.
-    await wrapper.findAll('.tool')[1]!.trigger('click')
+    await wrapper.findAll('[role="radio"]')[1]!.trigger('click')
     board.vm.$emit('start', 24)
     board.vm.$emit('end')
     await flushPromises()

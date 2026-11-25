@@ -23,11 +23,21 @@
   --color-accent-strong: #4a3bc4;
   --color-accent-soft: #e6e2ff;
   --color-on-accent: #ffffff;
+  /* Text and icons on a game colour (--game-*, --accent inside a game). */
+  --on-game: #ffffff;
   --color-error: #bf2a43;
   --color-error-soft: #fde3e7;
   --color-success: #1d8f62;
   --color-success-soft: #dcf5ea;
   --color-warning: #c27c00;
+
+  /* Award gold (stars, trophies, medals) – the same in both themes. Canvas and SVG
+    presentation attributes (shareImage.ts, GameArt, StarGlyph) repeat the hex values. */
+  --gold-light: #fff6b0;
+  --gold: #ffc21a;
+  --gold-deep: #e3a000;
+  /* Text on the lobby hero banner: the banner is a dark mix of the game colour in both themes. */
+  --on-hero: #ffffff;
 
   /* Game accents (home cards, headers) */
   --game-sudoku: #3a72d6;
@@ -91,6 +101,19 @@
   --appbar-height: 56px;
   --tap-min: 44px;
 
+  /* Stacking order. Board layers count inside the board's own stacking context; the rest
+    are page layers: dialogs above the page, snackbars and the update banner above the
+    dialog scrim, so they stay readable while a dialog is open. */
+  --z-board-fx: 6;
+  --z-board-praise: 7;
+  --z-appbar: 10;
+  --z-flight: 20;
+  --z-drag: 50;
+  --z-dialog: 100;
+  --z-celebration: 110;
+  --z-toast: 120;
+  --z-banner: 150;
+
   /* Motion (set to 0 when reduced) */
   --dur-fast: 120ms;
   --dur-med: 220ms;
@@ -115,6 +138,8 @@
   --color-accent-strong: #a89cff;
   --color-accent-soft: #2f2a55;
   --color-on-accent: #15141b;
+  /* Game colours are lighter in dark mode: dark text on them. */
+  --on-game: var(--color-bg);
   --color-error: #ff6b81;
   --color-error-soft: #4a1f29;
   --color-success: #3ccf95;

@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { ParticleLayer, rand, type ParticleInit } from '@/core/particles'
+import { pickRandom as pick } from '@/core/rng'
 import type { BoardEffect } from './animator'
 import { SIZE, type Field } from './logic/types'
 
@@ -37,7 +38,6 @@ const ITEM_COLORS: [string, string] = ['#d18a42', '#ffd29a']
 const RAINBOW = ['#f2263f', '#ff9412', '#ffd61f', '#2fbd4f', '#3584ff', '#a24bf5', '#ffffff']
 const SPARK = ['#ffffff', '#fff3a0', '#ffd23f', '#ffb020']
 
-const pick = <T,>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)]!
 
 function radial(speedMin: number, speedMax: number): { vx: number; vy: number } {
   const a = Math.random() * Math.PI * 2
@@ -304,7 +304,7 @@ onBeforeUnmount(() => {
 .board-particles {
   position: absolute;
   inset: -48px;
-  z-index: 6;
+  z-index: var(--z-board-fx);
   width: calc(100% + 96px);
   height: calc(100% + 96px);
   pointer-events: none;

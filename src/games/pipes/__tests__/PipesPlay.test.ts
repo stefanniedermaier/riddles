@@ -62,6 +62,12 @@ describe('PipesPlay', () => {
     expect(getVariantStats('pipes', 'easy').started).toBe(1)
     await button('Undo').trigger('click')
     expect(saved()?.turns[0]).toBe(before)
+    // Ctrl+Z undoes as well.
+    await emit('rotate', 0)
+    expect(saved()?.turns[0]).toBe((before + 1) % 4)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true }))
+    await flushPromises()
+    expect(saved()?.turns[0]).toBe(before)
     wrapper.unmount()
   })
 

@@ -20,7 +20,7 @@ import {
 } from './techniques'
 import type { Step, TechniqueId } from './types'
 
-export interface TechniqueDef {
+interface TechniqueDef {
   id: TechniqueId
   level: 1 | 2 | 3 | 4
   weight: number
@@ -28,7 +28,7 @@ export interface TechniqueDef {
 }
 
 /** Ordered from simplest to hardest – the solver always uses the simplest step available. */
-export const TECHNIQUES: readonly TechniqueDef[] = [
+const TECHNIQUES: readonly TechniqueDef[] = [
   { id: 'hiddenSingle', level: 1, weight: 1, find: findHiddenSingle },
   { id: 'nakedSingle', level: 1, weight: 1, find: findNakedSingle },
   { id: 'pointing', level: 2, weight: 3, find: findPointing },

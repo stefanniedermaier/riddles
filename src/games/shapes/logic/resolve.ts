@@ -20,9 +20,9 @@ import {
 } from './types'
 
 /** Upper bound for cascades per move – a safety net, practically never reached. */
-export const MAX_CASCADES = 60
+const MAX_CASCADES = 60
 
-export interface SwapPhase {
+interface SwapPhase {
   type: 'swap'
   a: number
   b: number
@@ -59,14 +59,14 @@ export interface FallPhase {
 }
 
 /** Levels: drop items that reached the bottom row and leave the board. */
-export interface CollectPhase {
+interface CollectPhase {
   type: 'collect'
   cells: number[]
   board: Board
   field: Field
 }
 
-export interface ShufflePhase {
+interface ShufflePhase {
   type: 'shuffle'
   board: Board
   field?: Field
@@ -74,7 +74,7 @@ export interface ShufflePhase {
 
 export type Phase = SwapPhase | ClearPhase | FallPhase | CollectPhase | ShufflePhase
 
-export interface MoveSummary {
+interface MoveSummary {
   score: number
   /** Number of pieces cleared. */
   cleared: number

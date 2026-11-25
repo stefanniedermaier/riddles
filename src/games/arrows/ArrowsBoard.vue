@@ -7,18 +7,7 @@ import { headOf, rayCells } from './logic/analysis'
 import { DELTAS, type Arrow, type Direction } from './logic/types'
 import { arrowColor } from './palette'
 import { arrowsSettings } from './settings'
-
-export interface LeavingArrow {
-  id: number
-  /** Unique per animation run (restarts the CSS animation). */
-  key: number
-}
-
-export interface Bump {
-  arrow: number
-  blocker: number
-  key: number
-}
+import type { LeavingArrow, Bump } from './boardTypes'
 
 const props = defineProps<{
   size: number

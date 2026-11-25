@@ -1,11 +1,11 @@
 import { SIZE, cellAt, isMatchable, type Board, type Special } from './types'
 
-export interface Run {
+interface Run {
   cells: number[]
   dir: 'h' | 'v'
 }
 
-export type MatchShape = 'three' | 'four' | 'five' | 'cross'
+type MatchShape = 'three' | 'four' | 'five' | 'cross'
 
 /** Connected runs of the same kind (a line, an L or a T). */
 export interface MatchGroup {
@@ -19,7 +19,7 @@ export interface MatchGroup {
 }
 
 /** All horizontal and vertical runs of ≥ 3 equal kinds. */
-export function findRuns(board: Board): Run[] {
+function findRuns(board: Board): Run[] {
   const runs: Run[] = []
   for (let row = 0; row < SIZE; row++) {
     let col = 0
