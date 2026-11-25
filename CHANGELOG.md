@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.13.1] – 2026-11-25
+
+The tag `v0.13.0` was set before the release was prepared and never published; 0.13.1 is
+the first release with these changes.
+
 ### Added
 
 - *Share result* in the win dialog of every game: shares a challenge link (game, difficulty,
