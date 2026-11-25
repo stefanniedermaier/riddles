@@ -56,7 +56,7 @@ const id = useId()
   width: 52px;
   height: 32px;
   /* Material 3 switch, square (design guide): outlined track and a small thumb when off,
-     filled track and a large thumb when on. */
+    filled track and a large thumb when on. */
   border: 2px solid color-mix(in srgb, var(--color-text) 45%, transparent);
   border-radius: 0;
   background: var(--color-surface-3);
