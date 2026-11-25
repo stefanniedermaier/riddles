@@ -1,40 +1,40 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref } from 'vue'
 
-import AppBar from '@/components/AppBar.vue'
-import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
-import AppDialog from '@/components/AppDialog.vue'
-import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import PlayBar from '@/components/PlayBar.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
-import { returnTo } from '@/core/navigation'
 import { randomSeed } from '@/core/rng'
-import { recordFinish, recordStart } from '@/core/stats'
-import { load, remove, save } from '@/core/storage'
-import { motionEnabled } from '@/core/theme'
-import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
-import { DIFFICULTIES, SAVE_KEY, sizeLabel, type Difficulty } from './index'
+import { usePuzzleSession } from '@/core/usePuzzleSession'
+import { DIFFICULTIES, saveSlot, sizeLabel } from './index'
 import { generatePuzzle } from './logic/generator'
 import { colors, getHint, isSolved } from './logic/rules'
-import { isPipesSave, sourcesOf, type PipesPuzzle, type PipesSave } from './logic/types'
+import { sourcesOf, type PipesPuzzle, type PipesSave } from './logic/types'
 import PipesBoard from './PipesBoard.vue'
 import PipesRules from './PipesRules.vue'
 
-const route = useRoute()
-const router = useRouter()
-
-type Status = 'loading' | 'playing' | 'won'
-
-const status = ref<Status>('loading')
-const game = ref<PipesSave | null>(null)
-const stopwatch = useStopwatch(0)
 const highlight = ref<number | null>(null)
+
+function fresh(puzzle: PipesPuzzle): PipesSave {
+  return { puzzle, turns: [...puzzle.scramble], locked: [], moves: 0, elapsedMs: 0, hintsUsed: 0, undo: [] }
+}
+
+const session = usePuzzleSession({
+  gameId: 'pipes',
+  slot: saveSlot,
+  variants: DIFFICULTIES,
+  variantOf: (save) => save.puzzle.difficulty,
+  create: (difficulty) => fresh(generatePuzzle(difficulty, randomSeed())),
+  onShow: () => (highlight.value = null),
+  onUndo: () => undo(),
+})
+const { status, game, stopwatch, result, showResult, showRules, markStarted, persist, saveProgress } = session
 
 const water = computed(() => (game.value ? colors(game.value.puzzle, game.value.turns) : []))
 const sources = computed(() => (game.value ? sourcesOf(game.value.puzzle) : []))
@@ -51,86 +51,7 @@ const levelLabel = computed(() =>
     : '',
 )
 
-// --- Persistence ------------------------------------------------------------------
-
-function persist(): void {
-  const g = game.value
-  // Saved only once the player did something (`started`).
-  if (!g || status.value !== 'playing' || !started) return
-  save(SAVE_KEY, { ...toRaw(g), elapsedMs: Math.round(stopwatch.elapsedMs.value) })
-}
-
-function onVisibilityChange(): void {
-  if (document.hidden) persist()
-}
-
-let autosave: ReturnType<typeof setInterval> | undefined
-let resultTimer: ReturnType<typeof setTimeout> | undefined
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibilityChange)
-  window.addEventListener('pagehide', persist)
-  autosave = setInterval(persist, 5000)
-})
-
-onBeforeUnmount(() => {
-  persist()
-  clearInterval(autosave)
-  clearTimeout(resultTimer)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  window.removeEventListener('pagehide', persist)
-})
-
-// --- Starting / resuming ------------------------------------------------------------
-
-/** Whether the statistics already counted this attempt as started. */
-let started = false
-
-function fresh(puzzle: PipesPuzzle): PipesSave {
-  return { puzzle, turns: [...puzzle.scramble], locked: [], moves: 0, elapsedMs: 0, hintsUsed: 0, undo: [] }
-}
-
-function begin(next: PipesSave): void {
-  game.value = next
-  highlight.value = null
-  result.value = null
-  showResult.value = false
-  started = false
-  status.value = 'playing'
-  stopwatch.reset(0)
-  stopwatch.start()
-}
-
-function startNew(difficulty: Difficulty): void {
-  remove(SAVE_KEY)
-  void router.replace({ name: 'pipes-play' })
-  begin(fresh(generatePuzzle(difficulty, randomSeed())))
-}
-
-function restartAttempt(): void {
-  if (!game.value) return
-  remove(SAVE_KEY)
-  begin(fresh(game.value.puzzle))
-}
-
-function resume(): boolean {
-  const saved = load(SAVE_KEY, null, (raw) => (isPipesSave(raw) ? raw : undefined))
-  if (!saved) return false
-  game.value = saved
-  started = true
-  stopwatch.reset(saved.elapsedMs)
-  status.value = 'playing'
-  stopwatch.start()
-  return true
-}
-
 // --- Playing -----------------------------------------------------------------------
-
-function markStarted(g: PipesSave): void {
-  if (started) return
-  started = true
-  recordStart('pipes', g.puzzle.difficulty)
-}
 
 function onRotate(cell: number): void {
   const g = game.value
@@ -139,7 +60,7 @@ function onRotate(cell: number): void {
     showToast(t('pipes.play.locked'))
     return
   }
-  markStarted(g)
+  markStarted()
   highlight.value = null
   g.turns = g.turns.map((turn, c) => (c === cell ? (turn + 1) % 4 : turn))
   g.undo = [...g.undo, cell]
@@ -150,9 +71,8 @@ function onRotate(cell: number): void {
 function onLock(cell: number): void {
   const g = game.value
   if (!g || status.value !== 'playing') return
-  markStarted(g)
   g.locked = lockedSet.value.has(cell) ? g.locked.filter((c) => c !== cell) : [...g.locked, cell]
-  persist()
+  saveProgress()
 }
 
 const canUndo = computed(() => status.value === 'playing' && (game.value?.undo.length ?? 0) > 0)
@@ -170,8 +90,12 @@ function undo(): void {
 }
 
 function afterChange(g: PipesSave): void {
-  if (isSolved(g.puzzle, g.turns)) win()
-  else persist()
+  if (isSolved(g.puzzle, g.turns)) {
+    highlight.value = null
+    session.win()
+  } else {
+    persist()
+  }
 }
 
 // --- Hints -----------------------------------------------------------------------------
@@ -184,7 +108,7 @@ function requestHint(): void {
     showToast(t('pipes.play.noHint'))
     return
   }
-  markStarted(g)
+  markStarted()
   g.hintsUsed += 1
   highlight.value = hint.cell
   if (hint.kind === 'unlock') {
@@ -209,27 +133,10 @@ const confirmRestart = ref(false)
 
 function confirmedRestart(): void {
   confirmRestart.value = false
-  restartAttempt()
+  if (game.value) session.restart(fresh(game.value.puzzle))
 }
 
-// --- Win -------------------------------------------------------------------------------
-
-const result = ref<{ timeMs: number; newBest: boolean } | null>(null)
-const showResult = ref(false)
-
-function win(): void {
-  const g = game.value
-  if (!g) return
-  stopwatch.pause()
-  status.value = 'won'
-  highlight.value = null
-  markStarted(g)
-  const timeMs = Math.round(stopwatch.elapsedMs.value)
-  const { newBestTime } = recordFinish('pipes', g.puzzle.difficulty, { timeMs })
-  remove(SAVE_KEY)
-  result.value = { timeMs, newBest: newBestTime }
-  resultTimer = setTimeout(() => (showResult.value = true), motionEnabled.value ? 900 : 0)
-}
+// --- Result ----------------------------------------------------------------------------
 
 const resultRows = computed(() => {
   const g = game.value
@@ -243,52 +150,22 @@ const resultRows = computed(() => {
   ]
 })
 
-function playAgain(): void {
-  showResult.value = false
-  startNew(game.value?.puzzle.difficulty ?? 'easy')
-}
-
-function goToMenu(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'pipes' })
-}
-
-function goHome(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'home' })
-}
-
-const showRules = ref(false)
-
-watch(
-  () => route.query.new,
-  (value) => {
-    if (typeof value === 'string' && (DIFFICULTIES as readonly string[]).includes(value)) {
-      startNew(value as Difficulty)
-    }
-  },
-  { immediate: true },
-)
-
-if (typeof route.query.new !== 'string' && !resume()) {
-  void router.replace({ name: 'pipes' })
-}
+session.init()
 </script>
 
 <template>
-  <AppBar :title="t('pipes.name')" back-to="/pipes">
-    <template #actions>
-      <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
-        <AppIcon name="clock" :size="18" />
-        {{ formatDuration(stopwatch.elapsedMs.value) }}
-      </span>
-      <button type="button" class="icon-btn" :aria-label="t('pipes.play.rules')" @click="showRules = true">
-        <AppIcon name="info" />
-      </button>
-    </template>
-  </AppBar>
+  <PlayBar
+    v-model:rules-open="showRules"
+    :title="t('pipes.name')"
+    back-to="/pipes"
+    :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
+    :rules-label="t('pipes.play.rules')"
+    :rules-title="t('pipes.rules.title')"
+  >
+    <PipesRules />
+  </PlayBar>
 
-  <main class="play">
+  <main class="puzzle-play">
     <GameBackdrop game="pipes" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
@@ -335,17 +212,12 @@ if (typeof route.query.new !== 'string' && !resume()) {
           class="toolbar__icon"
           icon="restart"
           :disabled="status !== 'playing'"
-          :aria-label="t('pipes.play.restart')"
-          :title="t('pipes.play.restart')"
+          :label="t('pipes.play.restart')"
           @click="confirmRestart = true"
         />
       </div>
     </template>
   </main>
-
-  <AppDialog :open="showRules" :title="t('pipes.rules.title')" @close="showRules = false">
-    <PipesRules />
-  </AppDialog>
 
   <ConfirmDialog
     :open="confirmRestart"
@@ -365,63 +237,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :badge="result?.newBest ? t('common.newBest') : undefined"
   >
     <template #actions>
-      <AppButton variant="primary" block @click="playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="goToMenu">{{ t('pipes.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
+      <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
+      <AppButton block @click="session.goToMenu">{{ t('pipes.play.toMenu') }}</AppButton>
+      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
 
 <style scoped>
-.play {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  max-width: var(--content-max);
-  margin: 0 auto;
-  padding: var(--space-2) max(var(--space-3), env(safe-area-inset-right))
-    max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
-}
-
-.timer {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
-.hud {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-4);
-}
-
-.hud__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.hud__label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.hud__value {
-  font-size: var(--text-lg);
-  font-weight: 800;
-  line-height: 28px;
-}
-
 .hud__value--level {
   font-size: var(--text-md);
   color: var(--game-pipes);
@@ -435,24 +258,5 @@ if (typeof route.query.new !== 'string' && !resume()) {
   );
   /* Cells stay at least 26 px wide (WCAG 2.5.8); on short screens the page scrolls instead. */
   min-width: min(100%, calc(var(--cols) * 28px + 8px));
-}
-
-.toolbar {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: center;
-  width: 100%;
-}
-
-.toolbar > * {
-  flex: 1;
-  max-width: 200px;
-  white-space: nowrap;
-}
-
-.toolbar > .toolbar__icon {
-  flex: none;
-  width: var(--tap-min);
-  padding: 0;
 }
 </style>

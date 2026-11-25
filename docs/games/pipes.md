@@ -23,7 +23,7 @@ with no open ends. Name, artwork and puzzles are original; every puzzle is gener
 | Tap             | turn clockwise (locked tiles: a toast says the tile is locked)          |
 | Long press / right click | lock or unlock                                                 |
 | Keyboard        | arrow keys move the cursor, Enter / Space turns, L locks                |
-| Undo            | turns the last turned tile back (and unlocks it)                        |
+| Undo (↶ / Ctrl+Z) | turns the last turned tile back (and unlocks it)                      |
 | Hint            | a wrongly locked tile is unlocked; otherwise one tile (next to the water if possible) is turned into its solution position and locked |
 | Restart         | the same puzzle from the start (confirmation)                           |
 

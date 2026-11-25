@@ -52,8 +52,8 @@ const challengeHighlight = computed(() => {
 })
 
 const modeOptions = computed(() => [
-  { value: 'classic' as SudokuMode, label: t('sudoku.modes.classic') },
-  { value: 'mini' as SudokuMode, label: t('sudoku.modes.mini') },
+  { value: 'classic', label: t('sudoku.modes.classic') },
+  { value: 'mini', label: t('sudoku.modes.mini') },
 ])
 
 const saved = computed(() => loadSavedGame(mode.value))
@@ -130,7 +130,7 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
       @click="continueGame"
     />
 
-    <h2 class="section-title">{{ t('sudoku.lobby.newGame') }}</h2>
+    <h2 class="section-title">{{ t('common.newGame') }}</h2>
     <ChoiceList :items="items" :highlight="challengeHighlight" @select="onSelect" />
 
     <RulesCard v-if="hasPlayed" class="rules--bottom" :title="t('sudoku.rules.title')" accent="var(--game-sudoku)">
@@ -140,8 +140,8 @@ watch(mode, (current) => poolOf(current).warm(difficultiesOf(current)), { immedi
 
   <ConfirmDialog
     :open="pendingDifficulty !== null"
-    :title="t('sudoku.lobby.replaceTitle')"
-    :message="t('sudoku.lobby.replaceConfirm')"
+    :title="t('common.confirmNewTitle')"
+    :message="t('common.confirmNew')"
     :confirm-label="t('common.newGame')"
     @confirm="confirmReplace"
     @cancel="pendingDifficulty = null"

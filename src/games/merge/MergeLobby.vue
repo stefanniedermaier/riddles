@@ -8,6 +8,7 @@ import ChoiceList from '@/components/ChoiceList.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
+import { useChallengeVariant } from '@/core/share'
 import { getVariantStats } from '@/core/stats'
 import { VARIANTS, type Variant } from './index'
 import MergeRules from './MergeRules.vue'
@@ -15,6 +16,7 @@ import { targetOf } from './logic/engine'
 import { loadRun, records } from './store'
 
 const router = useRouter()
+const challenge = useChallengeVariant()
 
 // Storage is not reactive; the lobby remounts on every visit, so reading once is enough.
 const saved = Object.fromEntries(VARIANTS.map((variant) => [variant, loadRun(variant)])) as Record<
@@ -66,7 +68,7 @@ function select(id: string): void {
     <RulesCard class="intro" :title="t('merge.lobby.howToTitle')" accent="var(--game-merge)">
       <MergeRules />
     </RulesCard>
-    <ChoiceList class="variants" :items="items" @select="select" />
+    <ChoiceList class="variants" :items="items" :highlight="challenge" @select="select" />
   </main>
 </template>
 

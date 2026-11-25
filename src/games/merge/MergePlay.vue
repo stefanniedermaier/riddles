@@ -24,7 +24,8 @@ import {
   type Direction,
   type MergeRun,
 } from './logic/engine'
-import MergeBoard, { type DisplayTile } from './MergeBoard.vue'
+import MergeBoard from './MergeBoard.vue'
+import type { DisplayTile } from './boardTypes'
 import { clearRun, loadRun, recordHighestTile, saveRun } from './store'
 import MergeRules from './MergeRules.vue'
 

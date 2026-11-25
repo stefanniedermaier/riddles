@@ -14,7 +14,7 @@ export type LevelGoal =
 export type Feature = 'targets' | 'chains' | 'crates' | 'items'
 
 /** Obstacles of a level at its start. */
-export interface LevelLayout {
+interface LevelLayout {
   /** Crate hit points per cell (0 = none). */
   crates: number[]
   /** 1 = target tile. */
@@ -69,9 +69,9 @@ const CLEARED_PER_KIND_PER_MOVE = { 5: 1.8, 6: 1.2 } as const
  * Moves a casual player needs per obstacle unit (tuned with the same bot, see
  * `__tests__/levels.tuning.test.ts`).
  */
-export const MOVES_PER = { target: 1.9, chain: 3.1, crateHit: 0.9, item: 4.8 } as const
+const MOVES_PER = { target: 1.9, chain: 3.1, crateHit: 0.9, item: 4.8 } as const
 /** Fixed extra moves per obstacle type in a level (getting started, unlucky boards). */
-export const MOVES_BASE: Record<Feature, number> = { targets: 3, chains: 5, crates: 6, items: 2 }
+const MOVES_BASE: Record<Feature, number> = { targets: 3, chains: 5, crates: 6, items: 2 }
 /** Obstacles in the edge columns see fewer matches and therefore cost more. */
 const EDGE_WEIGHT = 1.4
 

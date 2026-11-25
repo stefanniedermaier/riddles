@@ -40,16 +40,22 @@ describe('LinksPlay', () => {
   })
 
   it('starts a game, can be solved with hints and shows the result', async () => {
+    vi.spyOn(linksPool, 'take').mockResolvedValue(generatePuzzle('easy', 1))
     const router = makeRouter()
     await router.push('/links/play?new=easy')
     const wrapper = mount(LinksPlay, { global: { plugins: [router] }, attachTo: document.body })
-    await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(25), { timeout: 10_000 })
+    await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(25))
     expect(router.currentRoute.value.query.new).toBeUndefined()
-    expect(saved()?.paths.every((p) => p.length === 0)).toBe(true)
+    // Merely opening a puzzle neither saves it nor counts it as started.
+    expect(saved()).toBeNull()
+    expect(getVariantStats('links', 'easy').started).toBe(0)
 
-    const colors = saved()!.puzzle.endpoints.length
-    for (let i = 0; i < colors + 1 && !document.body.textContent?.includes('Solved!'); i++) {
-      await wrapper.findAll('.toolbar button').find((b) => b.text() === 'Hint')!.trigger('click')
+    const hint = () => wrapper.findAll('.toolbar button').find((b) => b.text() === 'Hint')!
+    await hint().trigger('click')
+    await flushPromises()
+    expect(getVariantStats('links', 'easy').started).toBe(1)
+    for (let i = 0; i < 30 && !document.body.textContent?.includes('Solved!'); i++) {
+      await hint().trigger('click')
       await flushPromises()
     }
     await vi.waitFor(() => expect(document.body.textContent).toContain('Solved!'))

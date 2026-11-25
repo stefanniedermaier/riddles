@@ -9,8 +9,13 @@ withDefaults(
     block?: boolean
     disabled?: boolean
     type?: 'button' | 'submit'
+    /**
+     * Accessible name and tooltip. Required for an icon-only button (no slot content);
+     * a test checks every icon-only `<AppButton />` in the app has one.
+     */
+    label?: string
   }>(),
-  { variant: 'secondary', icon: undefined, block: false, disabled: false, type: 'button' },
+  { variant: 'secondary', icon: undefined, block: false, disabled: false, type: 'button', label: undefined },
 )
 </script>
 
@@ -20,6 +25,8 @@ withDefaults(
     class="app-btn"
     :class="[`app-btn--${variant}`, { 'app-btn--block': block }]"
     :disabled="disabled"
+    :aria-label="label"
+    :title="label"
   >
     <AppIcon v-if="icon" :name="icon" :size="20" />
     <span v-if="$slots.default" class="app-btn__label"><slot /></span>

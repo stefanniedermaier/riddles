@@ -26,7 +26,7 @@ function clueOf(set: ClueSet, line: LineRef): readonly number[] {
   return line.kind === 'row' ? set.rowClues[line.index]! : set.colClues[line.index]!
 }
 
-export function allLines(set: Pick<ClueSet, 'width' | 'height'>): LineRef[] {
+function allLines(set: Pick<ClueSet, 'width' | 'height'>): LineRef[] {
   return [
     ...Array.from({ length: set.height }, (_, index) => ({ kind: 'row' as const, index })),
     ...Array.from({ length: set.width }, (_, index) => ({ kind: 'col' as const, index })),

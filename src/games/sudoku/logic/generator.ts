@@ -53,7 +53,7 @@ export const MINI_PROFILES: Record<(typeof MINI_DIFFICULTIES)[number], Profile> 
   hard: { level: 4, minLevel: 1, stopAt: [8, 10], floor: 8, maxGivens: 10, maxAttempts: 60 },
 }
 
-export function profileFor(size: GridSize, difficulty: Difficulty): Profile {
+function profileFor(size: GridSize, difficulty: Difficulty): Profile {
   if (size === 9) return PROFILES[difficulty]
   return MINI_PROFILES[difficulty === 'expert' ? 'hard' : difficulty]
 }

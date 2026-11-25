@@ -2,7 +2,7 @@ import { ALL_DIGITS } from '../board'
 import type { LogicState } from '../techniques'
 
 /** Parses an 81-character puzzle string ('0' or '.' = empty). */
-export function parseGrid(text: string): number[] {
+function parseGrid(text: string): number[] {
   const digits = text.replace(/\s/g, '').split('').map((ch) => (ch === '.' ? 0 : Number(ch)))
   if (digits.length !== 81) throw new Error('grid must have 81 cells')
   return digits

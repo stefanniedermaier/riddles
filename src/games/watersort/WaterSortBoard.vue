@@ -6,15 +6,7 @@ import { motionEnabled, resolvedTheme } from '@/core/theme'
 import { isComplete } from './logic/rules'
 import type { Tubes } from './logic/types'
 import { colorLabel, shade, symbolColor, waterColor } from './palette'
-
-export interface Pour {
-  /** Source tube; when given (a real pour, not an undo), the pour is animated. */
-  from?: number
-  to: number
-  amount: number
-  /** Unique per pour (restarts the animation). */
-  key: number
-}
+import type { Pour } from './boardTypes'
 
 const props = defineProps<{
   tubes: Tubes
@@ -383,8 +375,20 @@ const views = computed(() =>
     radial-gradient(circle, rgb(255 255 255 / 30%) 0.9px, transparent 1.4px) 14px 17px / 23px 37px,
     radial-gradient(circle, rgb(255 255 255 / 25%) 0.8px, transparent 1.3px) 9px 9px / 31px 23px,
     linear-gradient(90deg, var(--c-dark), var(--c) 24%, var(--c-light) 44%, var(--c) 66%, var(--c-dark));
+}
+
+/*
+ * The liquid only moves where something happens – the picked-up tube, and a tube for a few
+ * seconds after a pour. A whole board of endlessly animated layers would repaint every frame
+ * (background and mask positions are not composited) and drain the battery while idle.
+ */
+.tube--selected .layer {
   animation: bubbles 4s linear infinite;
   animation-delay: var(--wave-delay);
+}
+
+.tube--selected .layer--top::before {
+  animation: wave 1.8s linear infinite;
 }
 
 /* A wavy edge on top of every layer – the border to the next colour (or the surface). */
@@ -401,7 +405,6 @@ const views = computed(() =>
     0 0 / 18px 7px repeat-x;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 8'%3E%3Cpath d='M0 4Q6 0 12 4T24 4V8H0Z'/%3E%3C/svg%3E")
     0 0 / 18px 7px repeat-x;
-  animation: wave 1.8s linear infinite;
   animation-delay: var(--wave-delay);
 }
 
@@ -430,7 +433,11 @@ const views = computed(() =>
   /* Hidden until its turn (fill-mode both), then it rises from the bottom. */
   animation:
     fill var(--fill-ms) linear var(--fill-delay) both,
-    bubbles 4s linear infinite;
+    bubbles 4s linear 2;
+}
+
+.layer--fresh.layer--top::before {
+  animation: wave 1.8s linear 4;
 }
 
 /* --- The stream while pouring --------------------------------------------------------- */

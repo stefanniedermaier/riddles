@@ -29,7 +29,7 @@ export interface LinksPuzzle {
 }
 
 /** One undo step: the paths before the change. */
-export type UndoStep = number[][]
+type UndoStep = number[][]
 
 export interface LinksSave {
   puzzle: LinksPuzzle
@@ -43,7 +43,7 @@ export interface LinksSave {
   undo: UndoStep[]
 }
 
-export function isDifficulty(value: unknown): value is Difficulty {
+function isDifficulty(value: unknown): value is Difficulty {
   return (DIFFICULTIES as readonly unknown[]).includes(value)
 }
 

@@ -36,11 +36,11 @@ export const en = {
   goals: {
     score: 'Score {target} points',
     collect: 'Clear {count} × {shape}',
-    specials: 'Create {count} specials',
+    specials: 'Create {count} {count|special|specials}',
     targets: 'Clear all {count} marked tiles',
     crates: 'Break all {count} crates',
     chains: 'Free all {count} chained pieces',
-    items: 'Bring {count} items to the bottom',
+    items: 'Bring {count} {count|item|items} to the bottom',
     progress: '{current} of {target}',
     done: 'done',
   },
@@ -100,7 +100,9 @@ export const en = {
     incredible: 'Incredible!',
   },
   board: {
-    label: 'Game board, 8 by 8 pieces',
+    label: 'Game board, 8 by 8 pieces. Arrow keys move, Enter picks a piece and swaps it with a neighbour.',
+    cell: 'Row {row}, column {col}: {piece}',
+    empty: 'empty',
     shuffled: 'No moves left – shuffled!',
   },
 }
@@ -141,11 +143,11 @@ export const de: Messages<typeof en> = {
   goals: {
     score: '{target} Punkte erreichen',
     collect: '{count} × {shape} abräumen',
-    specials: '{count} Spezialsteine bilden',
+    specials: '{count} {count|Spezialstein|Spezialsteine} bilden',
     targets: 'Alle {count} markierten Felder abräumen',
     crates: 'Alle {count} Kisten zerstören',
     chains: 'Alle {count} angeketteten Steine befreien',
-    items: '{count} Gegenstände nach unten bringen',
+    items: '{count} {count|Gegenstand|Gegenstände} nach unten bringen',
     progress: '{current} von {target}',
     done: 'erledigt',
   },
@@ -205,7 +207,9 @@ export const de: Messages<typeof en> = {
     incredible: 'Unglaublich!',
   },
   board: {
-    label: 'Spielfeld mit 8 mal 8 Steinen',
+    label: 'Spielfeld mit 8 mal 8 Steinen. Pfeiltasten bewegen, Enter wählt einen Stein und tauscht ihn mit einem Nachbarn.',
+    cell: 'Zeile {row}, Spalte {col}: {piece}',
+    empty: 'leer',
     shuffled: 'Keine Züge mehr – neu gemischt!',
   },
 }

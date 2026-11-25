@@ -12,11 +12,12 @@ import SegmentedControl from '@/components/SegmentedControl.vue'
 import { useDragScroll } from '@/core/dragScroll'
 import { formatDate } from '@/core/format'
 import { t } from '@/core/i18n'
-import { settings, type LocaleSetting, type MotionSetting, type ThemeSetting } from '@/core/settings'
+import { settings } from '@/core/settings'
 import { clearAll, exportData, importData, parseExport, type ExportFile } from '@/core/storage'
 import { showToast } from '@/core/toast'
 import { applyUpdate, checkForUpdate, updateAvailable } from '@/core/update'
 import { repoUrl } from '@/core/legal'
+import { onRovingKey, rovingTabindex } from '@/core/rovingFocus'
 import { visibleGames } from '@/games/layout'
 import { settingsPanelOf } from '@/games/settingsPanels'
 import type { GameId } from '@/games/types'
@@ -43,19 +44,19 @@ async function updateApp(): Promise<void> {
 }
 
 const localeOptions = computed(() => [
-  { value: 'system' as LocaleSetting, label: t('settings.languageSystem') },
-  { value: 'en' as LocaleSetting, label: 'English' },
-  { value: 'de' as LocaleSetting, label: 'Deutsch' },
+  { value: 'system', label: t('settings.languageSystem') },
+  { value: 'en', label: 'English' },
+  { value: 'de', label: 'Deutsch' },
 ])
 const themeOptions = computed(() => [
-  { value: 'system' as ThemeSetting, label: t('settings.themeSystem') },
-  { value: 'light' as ThemeSetting, label: t('settings.themeLight') },
-  { value: 'dark' as ThemeSetting, label: t('settings.themeDark') },
+  { value: 'system', label: t('settings.themeSystem') },
+  { value: 'light', label: t('settings.themeLight') },
+  { value: 'dark', label: t('settings.themeDark') },
 ])
 const motionOptions = computed(() => [
-  { value: 'system' as MotionSetting, label: t('settings.motionSystem') },
-  { value: 'full' as MotionSetting, label: t('settings.motionFull') },
-  { value: 'reduced' as MotionSetting, label: t('settings.motionReduced') },
+  { value: 'system', label: t('settings.motionSystem') },
+  { value: 'full', label: t('settings.motionFull') },
+  { value: 'reduced', label: t('settings.motionReduced') },
 ])
 
 // --- Game settings: pick a game, then change its options -------------------
@@ -65,11 +66,20 @@ const route = useRoute()
 /** Shown games that have options, in the player's order. */
 const configurableGames = computed(() =>
   visibleGames.value
-    .map((game) => ({ id: game.id as GameId, panel: settingsPanelOf(game.id) }))
+    .map((game) => ({ id: game.id, panel: settingsPanelOf(game.id) }))
     .filter((game) => game.panel !== null),
 )
 
 const selectedGame = ref<GameId | null>(null)
+const selectedIndex = computed(() =>
+  configurableGames.value.findIndex((game) => game.id === selectedGame.value),
+)
+/** Arrow keys, Home and End switch tabs (automatic activation, WAI-ARIA APG). */
+function onTabKey(event: KeyboardEvent): void {
+  const target = onRovingKey(event)
+  const game = target === null ? undefined : configurableGames.value[target]
+  if (game) selectedGame.value = game.id
+}
 const selectedPanel = computed(
   () => configurableGames.value.find((game) => game.id === selectedGame.value)?.panel ?? null,
 )
@@ -207,7 +217,7 @@ function resetAll(): void {
         <p class="muted info game-settings__hint">{{ t('settings.gameSettingsHint') }}</p>
         <div ref="pickerEl" class="game-picker" role="tablist" :aria-label="t('settings.gameSettings')">
           <button
-            v-for="game in configurableGames"
+            v-for="(game, index) in configurableGames"
             :id="`game-tab-${game.id}`"
             :key="game.id"
             type="button"
@@ -215,8 +225,10 @@ function resetAll(): void {
             class="game-picker__item"
             :class="{ 'game-picker__item--active': selectedGame === game.id }"
             :aria-selected="selectedGame === game.id"
+            :tabindex="rovingTabindex(index, selectedIndex)"
             aria-controls="game-settings-panel"
             @click="selectedGame = game.id"
+            @keydown="onTabKey"
           >
             <GameArt :game="game.id" class="game-picker__art" />
             <span>{{ t(`${game.id}.name`) }}</span>

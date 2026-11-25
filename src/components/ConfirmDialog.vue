@@ -18,7 +18,7 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>()
 </script>
 
 <template>
-  <AppDialog :open="open" :title="title" @close="emit('cancel')">
+  <AppDialog :open="open" :title="title" :label="title ? undefined : message" @close="emit('cancel')">
     <p>{{ message }}</p>
     <template #actions>
       <AppButton :variant="danger ? 'danger' : 'primary'" block @click="emit('confirm')">

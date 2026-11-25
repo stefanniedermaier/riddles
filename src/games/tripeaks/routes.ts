@@ -1,6 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
+import { standardRoutes } from '../routes'
 
-export const routes: RouteRecordRaw[] = [
-  { path: '/tripeaks', name: 'tripeaks', component: () => import('./TriPeaksLobby.vue') },
-  { path: '/tripeaks/play', name: 'tripeaks-play', component: () => import('./TriPeaksPlay.vue') },
-]
+export const routes = standardRoutes(
+  'tripeaks',
+  () => import('./TriPeaksLobby.vue'),
+  () => import('./TriPeaksPlay.vue'),
+)

@@ -1,31 +1,23 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 
 import { t } from '@/core/i18n'
-import { useCurrentRoute } from '@/core/share'
 import AppIcon from './AppIcon.vue'
 
 /**
  * Vertical list of large tappable choices (difficulties, modes, …).
  *
- * One entry can be marked as a challenge (from a shared result link): `highlight`, or by
- * default the `challenge` query of the route if it matches an item id.
+ * One entry can be marked as a challenge (from a shared result link): `highlight`, usually
+ * the lobby's `useChallengeVariant()`.
  */
 const props = defineProps<{
   items: readonly { id: string; label: string; detail?: string; meta?: string; disabled?: boolean }[]
   highlight?: string
 }>()
 
-const route = useCurrentRoute()
-const marked = computed(() => {
-  if (props.highlight !== undefined) return props.highlight
-  const challenge = route.value?.query.challenge
-  return typeof challenge === 'string' ? challenge : undefined
-})
-
 const list = ref<HTMLElement | null>(null)
 onMounted(async () => {
-  if (!marked.value) return
+  if (!props.highlight) return
   await nextTick()
   list.value?.querySelector('.choice--challenge')?.scrollIntoView?.({ block: 'center' })
 })
@@ -39,14 +31,14 @@ const emit = defineEmits<{ select: [id: string] }>()
       <button
         type="button"
         class="choice"
-        :class="{ 'choice--challenge': item.id === marked }"
+        :class="{ 'choice--challenge': item.id === highlight }"
         :disabled="item.disabled"
         @click="emit('select', item.id)"
       >
         <span class="choice__text">
           <span class="choice__label">
             {{ item.label }}
-            <span v-if="item.id === marked" class="choice__badge">{{ t('challenge.badge') }}</span>
+            <span v-if="item.id === highlight" class="choice__badge">{{ t('challenge.badge') }}</span>
           </span>
           <span v-if="item.detail" class="choice__detail">{{ item.detail }}</span>
         </span>
@@ -149,14 +141,10 @@ const emit = defineEmits<{ select: [id: string] }>()
   margin-left: var(--space-2);
   padding: 1px 8px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-game);
   font-size: var(--text-xs);
   font-weight: 800;
   vertical-align: middle;
-}
-
-:root[data-theme='dark'] .choice__badge {
-  color: var(--color-bg);
 }
 
 .choice__play {

@@ -96,6 +96,7 @@ describe('Shapes views', () => {
     expect(dialog).toContain('Next level')
     expect(dialog).toContain('Home')
     expect(dialog).not.toContain('Play again')
+    expect(dialog).toContain('Share result')
     expect(levelProgress.value.level).toBe(4)
     const home = [...document.body.querySelectorAll('button')].find((b) => b.textContent?.includes('Home'))!
     home.click()

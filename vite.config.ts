@@ -131,7 +131,8 @@ export default defineConfig({
         // (Chromium: link capturing; Android opens in-scope links in the app anyway).
         handle_links: 'preferred',
         launch_handler: { client_mode: ['navigate-existing', 'auto'] },
-        orientation: 'portrait',
+        // No `orientation` lock: Android does not let the app lift it again for the card
+        // games' landscape layout. Portrait is requested at runtime (src/core/orientation.ts).
         theme_color: '#f6f5f2',
         background_color: '#f6f5f2',
         categories: ['games', 'puzzle'],

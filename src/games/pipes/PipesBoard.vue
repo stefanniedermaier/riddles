@@ -332,7 +332,7 @@ function onKeydown(event: KeyboardEvent): void {
 .tile__pipe {
   transform-box: view-box;
   transform-origin: 0.5px 0.5px;
-  transition: transform 150ms var(--ease-out);
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 
 .tile__casing {

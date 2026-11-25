@@ -103,7 +103,7 @@ function solverMoves(state: State): Move[] {
     }
   })
   plays.sort((a, b) => b.score - a.score)
-  return [...plays.map((p) => p.move), ...(state.s.length ? [{ k: 'draw' } as Move] : [])]
+  return [...plays.map((p) => p.move), ...(state.s.length ? [{ k: 'draw' } satisfies Move] : [])]
 }
 
 const key = (state: State): string => `${state.removed}#${state.s.length}#${state.w[state.w.length - 1]}`

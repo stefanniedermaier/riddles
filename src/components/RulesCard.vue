@@ -54,7 +54,7 @@ withDefaults(defineProps<{ title: string; accent?: string }>(), {
   padding: 7px;
   border-radius: 0;
   background: var(--rules-accent);
-  color: #fff;
+  color: var(--on-game);
 }
 
 .rules-card__title {

@@ -23,7 +23,7 @@ export function patternBoard(): Board {
 /**
  * Parses a token like `R`, `Rh` (line-h), `Rv` (line-v), `Rx` (burst) or `*` (prism).
  */
-export function piece(token: string, id: number): Piece {
+function piece(token: string, id: number): Piece {
   if (token === '*') return { id, kind: -1, special: 'prism' }
   const kind = KINDS.indexOf(token[0]!)
   if (kind < 0) throw new Error(`bad token ${token}`)

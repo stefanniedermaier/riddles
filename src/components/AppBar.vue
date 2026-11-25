@@ -48,11 +48,11 @@ function goBack(): void {
 .app-bar {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--z-appbar);
   padding-top: env(safe-area-inset-top);
-  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* Nearly opaque instead of a backdrop blur: a blur behind a sticky bar costs a repaint of
+    everything scrolling under it on every frame (low-end phones). */
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
 }
 
 .app-bar__inner {

@@ -94,5 +94,5 @@ export function generatePuzzle(difficulty: Difficulty, seed: number): CodePuzzle
 
 /** Whether a guess is complete and allowed (no repeats where they are not allowed). */
 export function isValidGuess(guess: readonly (number | null)[], difficulty: Difficulty): guess is number[] {
-  return guess.every((color) => color !== null) && allowed(guess as number[], PARAMS[difficulty])
+  return guess.every((color) => color !== null) && allowed(guess, PARAMS[difficulty])
 }

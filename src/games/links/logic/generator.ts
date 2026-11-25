@@ -65,7 +65,7 @@ function randomTiling(size: number, rng: Rng): number[][] {
  *   the same, but ends move, which opens up new merges.
  * Returns `null` if the target is not reached within the shift budget.
  */
-export function reducePaths(
+function reducePaths(
   size: number,
   initial: number[][],
   target: number,

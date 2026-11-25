@@ -1,3 +1,4 @@
+import { isInt } from '@/core/guards'
 import { createRng } from '@/core/rng'
 
 import { createBoard } from './board'
@@ -16,10 +17,10 @@ import {
 } from './types'
 
 export const TIME_LIMIT_MS = 90_000
-export const SPECIAL_TIME_BONUS_MS = 2_000
-export const CASCADE_TIME_BONUS_MS = 1_000
+const SPECIAL_TIME_BONUS_MS = 2_000
+const CASCADE_TIME_BONUS_MS = 1_000
 /** Cascade depth that earns the cascade time bonus. */
-export const CASCADE_BONUS_DEPTH = 3
+const CASCADE_BONUS_DEPTH = 3
 
 /** Everything needed to continue a run – this is what gets persisted. */
 export interface ShapesRun {
@@ -36,7 +37,7 @@ export interface ShapesRun {
   level?: { n: number; movesLeft: number; progress: LevelProgress; field: Field }
 }
 
-export function emptyProgress(): LevelProgress {
+function emptyProgress(): LevelProgress {
   return { collected: new Array<number>(KIND_COUNT).fill(0), specials: 0, items: 0 }
 }
 
@@ -61,7 +62,7 @@ export function createRun(mode: Mode, seed: number, levelNumber = 1): ShapesRun 
   }
 }
 
-export type LevelState = 'playing' | 'won' | 'lost'
+type LevelState = 'playing' | 'won' | 'lost'
 
 export interface MoveOutcome {
   result: ResolveResult
@@ -131,7 +132,6 @@ export function completeLevel(run: ShapesRun): LevelCompletion {
 
 const SPECIALS: readonly Special[] = ['none', 'line-h', 'line-v', 'burst', 'prism']
 
-const isInt = (value: unknown): value is number => Number.isInteger(value)
 
 function isPiece(value: unknown): value is Piece {
   if (typeof value !== 'object' || value === null) return false

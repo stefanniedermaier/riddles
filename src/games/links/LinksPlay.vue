@@ -1,24 +1,17 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, triggerRef, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref, shallowRef, triggerRef } from 'vue'
 
-import AppBar from '@/components/AppBar.vue'
-import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
-import AppDialog from '@/components/AppDialog.vue'
-import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import PlayBar from '@/components/PlayBar.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
-import { returnTo } from '@/core/navigation'
-import { recordFinish, recordStart } from '@/core/stats'
-import { load, remove, save } from '@/core/storage'
-import { motionEnabled } from '@/core/theme'
-import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
-import { DIFFICULTIES, SAVE_KEY, type Difficulty } from './index'
+import { usePuzzleSession } from '@/core/usePuzzleSession'
+import { DIFFICULTIES, saveSlot } from './index'
 import LinksBoard from './LinksBoard.vue'
 import LinksRules from './LinksRules.vue'
 import {
@@ -34,24 +27,39 @@ import {
   strokePaths,
   type Stroke,
 } from './logic/rules'
-import { isLinksSave, type LinksSave } from './logic/types'
+import type { LinksSave } from './logic/types'
 import { colorLabel } from './palette'
 import { linksPool } from './pool'
 import { linksSettings } from './settings'
 
-const route = useRoute()
-const router = useRouter()
-
-type Status = 'loading' | 'playing' | 'won'
-
 /** Upper bound of stored undo steps. */
 const MAX_UNDO = 300
 
-const status = ref<Status>('loading')
-const game = ref<LinksSave | null>(null)
-const stopwatch = useStopwatch(0)
 const stroke = shallowRef<Stroke | null>(null)
 const flash = ref<number | null>(null)
+
+const session = usePuzzleSession({
+  gameId: 'links',
+  slot: saveSlot,
+  variants: DIFFICULTIES,
+  variantOf: (save) => save.puzzle.difficulty,
+  create: async (difficulty): Promise<LinksSave> => {
+    const next = await linksPool.take(difficulty)
+    return {
+      puzzle: next,
+      paths: next.endpoints.map(() => []),
+      elapsedMs: 0,
+      hintsUsed: 0,
+      moves: 0,
+      lastColor: null,
+      undo: [],
+    }
+  },
+  onShow: () => (stroke.value = null),
+  onUndo: () => undo(),
+  resultDelayMs: 700,
+})
+const { status, game, stopwatch, result, showResult, showRules, saveProgress } = session
 
 const puzzle = computed(() => game.value?.puzzle ?? null)
 
@@ -71,83 +79,6 @@ const filledPercent = computed(() =>
 const title = computed(() =>
   puzzle.value ? `${t('links.name')} · ${t(`difficulty.${puzzle.value.difficulty}`)}` : t('links.name'),
 )
-
-// --- Persistence ------------------------------------------------------------------
-
-function persist(): void {
-  if (!game.value || status.value !== 'playing') return
-  save(SAVE_KEY, { ...toRaw(game.value), elapsedMs: Math.round(stopwatch.elapsedMs.value) })
-}
-
-function onVisibilityChange(): void {
-  if (document.hidden) persist()
-}
-
-function onKeydown(event: KeyboardEvent): void {
-  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
-    event.preventDefault()
-    undo()
-  }
-}
-
-let autosave: ReturnType<typeof setInterval> | undefined
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibilityChange)
-  window.addEventListener('pagehide', persist)
-  window.addEventListener('keydown', onKeydown)
-  autosave = setInterval(persist, 5000)
-})
-
-onBeforeUnmount(() => {
-  // Invalidate a generation that is still running.
-  startToken++
-  persist()
-  clearInterval(autosave)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  window.removeEventListener('pagehide', persist)
-  window.removeEventListener('keydown', onKeydown)
-})
-
-// --- Starting / resuming ------------------------------------------------------------
-
-let startToken = 0
-
-async function startNew(difficulty: Difficulty): Promise<void> {
-  const token = ++startToken
-  status.value = 'loading'
-  result.value = null
-  stroke.value = null
-  stopwatch.reset(0)
-  // Drop ?new= right away (before awaiting the puzzle), so a reload resumes and no late
-  // navigation can cancel a "back" tapped meanwhile.
-  void router.replace({ name: 'links-play' })
-  const next = await linksPool.take(difficulty)
-  if (token !== startToken) return
-  game.value = {
-    puzzle: next,
-    paths: next.endpoints.map(() => []),
-    elapsedMs: 0,
-    hintsUsed: 0,
-    moves: 0,
-    lastColor: null,
-    undo: [],
-  }
-  recordStart('links', difficulty)
-  status.value = 'playing'
-  persist()
-  stopwatch.start()
-}
-
-function resume(): boolean {
-  const saved = load(SAVE_KEY, null, (raw) => (isLinksSave(raw) ? raw : undefined))
-  if (!saved) return false
-  game.value = saved
-  stopwatch.reset(saved.elapsedMs)
-  status.value = 'playing'
-  stopwatch.start()
-  return true
-}
 
 // --- Drawing ---------------------------------------------------------------------------
 
@@ -172,9 +103,10 @@ function commit(next: number[][]): void {
   game.value.paths = next
 }
 
+/** Highlights a line that just got connected (the timer is cleared when leaving). */
 function pulse(color: number): void {
   flash.value = color
-  setTimeout(() => {
+  session.later(() => {
     if (flash.value === color) flash.value = null
   }, 700)
 }
@@ -195,7 +127,7 @@ function onEnd(): void {
 }
 
 function afterChange(): void {
-  persist()
+  saveProgress()
   checkWin()
 }
 
@@ -206,7 +138,7 @@ function undo(): void {
   const previous = game.value.undo[game.value.undo.length - 1]!
   game.value.undo = game.value.undo.slice(0, -1)
   game.value.paths = previous
-  persist()
+  saveProgress()
 }
 
 const confirmRestart = ref(false)
@@ -239,81 +171,49 @@ function requestHint(): void {
 
 // --- Win -------------------------------------------------------------------------------
 
-const result = ref<{ timeMs: number; newBest: boolean; perfect: boolean } | null>(null)
-const showResult = ref(false)
-
 function checkWin(): void {
   if (!game.value || !isSolved(game.value.puzzle, game.value.paths)) return
-  stopwatch.pause()
-  status.value = 'won'
-  const timeMs = Math.round(stopwatch.elapsedMs.value)
-  const { newBestTime } = recordFinish('links', game.value.puzzle.difficulty, { timeMs })
-  remove(SAVE_KEY)
-  const perfect = game.value.moves === game.value.puzzle.endpoints.length && game.value.hintsUsed === 0
-  result.value = { timeMs, newBest: newBestTime, perfect }
-  setTimeout(() => (showResult.value = true), motionEnabled.value ? 700 : 0)
+  session.win()
 }
+
+/** Solved with one move per colour and no hints (the board is frozen once won). */
+const perfect = computed(
+  () =>
+    !!result.value &&
+    !!game.value &&
+    game.value.moves === game.value.puzzle.endpoints.length &&
+    game.value.hintsUsed === 0,
+)
 
 const resultRows = computed(() => {
   if (!game.value || !result.value) return []
   const p = game.value.puzzle
-  const moves = `${game.value.moves}${result.value.perfect ? ` · ${t('links.result.perfect')}` : ''}`
+  const moves = `${game.value.moves}${perfect.value ? ` · ${t('links.result.perfect')}` : ''}`
   return [
     { label: t('common.difficulty'), value: t(`difficulty.${p.difficulty}`) },
     { label: t('common.size'), value: t('links.sizeLabel', { size: p.size }) },
     { label: t('common.time'), value: formatDuration(result.value.timeMs), highlight: result.value.newBest },
-    { label: t('links.result.moves'), value: moves, highlight: result.value.perfect },
+    { label: t('links.result.moves'), value: moves, highlight: perfect.value },
     { label: t('common.hints'), value: String(game.value.hintsUsed) },
   ]
 })
 
-function playAgain(): void {
-  showResult.value = false
-  void startNew(game.value?.puzzle.difficulty ?? 'easy')
-}
-
-function goToMenu(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'links' })
-}
-
-function goHome(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'home' })
-}
-
-const showRules = ref(false)
-
-// Start a new game (?new=<difficulty>) or resume the saved one.
-watch(
-  () => route.query.new,
-  (value) => {
-    if (typeof value === 'string' && (DIFFICULTIES as readonly string[]).includes(value)) {
-      void startNew(value as Difficulty)
-    }
-  },
-  { immediate: true },
-)
-
-if (typeof route.query.new !== 'string' && !resume()) {
-  void router.replace({ name: 'links' })
-}
+session.init()
 </script>
 
 <template>
-  <AppBar :title="title" back-to="/links">
-    <template #actions>
-      <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
-        <AppIcon name="clock" :size="18" />
-        {{ formatDuration(stopwatch.elapsedMs.value) }}
-      </span>
-      <button type="button" class="icon-btn" :aria-label="t('links.play.rules')" @click="showRules = true">
-        <AppIcon name="info" />
-      </button>
-    </template>
-  </AppBar>
+  <PlayBar
+    v-model:rules-open="showRules"
+    :title="title"
+    back-to="/links"
+    :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
+    :rules-label="t('links.play.rules')"
+    :rules-title="t('links.rules.title')"
+  >
+    <LinksRules />
+  </PlayBar>
 
-  <main class="play">
+  <main class="puzzle-play">
     <GameBackdrop game="links" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
@@ -353,8 +253,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
           class="toolbar__undo"
           icon="undo"
           :disabled="!canUndo"
-          :aria-label="t('links.play.undo')"
-          :title="t('links.play.undo')"
+          :label="t('links.play.undo')"
           @click="undo"
         />
         <AppButton icon="hint" :disabled="status !== 'playing'" @click="requestHint">
@@ -366,10 +265,6 @@ if (typeof route.query.new !== 'string' && !resume()) {
       </div>
     </template>
   </main>
-
-  <AppDialog :open="showRules" :title="t('links.rules.title')" @close="showRules = false">
-    <LinksRules />
-  </AppDialog>
 
   <ConfirmDialog
     :open="confirmRestart"
@@ -384,44 +279,20 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'links', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
-    :subtitle="result?.perfect ? t('links.result.perfectText') : t('links.result.solvedText')"
+    :subtitle="perfect ? t('links.result.perfectText') : t('links.result.solvedText')"
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
   >
     <template #actions>
-      <AppButton variant="primary" block @click="playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="goToMenu">{{ t('links.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
+      <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
+      <AppButton block @click="session.goToMenu">{{ t('links.play.toMenu') }}</AppButton>
+      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
 
 <style scoped>
-.play {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  max-width: var(--content-max);
-  margin: 0 auto;
-  padding: var(--space-2) max(var(--space-3), env(safe-area-inset-right))
-    max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
-}
-
-.timer {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
 .hud {
-  display: flex;
-  justify-content: center;
   gap: var(--space-5);
   margin: 0;
 }
@@ -452,16 +323,8 @@ if (typeof route.query.new !== 'string' && !resume()) {
   min-width: min(100%, 260px);
 }
 
-.toolbar {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: center;
-  width: 100%;
-}
-
 .toolbar > * {
-  flex: 1;
-  max-width: 200px;
+  white-space: normal;
 }
 
 .toolbar > .toolbar__undo {

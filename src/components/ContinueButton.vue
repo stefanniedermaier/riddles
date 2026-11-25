@@ -38,17 +38,13 @@ const emit = defineEmits<{ click: [] }>()
   border: 0;
   background: var(--accent);
   box-shadow: var(--shadow-md);
-  color: #fff;
+  color: var(--on-game);
   text-align: left;
   cursor: pointer;
   transition: box-shadow var(--dur-fast) var(--ease-standard);
 }
 
 /* The game colours are light in dark mode: dark text there. */
-:root[data-theme='dark'] .continue {
-  color: var(--color-bg);
-}
-
 .continue__text {
   display: flex;
   flex: 1;

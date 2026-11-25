@@ -6,15 +6,7 @@ import { resolvedTheme } from '@/core/theme'
 import StarGlyph from './StarGlyph.vue'
 import { CROWN, EMPTY, MARK, type CellState } from './logic/types'
 import { regionColor } from './palette'
-
-export interface BoardHighlight {
-  /** Cells tinted as part of the explaining unit(s). */
-  tint: ReadonlySet<number>
-  /** Cells outlined. */
-  focus: ReadonlySet<number>
-  /** Preview of what applying the hint would change. */
-  ghost: ReadonlyMap<number, 'mark' | 'crown'>
-}
+import type { BoardHighlight } from './boardTypes'
 
 const props = defineProps<{
   size: number

@@ -4,18 +4,7 @@ import { computed, ref } from 'vue'
 import { t } from '@/core/i18n'
 import { SIZE } from './logic/engine'
 import { blockColor } from './palette'
-
-export interface Ghost {
-  cells: readonly number[]
-  color: number
-}
-
-export interface ClearingBlock {
-  cell: number
-  color: number
-  /** Animation delay in ms (blocks vanish one after another along the line). */
-  delay: number
-}
+import type { Ghost, ClearingBlock } from './boardTypes'
 
 const props = defineProps<{
   board: readonly number[]

@@ -121,7 +121,7 @@ Every hint that shows a step or a mistake counts towards *Hints* in the result d
 
 | Key (prefix `riddles:`) | Content                                                     |
 | ----------------------- | ----------------------------------------------------------- |
-| `stars:current:v1`     | running game: puzzle, cells (0 empty, 1 ✕, 2 star), elapsed time, hints used, undo history (changed cells per step; optional for older saves) |
+| `crowns:current:v1`    | running game (saved after the first action): puzzle, cells (0 empty, 1 ✕, 2 star), elapsed time, hints used, undo history (changed cells per step; optional for older saves) |
 | `stars:pool:v1`        | one prefetched puzzle per difficulty                         |
 | `stars:settings`       | `autoMark`, `instantConflicts`                                |
 | `stats:v1` → `stars`   | statistics per difficulty (started, solved, best/total time) |

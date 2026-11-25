@@ -1,3 +1,5 @@
+import { isInt } from '@/core/guards'
+
 export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
@@ -43,7 +45,6 @@ function isDifficulty(value: unknown): value is Difficulty {
   return (DIFFICULTIES as readonly unknown[]).includes(value)
 }
 
-const isInt = (value: unknown): value is number => Number.isInteger(value)
 
 function isTubes(value: unknown, colors: number, count: number): value is Tubes {
   if (!Array.isArray(value) || value.length !== count) return false

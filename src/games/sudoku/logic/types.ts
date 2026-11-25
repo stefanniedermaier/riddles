@@ -12,8 +12,7 @@ export function isDifficulty(value: unknown): value is Difficulty {
 }
 
 /** `classic` = 9×9 with 3×3 boxes, `mini` = 6×6 with 2×3 boxes. */
-export const MODES = ['classic', 'mini'] as const
-export type SudokuMode = (typeof MODES)[number]
+export type SudokuMode = 'classic' | 'mini'
 
 export function isMode(value: unknown): value is SudokuMode {
   return value === 'classic' || value === 'mini'
@@ -154,7 +153,7 @@ function isUndoStep(value: unknown, length: number): value is UndoStep {
         Array.isArray(change) &&
         change.length === 3 &&
         change.every((v) => Number.isInteger(v) && v >= 0) &&
-        change[0]! < length,
+        change[0] < length,
     ) &&
     (step.selected === null || (Number.isInteger(step.selected) && step.selected! < length))
   )

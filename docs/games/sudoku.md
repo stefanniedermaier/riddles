@@ -156,7 +156,7 @@ Every requested hint is counted and shown in the result dialog.
 
 | Key                          | Content                                                      |
 | ---------------------------- | ------------------------------------------------------------ |
-| `riddles:sudoku:current:v1`  | running classic game: puzzle, entries, notes (bitmask), time, hints, selection, undo history |
+| `riddles:sudoku:current:v1`  | running classic game (saved after the first action): puzzle, entries, notes (bitmask), time, hints, selection, undo history |
 | `riddles:sudoku:mini:current:v1` | running mini game (same format, 36 cells)                |
 | `riddles:sudoku:pool:v1`     | one prefetched classic puzzle per difficulty                 |
 | `riddles:sudoku:mini:pool:v1` | one prefetched mini puzzle per difficulty                   |

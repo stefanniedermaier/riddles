@@ -13,11 +13,17 @@ export const updateAvailable = ref(false)
 export const offlineReady = ref(false)
 
 const HOURLY = 60 * 60 * 1000
+/** At most this often when the app comes back to the foreground. */
+const ON_RETURN_MS = 30 * 60 * 1000
 
 let registration: ServiceWorkerRegistration | undefined
 let activate: ((reload?: boolean) => Promise<void>) | undefined
 
-/** Registers the service worker once and checks for a new version every hour. */
+/**
+ * Registers the service worker once and checks for a new version every hour – and when the
+ * app comes back to the foreground (an installed app that sits suspended in the background
+ * rarely gets to run its hourly timer).
+ */
 export function initUpdates(): void {
   if (activate) return
   activate = registerSW({
@@ -26,7 +32,16 @@ export function initUpdates(): void {
     onOfflineReady: () => (offlineReady.value = true),
     onRegisteredSW(_url, swRegistration) {
       registration = swRegistration
-      if (swRegistration) setInterval(() => void swRegistration.update().catch(() => {}), HOURLY)
+      if (!swRegistration) return
+      let lastCheck = Date.now()
+      const check = (): void => {
+        lastCheck = Date.now()
+        void swRegistration.update().catch(() => {})
+      }
+      setInterval(check, HOURLY)
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && navigator.onLine !== false && Date.now() - lastCheck >= ON_RETURN_MS) check()
+      })
     },
   })
 }

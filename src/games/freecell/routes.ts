@@ -1,6 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
+import { standardRoutes } from '../routes'
 
-export const routes: RouteRecordRaw[] = [
-  { path: '/freecell', name: 'freecell', component: () => import('./FreeCellLobby.vue') },
-  { path: '/freecell/play', name: 'freecell-play', component: () => import('./FreeCellPlay.vue') },
-]
+export const routes = standardRoutes(
+  'freecell',
+  () => import('./FreeCellLobby.vue'),
+  () => import('./FreeCellPlay.vue'),
+)

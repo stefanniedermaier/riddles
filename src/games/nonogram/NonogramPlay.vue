@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 
-import AppBar from '@/components/AppBar.vue'
-import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
-import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import PlayBar from '@/components/PlayBar.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
-import { formatDuration } from '@/core/format'
-import { t } from '@/core/i18n'
-import { returnTo } from '@/core/navigation'
-import { recordFinish, recordStart } from '@/core/stats'
-import { load, remove, save } from '@/core/storage'
-import { motionEnabled } from '@/core/theme'
-import { useStopwatch } from '@/core/timer'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 import { checkMessage } from '@/core/check'
+import { formatDuration } from '@/core/format'
+import { diffCells, pushStep, revertStep } from '@/core/history'
+import { t } from '@/core/i18n'
 import { showToast } from '@/core/toast'
-import { DIFFICULTIES, SAVE_KEY, type Difficulty } from './index'
+import { usePuzzleSession } from '@/core/usePuzzleSession'
+import { DIFFICULTIES, saveSlot } from './index'
 import { applyHint, getHint, type Hint } from './logic/hints'
-import { diffCells, pushStep, revertStep } from './logic/history'
 import type { LineRef } from './logic/lines'
 import {
   applyStroke,
@@ -35,23 +30,45 @@ import {
   wrongCells,
   type Stroke,
 } from './logic/rules'
-import { UNKNOWN, isNonogramSave, type CellMark, type NonogramSave, type Tool } from './logic/types'
+import { UNKNOWN, type CellMark, type NonogramSave, type Tool } from './logic/types'
 import NonogramBoard from './NonogramBoard.vue'
 import NonogramRules from './NonogramRules.vue'
 import { nonogramPool } from './pool'
 import { nonogramSettings } from './settings'
 
-const route = useRoute()
-const router = useRouter()
-
-type Status = 'loading' | 'playing' | 'won'
-
-const status = ref<Status>('loading')
-const game = ref<NonogramSave | null>(null)
-const stopwatch = useStopwatch(0)
 const tool = ref<Tool>('fill')
+const toolOptions = computed(() => [
+  { value: 'fill' as const, label: t('nonogram.play.fill') },
+  { value: 'cross' as const, label: t('nonogram.play.cross') },
+])
 const stroke = shallowRef<Stroke | null>(null)
 const focusCell = ref<number | null>(null)
+const hint = shallowRef<Hint | null>(null)
+
+const session = usePuzzleSession({
+  gameId: 'nonogram',
+  slot: saveSlot,
+  variants: DIFFICULTIES,
+  variantOf: (save) => save.puzzle.difficulty,
+  create: async (difficulty): Promise<NonogramSave> => {
+    const next = await nonogramPool.take(difficulty)
+    return {
+      puzzle: next,
+      cells: new Array<CellMark>(next.width * next.height).fill(UNKNOWN),
+      elapsedMs: 0,
+      hintsUsed: 0,
+      mistakes: 0,
+      undo: [],
+    }
+  },
+  onShow: () => {
+    hint.value = null
+    stroke.value = null
+    focusCell.value = null
+  },
+  onUndo: () => undo(),
+})
+const { status, game, stopwatch, result, showResult, showRules, saveProgress } = session
 
 const puzzle = computed(() => game.value?.puzzle ?? null)
 
@@ -93,87 +110,18 @@ const levelLabel = computed(() =>
     : '',
 )
 
-// --- Persistence ------------------------------------------------------------------
+// --- Tool keys -------------------------------------------------------------------------
 
-function persist(): void {
-  if (!game.value || status.value !== 'playing') return
-  save(SAVE_KEY, { ...toRaw(game.value), elapsedMs: Math.round(stopwatch.elapsedMs.value) })
-}
-
-function onVisibilityChange(): void {
-  if (document.hidden) persist()
-}
-
+/** F / X pick the tool (Ctrl/⌘+Z is handled by the session). */
 function onKeydown(event: KeyboardEvent): void {
-  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
-    event.preventDefault()
-    undo()
-  } else if (!event.ctrlKey && !event.metaKey && !event.altKey) {
-    const key = event.key.toLowerCase()
-    if (key === 'f') tool.value = 'fill'
-    else if (key === 'x') tool.value = 'cross'
-  }
+  if (event.ctrlKey || event.metaKey || event.altKey) return
+  const key = event.key.toLowerCase()
+  if (key === 'f') tool.value = 'fill'
+  else if (key === 'x') tool.value = 'cross'
 }
 
-let autosave: ReturnType<typeof setInterval> | undefined
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibilityChange)
-  window.addEventListener('pagehide', persist)
-  window.addEventListener('keydown', onKeydown)
-  autosave = setInterval(persist, 5000)
-})
-
-onBeforeUnmount(() => {
-  // Invalidate a generation that is still running.
-  startToken++
-  persist()
-  clearInterval(autosave)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  window.removeEventListener('pagehide', persist)
-  window.removeEventListener('keydown', onKeydown)
-})
-
-// --- Starting / resuming ------------------------------------------------------------
-
-let startToken = 0
-
-async function startNew(difficulty: Difficulty): Promise<void> {
-  const token = ++startToken
-  status.value = 'loading'
-  result.value = null
-  hint.value = null
-  stroke.value = null
-  focusCell.value = null
-  stopwatch.reset(0)
-  // Drop ?new= right away (before awaiting the puzzle), so a reload resumes and no late
-  // navigation can cancel a "back" tapped meanwhile.
-  void router.replace({ name: 'nonogram-play' })
-  const next = await nonogramPool.take(difficulty)
-  if (token !== startToken) return
-  game.value = {
-    puzzle: next,
-    cells: new Array<CellMark>(next.width * next.height).fill(UNKNOWN),
-    elapsedMs: 0,
-    hintsUsed: 0,
-    mistakes: 0,
-    undo: [],
-  }
-  recordStart('nonogram', difficulty)
-  status.value = 'playing'
-  persist()
-  stopwatch.start()
-}
-
-function resume(): boolean {
-  const saved = load(SAVE_KEY, null, (raw) => (isNonogramSave(raw) ? raw : undefined))
-  if (!saved) return false
-  game.value = saved
-  stopwatch.reset(saved.elapsedMs)
-  status.value = 'playing'
-  stopwatch.start()
-  return true
-}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 // --- Marking -----------------------------------------------------------------------------
 
@@ -189,7 +137,7 @@ function commit(next: CellMark[], countMistakes = true): void {
   game.value.undo = pushStep(game.value.undo, step)
   game.value.cells = next
   hint.value = null
-  persist()
+  saveProgress()
   checkWin()
 }
 
@@ -221,7 +169,7 @@ function undo(): void {
   game.value.cells = revertStep(game.value.cells, step)
   game.value.undo = game.value.undo.slice(0, -1)
   hint.value = null
-  persist()
+  saveProgress()
 }
 
 const confirmRestart = ref(false)
@@ -246,13 +194,11 @@ function check(): void {
   const counted = new Set((g.checked ?? []).filter((cell) => isWrong(g.puzzle, g.cells, cell)))
   g.mistakes += found.filter((cell) => !counted.has(cell)).length
   g.checked = found
-  persist()
+  saveProgress()
   showToast(checkMessage(found.length))
 }
 
 // --- Hints -----------------------------------------------------------------------------
-
-const hint = shallowRef<Hint | null>(null)
 
 function lineName(line: LineRef): string {
   return line.kind === 'row'
@@ -301,7 +247,7 @@ function requestHint(): void {
   }
   hint.value = next
   game.value.hintsUsed += 1
-  persist()
+  saveProgress()
 }
 
 function applyCurrentHint(): void {
@@ -313,21 +259,12 @@ function applyCurrentHint(): void {
 
 // --- Win -------------------------------------------------------------------------------
 
-const result = ref<{ timeMs: number; newBest: boolean } | null>(null)
-const showResult = ref(false)
-
 function checkWin(): void {
   if (!game.value || !isSolved(game.value.puzzle, game.value.cells)) return
-  stopwatch.pause()
-  status.value = 'won'
   hint.value = null
   focusCell.value = null
-  const timeMs = Math.round(stopwatch.elapsedMs.value)
-  const { newBestTime } = recordFinish('nonogram', game.value.puzzle.difficulty, { timeMs })
-  remove(SAVE_KEY)
-  result.value = { timeMs, newBest: newBestTime }
   // Show the finished picture before the dialog covers it.
-  setTimeout(() => (showResult.value = true), motionEnabled.value ? 900 : 0)
+  session.win()
 }
 
 const resultRows = computed(() => {
@@ -342,53 +279,22 @@ const resultRows = computed(() => {
   ]
 })
 
-function playAgain(): void {
-  showResult.value = false
-  void startNew(game.value?.puzzle.difficulty ?? 'easy')
-}
-
-function goToMenu(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'nonogram' })
-}
-
-function goHome(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'home' })
-}
-
-const showRules = ref(false)
-
-// Start a new game (?new=<difficulty>) or resume the saved one.
-watch(
-  () => route.query.new,
-  (value) => {
-    if (typeof value === 'string' && (DIFFICULTIES as readonly string[]).includes(value)) {
-      void startNew(value as Difficulty)
-    }
-  },
-  { immediate: true },
-)
-
-if (typeof route.query.new !== 'string' && !resume()) {
-  void router.replace({ name: 'nonogram' })
-}
+session.init()
 </script>
 
 <template>
-  <AppBar :title="title" back-to="/nonogram">
-    <template #actions>
-      <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
-        <AppIcon name="clock" :size="18" />
-        {{ formatDuration(stopwatch.elapsedMs.value) }}
-      </span>
-      <button type="button" class="icon-btn" :aria-label="t('nonogram.play.rules')" @click="showRules = true">
-        <AppIcon name="info" />
-      </button>
-    </template>
-  </AppBar>
+  <PlayBar
+    v-model:rules-open="showRules"
+    :title="title"
+    back-to="/nonogram"
+    :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
+    :rules-label="t('nonogram.play.rules')"
+    :rules-title="t('nonogram.rules.title')"
+  >
+    <NonogramRules />
+  </PlayBar>
 
-  <main class="play">
+  <main class="puzzle-play">
     <GameBackdrop game="nonogram" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
@@ -440,8 +346,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
         <AppButton
           class="toolbar__icon"
           icon="close"
-          :aria-label="t('common.close')"
-          :title="t('common.close')"
+          :label="t('common.close')"
           @click="hint = null"
         />
         <AppButton variant="primary" @click="applyCurrentHint">
@@ -453,66 +358,40 @@ if (typeof route.query.new !== 'string' && !resume()) {
           class="toolbar__icon"
           icon="undo"
           :disabled="!canUndo"
-          :aria-label="t('nonogram.play.undo')"
-          :title="t('nonogram.play.undo')"
+          :label="t('nonogram.play.undo')"
           @click="undo"
         />
-        <div class="tools" role="radiogroup" :aria-label="t('nonogram.play.tool')">
-          <button
-            type="button"
-            role="radio"
-            class="tool"
-            :class="{ 'tool--active': tool === 'fill' }"
-            :aria-checked="tool === 'fill'"
-            @click="tool = 'fill'"
-          >
-            <span class="tool__swatch tool__swatch--fill" aria-hidden="true" />
-            {{ t('nonogram.play.fill') }}
-          </button>
-          <button
-            type="button"
-            role="radio"
-            class="tool"
-            :class="{ 'tool--active': tool === 'cross' }"
-            :aria-checked="tool === 'cross'"
-            @click="tool = 'cross'"
-          >
-            <AppIcon name="close" :size="16" />
-            {{ t('nonogram.play.cross') }}
-          </button>
-        </div>
+        <SegmentedControl v-model="tool" :options="toolOptions" :label="t('nonogram.play.tool')">
+          <template #icon="{ value }">
+            <span v-if="value === 'fill'" class="tool__swatch tool__swatch--fill" aria-hidden="true" />
+            <AppIcon v-else name="close" :size="16" />
+          </template>
+        </SegmentedControl>
         <AppButton
           v-if="!nonogramSettings.instantMistakes"
           class="toolbar__icon"
           icon="inspect"
           :disabled="status !== 'playing'"
-          :aria-label="t('common.check')"
-          :title="t('common.check')"
+          :label="t('common.check')"
           @click="check"
         />
         <AppButton
           class="toolbar__icon"
           icon="hint"
           :disabled="status !== 'playing'"
-          :aria-label="t('common.hint')"
-          :title="t('common.hint')"
+          :label="t('common.hint')"
           @click="requestHint"
         />
         <AppButton
           class="toolbar__icon"
           icon="restart"
           :disabled="status !== 'playing'"
-          :aria-label="t('nonogram.play.restart')"
-          :title="t('nonogram.play.restart')"
+          :label="t('nonogram.play.restart')"
           @click="confirmRestart = true"
         />
       </div>
     </template>
   </main>
-
-  <AppDialog :open="showRules" :title="t('nonogram.rules.title')" @close="showRules = false">
-    <NonogramRules />
-  </AppDialog>
 
   <ConfirmDialog
     :open="confirmRestart"
@@ -532,35 +411,19 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :badge="result?.newBest ? t('common.newBest') : undefined"
   >
     <template #actions>
-      <AppButton variant="primary" block @click="playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="goToMenu">{{ t('nonogram.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
+      <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
+      <AppButton block @click="session.goToMenu">{{ t('nonogram.play.toMenu') }}</AppButton>
+      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
 
 <style scoped>
-.play {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
+.puzzle-play {
   gap: var(--space-2);
-  width: 100%;
-  max-width: var(--content-max);
   min-height: 0;
-  margin: 0 auto;
   padding: var(--space-1) max(var(--space-3), env(safe-area-inset-right))
     max(var(--space-3), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
-}
-
-.timer {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
-  font-weight: 600;
-  color: var(--color-text-muted);
 }
 
 /* Fixed height so the board does not jump when a hint is shown. */
@@ -584,10 +447,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
 }
 
 .hud {
-  display: flex;
-  justify-content: center;
   align-items: baseline;
-  gap: var(--space-4);
   margin: 0;
 }
 
@@ -624,54 +484,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
 }
 
 .toolbar {
-  display: flex;
   flex: none;
-  gap: var(--space-2);
-  justify-content: center;
-  width: 100%;
 }
 
 .toolbar > * {
-  flex: 1;
   max-width: 260px;
+  white-space: normal;
 }
 
-.toolbar > .toolbar__icon {
-  flex: none;
-  width: var(--tap-min);
-  padding: 0;
-}
-
-.tools {
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 0;
-  background: var(--color-surface-2);
-}
-
-.tool {
-  display: inline-flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  min-height: 38px;
-  padding: 0 var(--space-2);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.tool--active {
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
-}
 
 .tool__swatch {
   width: 14px;

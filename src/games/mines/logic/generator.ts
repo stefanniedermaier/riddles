@@ -105,7 +105,7 @@ export function generatePuzzle(difficulty: Difficulty, seed: number): MinesPuzzl
     if (!best || d < best.distance) best = { puzzle, distance: d }
     if (d === 0) break
   }
-  return best!.puzzle
+  return best.puzzle
 }
 
 export function handleGenerateRequest(request: GenerateRequest): MinesPuzzle {

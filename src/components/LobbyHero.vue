@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue'
 
-import { t } from '@/core/i18n'
+import { gameName, gameTagline, t } from '@/core/i18n'
 import { parseChallenge, useCurrentRoute } from '@/core/share'
 import type { GameDescriptor, GameId } from '@/games/types'
 import GameBackdrop from './GameBackdrop.vue'
@@ -83,8 +83,8 @@ const challenge = computed(() => {
       <GameArt :game="game" />
     </div>
     <div class="hero__text">
-      <h2 class="hero__title">{{ t(`${game}.name` as 'sudoku.name') }}</h2>
-      <p class="hero__tagline">{{ t(`${game}.tagline` as 'sudoku.tagline') }}</p>
+      <h2 class="hero__title">{{ gameName(game) }}</h2>
+      <p class="hero__tagline">{{ gameTagline(game) }}</p>
     </div>
   </section>
   <section v-if="challenge" class="challenge" :style="{ '--hero': color }" role="status">
@@ -120,7 +120,7 @@ const challenge = computed(() => {
     );
   /* Material: flat colour on elevation 2. */
   box-shadow: var(--elevation-2);
-  color: #fff;
+  color: var(--on-hero);
 }
 
 /* --- Challenge from a shared link ---------------------------------------------------- */
@@ -138,7 +138,7 @@ const challenge = computed(() => {
 
 .challenge__icon {
   flex: none;
-  color: #e3a000;
+  color: var(--gold-deep);
 }
 
 .challenge__title {
@@ -197,13 +197,9 @@ const challenge = computed(() => {
   flex: none;
   padding: 8px;
   border-radius: 0;
-  background: rgb(255 255 255 / 92%);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   box-shadow: var(--elevation-2);
   transform: rotate(-6deg);
-}
-
-:root[data-theme='dark'] .hero__badge {
-  background: rgb(30 28 40 / 92%);
 }
 
 .hero__badge :deep(.game-art) {

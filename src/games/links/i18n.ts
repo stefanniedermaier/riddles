@@ -13,12 +13,6 @@ export const en = {
     controls:
       'Drag from a dot to draw. Drag back to shorten a line; drawing through another line cuts it.',
   },
-  lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new puzzle?',
-    confirmNew: 'Your current puzzle will be lost.',
-    start: 'Start',
-  },
   play: {
     connected: 'Links',
     filled: 'Filled',
@@ -31,6 +25,9 @@ export const en = {
     hintShown: 'The {color} line is now drawn.',
     noHint: 'All lines are already correct.',
     board: 'Links board, {size} by {size}',
+    cell: 'Row {row}, column {col}',
+    dot: 'dot {color}',
+    line: 'line {color}',
   },
   result: {
     solvedText: 'Every dot is linked and the board is full.',
@@ -56,12 +53,6 @@ export const de: Messages<typeof en> = {
     controls:
       'Ziehe von einem Punkt aus, um zu zeichnen. Zurückziehen kürzt eine Linie; durch eine andere Linie zu zeichnen schneidet sie ab.',
   },
-  lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neues Rätsel starten?',
-    confirmNew: 'Dein aktuelles Rätsel geht dabei verloren.',
-    start: 'Starten',
-  },
   play: {
     connected: 'Verbunden',
     filled: 'Gefüllt',
@@ -74,6 +65,9 @@ export const de: Messages<typeof en> = {
     hintShown: 'Die Linie {color} ist jetzt eingezeichnet.',
     noHint: 'Alle Linien sind bereits richtig.',
     board: 'Links-Spielfeld, {size} mal {size}',
+    cell: 'Zeile {row}, Spalte {col}',
+    dot: 'Punkt {color}',
+    line: 'Linie {color}',
   },
   result: {
     solvedText: 'Alle Punkte sind verbunden und das Feld ist voll.',

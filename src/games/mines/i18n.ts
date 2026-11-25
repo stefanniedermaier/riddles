@@ -14,15 +14,9 @@ export const en = {
     flags: 'Flag the cells you know are mines. Tap a number with enough flags around it to reveal its other neighbours.',
     logic: 'Every board can be solved by logic alone – you never have to guess.',
   },
-  lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new board?',
-    confirmNew: 'Your current board will be lost.',
-    start: 'Start',
-  },
   play: {
     minesLeft: 'Mines',
-    minesLeftValue: '{count} mines left',
+    minesLeftValue: '{count} {count|mine|mines} left',
     mistakes: 'Mistakes',
     tool: 'Tap action',
     reveal: 'Reveal',
@@ -91,15 +85,9 @@ export const de: Messages<typeof en> = {
     flags: 'Markiere sichere Minen mit einer Flagge. Tippe auf eine Zahl mit genug Flaggen ringsum, um ihre übrigen Nachbarn aufzudecken.',
     logic: 'Jedes Feld lässt sich allein mit Logik lösen – raten musst du nie.',
   },
-  lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neues Feld starten?',
-    confirmNew: 'Dein aktuelles Feld geht verloren.',
-    start: 'Starten',
-  },
   play: {
     minesLeft: 'Minen',
-    minesLeftValue: 'Noch {count} Minen',
+    minesLeftValue: 'Noch {count} {count|Mine|Minen}',
     mistakes: 'Fehler',
     tool: 'Aktion beim Tippen',
     reveal: 'Aufdecken',

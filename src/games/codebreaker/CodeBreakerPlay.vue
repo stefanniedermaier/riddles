@@ -1,40 +1,47 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import AppBar from '@/components/AppBar.vue'
-import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
-import AppDialog from '@/components/AppDialog.vue'
-import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
+import PlayBar from '@/components/PlayBar.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { formatDuration } from '@/core/format'
 import { t } from '@/core/i18n'
-import { returnTo } from '@/core/navigation'
 import { randomSeed } from '@/core/rng'
-import { recordFinish, recordStart } from '@/core/stats'
-import { load, remove, save } from '@/core/storage'
-import { motionEnabled } from '@/core/theme'
-import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
+import { usePuzzleSession } from '@/core/usePuzzleSession'
 import CodeBreakerRules from './CodeBreakerRules.vue'
 import CodePeg from './CodePeg.vue'
-import { DIFFICULTIES, SAVE_KEY, sizeLabel, type Difficulty } from './index'
+import { DIFFICULTIES, saveSlot, sizeLabel } from './index'
 import { consistentGuess, generatePuzzle, isConsistent, isValidGuess, possibleCodes, score } from './logic/logic'
-import { PARAMS, isCodeSave, type CodePuzzle, type CodeSave } from './logic/types'
+import { PARAMS, type CodePuzzle, type CodeSave } from './logic/types'
 import { codeBreakerSettings } from './settings'
 
-const route = useRoute()
-const router = useRouter()
-
-type Status = 'playing' | 'won' | 'lost'
-
-const status = ref<Status>('playing')
-const game = ref<CodeSave | null>(null)
-const stopwatch = useStopwatch(0)
 const selectedSlot = ref<number | null>(0)
 const rowsEl = ref<HTMLElement | null>(null)
+
+function fresh(puzzle: CodePuzzle): CodeSave {
+  const { positions } = PARAMS[puzzle.difficulty]
+  return { puzzle, guesses: [], current: new Array<number | null>(positions).fill(null), elapsedMs: 0, hintsUsed: 0 }
+}
+
+const session = usePuzzleSession({
+  gameId: 'codebreaker',
+  slot: saveSlot,
+  variants: DIFFICULTIES,
+  variantOf: (save) => save.puzzle.difficulty,
+  create: (difficulty) => fresh(generatePuzzle(difficulty, randomSeed())),
+  onShow: (save, reason) => {
+    const firstEmpty = save.current.indexOf(null)
+    selectedSlot.value = firstEmpty >= 0 ? firstEmpty : null
+    if (reason === 'resume') scrollToEnd()
+  },
+  resultDelayMs: 700,
+})
+const { status, game, stopwatch, result, showResult, showRules, markStarted, persist } = session
+/** The secret code is shown once the game is over. */
+const revealed = computed(() => status.value === 'won' || status.value === 'lost')
 
 const params = computed(() => (game.value ? PARAMS[game.value.puzzle.difficulty] : PARAMS.easy))
 const guessesLeft = computed(() => (game.value ? params.value.guesses - game.value.guesses.length : 0))
@@ -82,78 +89,8 @@ function rowLabel(guess: readonly number[], index: number): string {
   return `${t('codebreaker.play.row', { n: index + 1 })}: ${guess.map(colorName).join(', ')}`
 }
 
-// --- Persistence ------------------------------------------------------------------
-
-let started = false
-
-function persist(): void {
-  const g = game.value
-  if (!g || status.value !== 'playing' || !started) return
-  save(SAVE_KEY, { ...toRaw(g), elapsedMs: Math.round(stopwatch.elapsedMs.value) })
-}
-
-function onVisibilityChange(): void {
-  if (document.hidden) persist()
-}
-
-let autosave: ReturnType<typeof setInterval> | undefined
-let resultTimer: ReturnType<typeof setTimeout> | undefined
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibilityChange)
-  window.addEventListener('pagehide', persist)
-  window.addEventListener('keydown', onKeydown)
-  autosave = setInterval(persist, 5000)
-})
-
-onBeforeUnmount(() => {
-  persist()
-  clearInterval(autosave)
-  clearTimeout(resultTimer)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  window.removeEventListener('pagehide', persist)
-  window.removeEventListener('keydown', onKeydown)
-})
-
-// --- Starting / resuming ------------------------------------------------------------
-
-function fresh(puzzle: CodePuzzle): CodeSave {
-  const { positions } = PARAMS[puzzle.difficulty]
-  return { puzzle, guesses: [], current: new Array<number | null>(positions).fill(null), elapsedMs: 0, hintsUsed: 0 }
-}
-
-function startNew(difficulty: Difficulty): void {
-  remove(SAVE_KEY)
-  void router.replace({ name: 'codebreaker-play' })
-  game.value = fresh(generatePuzzle(difficulty, randomSeed()))
-  selectedSlot.value = 0
-  result.value = null
-  showResult.value = false
-  started = false
-  status.value = 'playing'
-  stopwatch.reset(0)
-  stopwatch.start()
-}
-
-function resume(): boolean {
-  const saved = load(SAVE_KEY, null, (raw) => (isCodeSave(raw) ? raw : undefined))
-  if (!saved) return false
-  game.value = saved
-  started = true
-  const firstEmpty = saved.current.indexOf(null)
-  selectedSlot.value = firstEmpty >= 0 ? firstEmpty : null
-  stopwatch.reset(saved.elapsedMs)
-  status.value = 'playing'
-  stopwatch.start()
-  scrollToEnd()
-  return true
-}
-
-function markStarted(g: CodeSave): void {
-  if (started) return
-  started = true
-  recordStart('codebreaker', g.puzzle.difficulty)
-}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 // --- Entering a guess --------------------------------------------------------------
 
@@ -214,12 +151,12 @@ function submit(): void {
     return
   }
   const guess = [...g.current] as number[]
-  markStarted(g)
+  markStarted()
   g.guesses = [...g.guesses, guess]
   g.current = g.current.map(() => null)
   selectedSlot.value = 0
   scrollToEnd()
-  if (score(g.puzzle.code, guess).exact === params.value.positions) win()
+  if (score(g.puzzle.code, guess).exact === params.value.positions) session.win()
   else if (g.guesses.length >= params.value.guesses) lose()
   else persist()
 }
@@ -246,7 +183,7 @@ function onKeydown(event: KeyboardEvent): void {
 function requestHint(): void {
   const g = game.value
   if (!g || status.value !== 'playing') return
-  markStarted(g)
+  markStarted()
   g.current = consistentGuess(g.puzzle, g.guesses, randomSeed())
   g.hintsUsed += 1
   selectedSlot.value = null
@@ -260,32 +197,17 @@ const confirmRestart = ref(false)
 
 function confirmedRestart(): void {
   confirmRestart.value = false
-  startNew(game.value?.puzzle.difficulty ?? 'easy')
+  void session.startNew(game.value?.puzzle.difficulty ?? 'easy')
 }
 
 // --- End -------------------------------------------------------------------------------
 
-const result = ref<{ timeMs: number; newBest: boolean } | null>(null)
-const showResult = ref(false)
-
-function win(): void {
-  const g = game.value
-  if (!g) return
-  stopwatch.pause()
-  status.value = 'won'
-  const timeMs = Math.round(stopwatch.elapsedMs.value)
-  const { newBestTime } = recordFinish('codebreaker', g.puzzle.difficulty, { timeMs })
-  remove(SAVE_KEY)
-  result.value = { timeMs, newBest: newBestTime }
-  resultTimer = setTimeout(() => (showResult.value = true), motionEnabled.value ? 700 : 0)
-}
-
 function lose(): void {
   stopwatch.pause()
   status.value = 'lost'
-  remove(SAVE_KEY)
+  saveSlot.clear()
   result.value = { timeMs: Math.round(stopwatch.elapsedMs.value), newBest: false }
-  resultTimer = setTimeout(() => (showResult.value = true), motionEnabled.value ? 700 : 0)
+  session.openResultSoon()
 }
 
 const resultRows = computed(() => {
@@ -299,54 +221,24 @@ const resultRows = computed(() => {
   ]
 })
 
-function playAgain(): void {
-  showResult.value = false
-  startNew(game.value?.puzzle.difficulty ?? 'easy')
-}
-
-function goToMenu(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'codebreaker' })
-}
-
-function goHome(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'home' })
-}
-
-const showRules = ref(false)
-
-watch(
-  () => route.query.new,
-  (value) => {
-    if (typeof value === 'string' && (DIFFICULTIES as readonly string[]).includes(value)) {
-      startNew(value as Difficulty)
-    }
-  },
-  { immediate: true },
-)
-
-if (typeof route.query.new !== 'string' && !resume()) {
-  void router.replace({ name: 'codebreaker' })
-}
+session.init()
 </script>
 
 <template>
-  <AppBar :title="t('codebreaker.name')" back-to="/codebreaker">
-    <template #actions>
-      <span class="timer tabular" :aria-label="t('common.time')">
-        <AppIcon name="clock" :size="18" />
-        {{ formatDuration(stopwatch.elapsedMs.value) }}
-      </span>
-      <button type="button" class="icon-btn" :aria-label="t('codebreaker.play.rules')" @click="showRules = true">
-        <AppIcon name="info" />
-      </button>
-    </template>
-  </AppBar>
+  <PlayBar
+    v-model:rules-open="showRules"
+    :title="t('codebreaker.name')"
+    back-to="/codebreaker"
+    :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
+    :rules-label="t('codebreaker.play.rules')"
+    :rules-title="t('codebreaker.rules.title')"
+  >
+    <CodeBreakerRules />
+  </PlayBar>
 
   <main
     v-if="game"
-    class="play"
+    class="puzzle-play"
     :style="{
       '--positions': params.positions,
       '--dot-cols': Math.ceil(params.positions / 2),
@@ -375,9 +267,9 @@ if (typeof route.query.new !== 'string' && !resume()) {
         :key="i"
         class="secret__peg"
         role="img"
-        :aria-label="status === 'playing' ? t('codebreaker.play.hidden') : colorName(color)"
+        :aria-label="revealed ? colorName(color) : t('codebreaker.play.hidden')"
       >
-        <CodePeg :color="color" :hidden="status === 'playing'" />
+        <CodePeg :color="color" :hidden="!revealed" />
       </span>
     </div>
 
@@ -434,16 +326,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
         class="toolbar__icon"
         icon="eraser"
         :disabled="status !== 'playing'"
-        :aria-label="t('codebreaker.play.clear')"
-        :title="t('codebreaker.play.clear')"
+        :label="t('codebreaker.play.clear')"
         @click="clear"
       />
       <AppButton
         class="toolbar__icon"
         icon="hint"
         :disabled="status !== 'playing'"
-        :aria-label="t('common.hint')"
-        :title="t('common.hint')"
+        :label="t('common.hint')"
         @click="requestHint"
       />
       <AppButton variant="primary" icon="check" :disabled="status !== 'playing' || !complete" @click="submit">
@@ -453,16 +343,11 @@ if (typeof route.query.new !== 'string' && !resume()) {
         class="toolbar__icon"
         icon="restart"
         :disabled="status !== 'playing'"
-        :aria-label="t('codebreaker.play.restart')"
-        :title="t('codebreaker.play.restart')"
+        :label="t('codebreaker.play.restart')"
         @click="confirmRestart = true"
       />
     </div>
   </main>
-
-  <AppDialog :open="showRules" :title="t('codebreaker.rules.title')" @close="showRules = false">
-    <CodeBreakerRules />
-  </AppDialog>
 
   <ConfirmDialog
     :open="confirmRestart"
@@ -483,66 +368,23 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :share="status === 'won' && result && game ? { game: 'codebreaker', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
   >
     <template #actions>
-      <AppButton variant="primary" block @click="playAgain">
+      <AppButton variant="primary" block @click="session.playAgain">
         {{ status === 'won' ? t('common.newGame') : t('codebreaker.result.newCode') }}
       </AppButton>
-      <AppButton block @click="goToMenu">{{ t('codebreaker.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
+      <AppButton block @click="session.goToMenu">{{ t('codebreaker.play.toMenu') }}</AppButton>
+      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
 
 <style scoped>
-.play {
+.puzzle-play {
   --peg: min(36px, calc((100vw - 120px) / var(--positions)));
 
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
   gap: var(--space-2);
-  width: 100%;
-  max-width: var(--content-max);
   min-height: 0;
-  margin: 0 auto;
   padding: var(--space-1) max(var(--space-3), env(safe-area-inset-right))
     max(var(--space-3), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
-}
-
-.timer {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
-.hud {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-4);
-}
-
-.hud__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.hud__label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.hud__value {
-  font-size: var(--text-lg);
-  font-weight: 800;
-  line-height: 28px;
 }
 
 .hud__value--level {
@@ -674,24 +516,5 @@ if (typeof route.query.new !== 'string' && !resume()) {
 .palette__btn:disabled {
   opacity: 0.4;
   cursor: default;
-}
-
-.toolbar {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: center;
-  width: 100%;
-}
-
-.toolbar > * {
-  flex: 1;
-  max-width: 200px;
-  white-space: nowrap;
-}
-
-.toolbar > .toolbar__icon {
-  flex: none;
-  width: var(--tap-min);
-  padding: 0;
 }
 </style>

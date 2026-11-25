@@ -3,12 +3,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { settings } from '@/core/settings'
+import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
 import CrownsPlay from '../CrownsPlay.vue'
 import { SAVE_KEY } from '../index'
 import { generatePuzzle } from '../logic/generator'
 import { isCrownsSave, type CrownsPuzzle } from '../logic/types'
 import { crownsPool } from '../pool'
+
+/** A fixed puzzle instead of the pool (no generation in the test). */
+const PUZZLE = generatePuzzle('easy', 1)
 
 function makeRouter() {
   return createRouter({
@@ -23,26 +27,33 @@ function makeRouter() {
 describe('CrownsPlay', () => {
   beforeEach(() => {
     localStorage.clear()
+    resetStats()
     settings.value.locale = 'en'
     settings.value.motion = 'reduced'
   })
   afterEach(() => {
     document.body.innerHTML = ''
     settings.value.motion = 'system'
+    vi.restoreAllMocks()
   })
 
   it('starts a new game, saves moves and can be solved with hints', async () => {
     const router = makeRouter()
+    vi.spyOn(crownsPool, 'take').mockResolvedValue(PUZZLE)
     await router.push('/crowns/play?new=easy')
     const wrapper = mount(CrownsPlay, { global: { plugins: [router] }, attachTo: document.body })
 
-    await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(36), { timeout: 10_000 })
+    await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(36))
     expect(router.currentRoute.value.query.new).toBeUndefined()
+    // Merely opening a puzzle neither saves it nor counts it as started.
+    expect(load(SAVE_KEY, null)).toBeNull()
+    expect(getVariantStats('crowns', 'easy').started).toBe(0)
 
     // Keyboard tap on the first cell marks it and the move is saved.
     await wrapper.find('.crowns-board').trigger('keydown', { key: 'Enter' })
     const saved = load(SAVE_KEY, null, (raw) => (isCrownsSave(raw) ? raw : undefined))
     expect(saved?.cells[0]).toBe(1)
+    expect(getVariantStats('crowns', 'easy').started).toBe(1)
     await wrapper.find('.crowns-board').trigger('keydown', { key: 'Enter' })
     await wrapper.find('.crowns-board').trigger('keydown', { key: 'Enter' })
 
@@ -51,7 +62,7 @@ describe('CrownsPlay', () => {
       const hintButton = wrapper.findAll('.toolbar button').find((b) => b.text() === 'Hint')
       if (!hintButton) break
       await hintButton.trigger('click')
-      const text = wrapper.find('.hint__text').text()
+      const text = wrapper.find('.hint__body').text()
       expect(text).not.toContain('{')
       await wrapper.find('.hint .app-btn').trigger('click')
       await flushPromises()
@@ -64,9 +75,10 @@ describe('CrownsPlay', () => {
 
   it('undoes taps step by step and keeps the history in the save', async () => {
     const router = makeRouter()
+    vi.spyOn(crownsPool, 'take').mockResolvedValue(PUZZLE)
     await router.push('/crowns/play?new=easy')
     const wrapper = mount(CrownsPlay, { global: { plugins: [router] }, attachTo: document.body })
-    await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(36), { timeout: 10_000 })
+    await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(36))
 
     const board = wrapper.find('.crowns-board')
     const undoButton = () => wrapper.find('.toolbar__undo')

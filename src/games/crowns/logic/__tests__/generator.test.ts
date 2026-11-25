@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { generatePuzzle, LEVEL_WINDOW } from '../generator'
-import { createGeometry, neighbors4 } from '../geometry'
+import { neighbors4 } from '@/core/grid'
+import { createGeometry } from '../geometry'
 import { solveLogically } from '../logic'
 import { isValidSolution } from '../rules'
 import { countSolutions } from '../solver'

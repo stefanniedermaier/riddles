@@ -13,12 +13,6 @@ export const en = {
     allowed: 'Water can only be poured onto the same colour or into an empty tube, as much as fits.',
     undo: 'Stuck? Undo as many moves as you like.',
   },
-  lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new level?',
-    confirmNew: 'Your current level will be lost.',
-    start: 'Start',
-  },
   play: {
     moves: 'Moves',
     sorted: 'Sorted',
@@ -71,12 +65,6 @@ export const de: Messages<typeof en> = {
     pour: 'Tippe ein Glas an, um es aufzunehmen, und dann ein anderes Glas, um umzugießen.',
     allowed: 'Wasser darf nur auf dieselbe Farbe oder in ein leeres Glas gegossen werden – so viel hineinpasst.',
     undo: 'Festgefahren? Nimm beliebig viele Züge zurück.',
-  },
-  lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neues Level starten?',
-    confirmNew: 'Dein aktuelles Level geht verloren.',
-    start: 'Starten',
   },
   play: {
     moves: 'Züge',

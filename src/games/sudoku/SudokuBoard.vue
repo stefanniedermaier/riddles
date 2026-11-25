@@ -64,7 +64,7 @@ function cellLabel(cell: number): string {
   let content: string
   if (props.givens[cell] !== 0) content = t('sudoku.play.cellGiven', { digit: value })
   else if (value !== 0) content = t('sudoku.play.cellValue', { digit: value })
-  else if (props.notes[cell]) content = t('sudoku.play.cellNotes', { digits: digitsOf(props.notes[cell]!).join(' ') })
+  else if (props.notes[cell]) content = t('sudoku.play.cellNotes', { digits: digitsOf(props.notes[cell]).join(' ') })
   else content = t('sudoku.play.cellEmpty')
   return `${position}: ${content}`
 }

@@ -79,11 +79,6 @@ export function isItem(piece: Piece | null | undefined): piece is Piece {
   return piece != null && piece.kind === ITEM_KIND
 }
 
-/** Cells that never move: crates and chained pieces. */
-export function isFixedCell(field: Field | undefined, cell: number): boolean {
-  return field !== undefined && (field.crates[cell]! > 0 || field.chains[cell]! > 0)
-}
-
 export function cloneField(field: Field): Field {
   return {
     crates: field.crates.slice(),

@@ -19,7 +19,7 @@ every level is generated on the device.
 | -------- | ------------------------------------------------------------------------------ |
 | Tap      | pick up / pour / put down (tapping the picked-up tube again)                    |
 | Keyboard | tubes are buttons: Tab moves, Enter / Space taps                                |
-| Undo     | pours the last move back (unlimited, counts as a move)                          |
+| Undo (↶ / Ctrl+Z) | pours the last move back (unlimited, counts as a move)                |
 | Hint     | shows the next move of a solution (both tubes highlighted), *Apply* pours. Following hints walks along one solution, so hints always lead to the goal. From a dead end: "undo some moves". |
 | Restart  | the same level from the start (confirmation)                                    |
 

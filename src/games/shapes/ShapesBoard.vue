@@ -87,7 +87,11 @@ function onPointerUp(event: PointerEvent): void {
   const cell = gesture.cell
   gesture = null
   if (props.locked) return
-  // A tap: select, deselect, or swap with the selected neighbour.
+  tap(cell)
+}
+
+/** A tap (or Enter on the keyboard cursor): select, deselect, or swap with the selected neighbour. */
+function tap(cell: number): void {
   if (props.selected === null) emit('select', cell)
   else if (props.selected === cell) emit('select', null)
   else if (areAdjacent(props.selected, cell)) {
@@ -99,6 +103,63 @@ function onPointerUp(event: PointerEvent): void {
 
 function onPointerCancel(): void {
   gesture = null
+}
+
+// --- Keyboard: a cursor; Enter/Space taps the cell under it --------------------------
+
+const cursor = ref(cellAt(SIZE / 2 - 1, SIZE / 2 - 1))
+/** Read out after each cursor move (the pieces themselves are decorative). */
+const cursorText = ref('')
+
+const SPECIAL_KEY = { 'line-h': 'lineH', 'line-v': 'lineV', burst: 'burst', prism: 'prism' } as const
+
+function cellText(cell: number): string {
+  const row = Math.floor(cell / SIZE)
+  const col = cell % SIZE
+  const piece = props.pieces.find((p) => p.row === row && p.col === col && !p.clearing)
+  let text = t('shapes.board.empty')
+  if (piece) {
+    text = t(`shapes.kinds.k${piece.kind as 0 | 1 | 2 | 3 | 4 | 5}`)
+    if (piece.special !== 'none') text += `, ${t(`shapes.specials.${SPECIAL_KEY[piece.special]}`)}`
+  }
+  return t('shapes.board.cell', { row: row + 1, col: col + 1, piece: text })
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  let row = Math.floor(cursor.value / SIZE)
+  let col = cursor.value % SIZE
+  switch (event.key) {
+    case 'ArrowUp':
+      row = Math.max(0, row - 1)
+      break
+    case 'ArrowDown':
+      row = Math.min(SIZE - 1, row + 1)
+      break
+    case 'ArrowLeft':
+      col = Math.max(0, col - 1)
+      break
+    case 'ArrowRight':
+      col = Math.min(SIZE - 1, col + 1)
+      break
+    case ' ':
+    case 'Enter':
+      event.preventDefault()
+      emit('interact')
+      if (!props.locked) tap(cursor.value)
+      return
+    case 'Escape':
+      if (props.selected === null) return
+      event.preventDefault()
+      event.stopPropagation()
+      emit('select', null)
+      return
+    default:
+      return
+  }
+  event.preventDefault()
+  emit('interact')
+  cursor.value = cellAt(row, col)
+  cursorText.value = cellText(cursor.value)
 }
 
 const hintIds = computed(() => {
@@ -147,6 +208,8 @@ function isSelected(piece: DisplayPiece): boolean {
     :class="{ 'board--collapse': collapse }"
     role="application"
     :aria-label="t('shapes.board.label')"
+    tabindex="0"
+    @keydown="onKeydown"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
     @pointerup="onPointerUp"
@@ -203,6 +266,9 @@ function isSelected(piece: DisplayPiece): boolean {
       </div>
     </TransitionGroup>
 
+    <div class="cursor" :style="cellStyle(cursor)" aria-hidden="true" />
+    <p class="visually-hidden" aria-live="polite">{{ cursorText }}</p>
+
     <TransitionGroup name="obstacle">
       <div v-for="cell in chainCells" :key="`k${cell}`" class="cell-layer cell-layer--chain" :style="cellStyle(cell)">
         <ObstacleArt type="chain" />
@@ -256,6 +322,22 @@ function isSelected(piece: DisplayPiece): boolean {
   --board-b: rgb(40 46 70 / 92%);
 }
 
+/* Keyboard cursor, shown while the board has keyboard focus. */
+.cursor {
+  position: absolute;
+  z-index: 5;
+  display: none;
+  width: 12.5%;
+  height: 12.5%;
+  outline: 3px dashed var(--color-text);
+  outline-offset: -4px;
+  pointer-events: none;
+}
+
+.board:focus-visible .cursor {
+  display: block;
+}
+
 .cell-layer {
   position: absolute;
   width: 12.5%;
@@ -299,7 +381,8 @@ function isSelected(piece: DisplayPiece): boolean {
   transition-property: transform;
   /* Slight overshoot: pieces land with a small bounce. */
   transition-timing-function: cubic-bezier(0.3, 0.9, 0.35, 1.12);
-  will-change: transform;
+  /* No permanent will-change: 64 always-promoted layers cost memory; the browser promotes a
+    piece by itself while its transform transitions. */
   pointer-events: none;
 }
 

@@ -20,7 +20,7 @@ export const en = {
     runs: 'Runs',
     deals: 'Deals',
     runsLabel: 'Completed runs: {n}',
-    stockLabel: 'Stock: {n} deals left',
+    stockLabel: 'Stock: {n} {n|deal|deals} left',
   },
 }
 

@@ -43,6 +43,25 @@ describe('app updates', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true)
   })
 
+  it('also checks when the app returns to the foreground, at most every 30 minutes', () => {
+    vi.useFakeTimers()
+    try {
+      const update = vi.fn(async () => {})
+      register({ update } as never)
+      const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+      document.dispatchEvent(new Event('visibilitychange'))
+      expect(update).not.toHaveBeenCalled() // just registered
+      vi.advanceTimersByTime(31 * 60 * 1000)
+      document.dispatchEvent(new Event('visibilitychange'))
+      expect(update).toHaveBeenCalledOnce()
+      document.dispatchEvent(new Event('visibilitychange'))
+      expect(update).toHaveBeenCalledOnce()
+      hidden.mockRestore()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('reports the latest version when nothing new is found', async () => {
     const update = vi.fn(async () => {})
     register({ update, waiting: null, installing: null } as never)

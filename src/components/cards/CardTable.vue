@@ -133,14 +133,39 @@ function cardLabel(id: number): string {
   })
 }
 
-function placedLabel(card: Placed): string {
-  const pile = props.piles.find((p) => p.id === card.pile)
-  return `${pile?.label ?? ''}: ${card.up ? cardLabel(card.id) : t('cards.faceDown')}`
-}
+/**
+ * Labels and hint marks per card, computed once per layout (not per render: during a drag the
+ * table re-renders and Spider has 104 cards).
+ */
+const cardInfo = computed(() => {
+  const pileLabels = new Map(props.piles.map((pile) => [pile.id, pile.label]))
+  const hinted = new Set(
+    props.piles.filter((pile) => props.hint?.includes(pile.id)).map((pile) => `${pile.id}:${pile.slots.length - 1}`),
+  )
+  const faceDown = t('cards.faceDown')
+  return new Map(
+    layout.value.cards.map((card) => [
+      card.id,
+      {
+        label: `${pileLabels.get(card.pile) ?? ''}: ${card.up ? cardLabel(card.id) : faceDown}`,
+        hint: hinted.has(`${card.pile}:${card.index}`),
+      },
+    ]),
+  )
+})
 
 // --- Pointer input ----------------------------------------------------------------------
 
-const drag = ref<{ pile: string; index: number; dx: number; dy: number } | null>(null)
+/**
+ * The dragged cards. The pointer offset is not reactive: it goes straight into the CSS
+ * variables `--dx` / `--dy` of the table, so a pointer move re-renders nothing.
+ */
+const drag = ref<{ pile: string; index: number } | null>(null)
+
+function setOffset(dx: number, dy: number): void {
+  table.value?.style.setProperty('--dx', `${dx}px`)
+  table.value?.style.setProperty('--dy', `${dy}px`)
+}
 let down: { pile: string; index: number; x: number; y: number; id: number } | null = null
 
 function onCardDown(event: PointerEvent, pile: string, index: number): void {
@@ -155,10 +180,9 @@ function onMove(event: PointerEvent): void {
   const dy = event.clientY - down.y
   if (!drag.value) {
     if (Math.hypot(dx, dy) < 8 || !props.canPick(down.pile, down.index)) return
-    drag.value = { pile: down.pile, index: down.index, dx, dy }
-  } else {
-    drag.value = { ...drag.value, dx, dy }
+    drag.value = { pile: down.pile, index: down.index }
   }
+  setOffset(dx, dy)
 }
 
 function pileAt(clientX: number, clientY: number): string | null {
@@ -206,12 +230,12 @@ const isDragged = (card: Placed) =>
 
 function cardStyle(card: Placed): Record<string, string> {
   const dragged = isDragged(card)
-  const x = card.x + (dragged ? drag.value!.dx : 0)
-  const y = card.y + (dragged ? drag.value!.dy : 0)
   return {
     width: `${cardW.value}px`,
     height: `${cardH.value}px`,
-    transform: `translate(${x}px, ${y}px)`,
+    transform: dragged
+      ? `translate(calc(${card.x}px + var(--dx, 0px)), calc(${card.y}px + var(--dy, 0px)))`
+      : `translate(${card.x}px, ${card.y}px)`,
     zIndex: String(dragged ? 10000 + card.index : card.z + 1),
   }
 }
@@ -337,10 +361,10 @@ function onFocus(pile: string, index: number): void {
       :class="{
         'card--dragged': isDragged(card),
         'card--selected': selected && selected.pile === card.pile && card.index >= selected.index,
-        'card--hint': hint?.includes(card.pile) && card.index === (piles.find((p) => p.id === card.pile)?.slots.length ?? 0) - 1,
+        'card--hint': cardInfo.get(card.id)?.hint,
       }"
       :style="cardStyle(card)"
-      :aria-label="placedLabel(card)"
+      :aria-label="cardInfo.get(card.id)?.label"
       :aria-hidden="!card.up && card.pile !== 's' ? 'true' : undefined"
       :tabindex="isCursor(card.pile, card.index) ? 0 : -1"
       :data-cursor="isCursor(card.pile, card.index)"

@@ -77,7 +77,7 @@ Hard 1.9 / 6.8 ms.
 
 | Key (prefix `riddles:`)   | Content                                                                  |
 | ------------------------- | ------------------------------------------------------------------------ |
-| `nonogram:current:v1`     | running game: puzzle, marks (0 unknown, 1 filled, 2 cross), elapsed time, hints, mistakes, undo history (changed cells per step) |
+| `nonogram:current:v1`     | running game (saved after the first action): puzzle, marks (0 unknown, 1 filled, 2 cross), elapsed time, hints, mistakes, undo history (changed cells per step) |
 | `nonogram:pool:v1`        | one prefetched puzzle per difficulty                                      |
 | `nonogram:settings`       | `instantMistakes`, `highlightLines`                                         |
 | `stats:v1` → `nonogram`   | statistics per difficulty (started, solved, best/total time)              |

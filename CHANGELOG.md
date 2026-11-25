@@ -6,6 +6,67 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.13.2] – 2026-11-25
+
+Hotfix release with the app-wide QA and cleanup (plan 20): accessibility, lifecycle fixes,
+battery and performance, keyboard play in Links and Shapes.
+
+### Changed
+
+- The puzzle games share one lobby; "New game", the replace-game question and its buttons now
+  read the same in every game (also in the card games, Sudoku and Blocks).
+- Dialogs: Tab stays inside an open dialog and the page behind it can no longer be reached
+  (also not by screen readers); Escape closes only the topmost dialog; every dialog has an
+  accessible name (also the result and untitled confirm dialogs).
+- Dark mode: text and icons on a game colour are dark (rules icon, Blocks banner were white on
+  a light game colour).
+- Touch targets of at least 44 px for the dialog and hint close buttons, the Mines and
+  Nonogram tools and segmented buttons.
+- Sudoku: leaving while a puzzle is being generated no longer counts a started game or saves
+  it.
+- Stars, Links, Nonogram, Shapes: a result dialog or score update still pending when leaving
+  the game no longer fires afterwards.
+- Pipes and Water Sort: Ctrl/⌘+Z undoes, like in the other games.
+- Stars, Links, Nonogram, Sudoku: merely opening a puzzle no longer saves it or counts it as
+  started – like in the other games, a game counts (and the menu offers *Continue*) only after
+  the first move. The started/solved numbers in the statistics are now comparable.
+- Home no longer shows *Continue* for a stored game that the game itself cannot load (e.g.
+  from an old version).
+- Battery: Water Sort's liquid only moves in the picked-up tube and briefly after a pour; the
+  garden behind Shapes and its special pieces rest while a dialog is open or nobody plays;
+  game clocks redraw once per second instead of five times; puzzle generators are shut down
+  after 30 s without work.
+- Smoother dragging of cards (no re-render of the table per pointer move) and Blocks pieces;
+  the app bar no longer blurs the page scrolling under it.
+- A puzzle generator that hangs is replaced after 60 s and the puzzle is made on the main
+  thread instead.
+- Installed app: also looks for a new version when it comes back to the foreground (at most
+  every 30 minutes).
+- Correct singular forms: "1 card", "1 mine left", "1 deal left", "1 block" and so on (also
+  in German).
+- Shapes: the result dialog offers *Share result* again.
+- Card games turn to the landscape layout when the phone is rotated, also in the installed
+  app on Android (the manifest no longer locks portrait; portrait is requested at runtime).
+- Theme "System": browser and status bar colours follow the phone's dark mode right from
+  the start (one theme colour per system theme).
+- The win dialog fits on a phone screen without scrolling: results in two columns, actions
+  side by side, the shared image is no longer shown in it (it is still shared along).
+- Keyboard play in Links (arrow keys move a cursor, Enter or Space starts and ends a line,
+  arrows draw) and Shapes (arrow keys move a cursor that reads out the piece, Enter or Space
+  picks a piece and swaps it with a neighbour).
+- Radio groups and tabs (segmented buttons, the Mines and Nonogram tools, the game picker in
+  the settings) are one tab stop; arrow keys, Home and End choose.
+- After a page change the keyboard focus moves to the page heading (screen readers read it)
+  and the browser tab shows the page name.
+- Mines and Nonogram tools look like the other segmented buttons.
+- Sudoku and Stars share one hint card.
+- Reduced motion also stops animations that lacked their own switch.
+- Snackbars (e.g. after *Share result*) appear above an open dialog instead of behind its
+  dimmed backdrop.
+- The home page draws the gradients of the 16 game logos once instead of once per logo
+  (12 instead of ~200 gradient definitions); Stars and Shapes obstacles likewise.
+- Sudoku keeps at most 500 undo steps in the save (it grew without bound before).
+
 ## [0.13.1] – 2026-11-25
 
 The tag `v0.13.0` was set before the release was prepared and never published; 0.13.1 is

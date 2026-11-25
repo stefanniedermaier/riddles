@@ -7,9 +7,10 @@
  * 4 with 10 %) on a random empty cell. The random state is part of the run, so a reloaded
  * game continues exactly as it would have.
  */
+import { isInt } from '@/core/guards'
 import { createRng } from '@/core/rng'
 
-export const VARIANT_CONFIG = {
+const VARIANT_CONFIG = {
   small: { size: 3, target: 256 },
   classic: { size: 4, target: 2048 },
   large: { size: 5, target: 4096 },
@@ -232,7 +233,6 @@ export function parseRun(raw: unknown, variant: Variant): MergeRun | undefined {
   if (typeof raw !== 'object' || raw === null) return undefined
   const r = raw as Partial<MergeRun>
   const size = VARIANT_CONFIG[variant].size
-  const isInt = (value: unknown): value is number => Number.isInteger(value)
   if (r.variant !== variant || r.size !== size) return undefined
   if (![r.score, r.moves, r.rngState, r.nextId].every(isInt)) return undefined
   if (typeof r.won !== 'boolean' || typeof r.keepPlaying !== 'boolean' || typeof r.over !== 'boolean') {

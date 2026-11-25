@@ -9,9 +9,10 @@
  * Deterministic per seed: all randomness comes from the seeded RNG and the number of
  * attempts is bounded (no wall-clock time budget).
  */
+import { neighbors4 } from '@/core/grid'
 import { createRng, hashSeed, type Rng } from '@/core/rng'
 
-import { createGeometry, neighbors4 } from './geometry'
+import { createGeometry } from './geometry'
 import { solveLogically } from './logic'
 import { countSolutions } from './solver'
 import { SIZES, type CrownsPuzzle, type Difficulty } from './types'
@@ -43,7 +44,7 @@ const REPAIR_ITERATIONS = 80
 // Step 1: crowns
 
 /** Column per row such that no two crowns share a column or touch diagonally. */
-export function placeCrowns(size: number, rng: Rng): number[] {
+function placeCrowns(size: number, rng: Rng): number[] {
   const cols = new Array<number>(size).fill(-1)
   const used = new Array<boolean>(size).fill(false)
 
@@ -73,7 +74,7 @@ export function placeCrowns(size: number, rng: Rng): number[] {
  * Each region gets a random "appetite", which yields a healthy mix of small and large
  * regions; a slight preference for continuing in a straight line creates snake shapes.
  */
-export function growRegions(size: number, solution: readonly number[], rng: Rng): number[] {
+function growRegions(size: number, solution: readonly number[], rng: Rng): number[] {
   const total = size * size
   const regions = new Array<number>(total).fill(-1)
   const sizes = new Array<number>(size).fill(1)
@@ -155,7 +156,7 @@ function regionStaysConnected(
  * Moves cells between regions until only the intended solution remains.
  * Returns `null` if it does not converge.
  */
-export function repairUniqueness(
+function repairUniqueness(
   size: number,
   regions: number[],
   solution: readonly number[],
@@ -197,7 +198,7 @@ export function repairUniqueness(
 // Step 4: putting it together
 
 /** Renumbers regions in reading order (first cell of each region decides). */
-export function renumberRegions(regions: readonly number[]): number[] {
+function renumberRegions(regions: readonly number[]): number[] {
   const mapping = new Map<number, number>()
   return regions.map((region) => {
     if (!mapping.has(region)) mapping.set(region, mapping.size)

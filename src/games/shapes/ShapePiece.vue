@@ -81,7 +81,11 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
       <path d="M30 36Q50 30 70 36M25 44Q50 38 75 44" class="item__cap-lines" />
       <path d="M50 21Q50 11 58 7" class="item__stem" />
       <ellipse cx="38" cy="30" rx="9" ry="4" transform="rotate(-12 38 30)" class="gloss" />
-      <path d="M50 58V76M42 69l8 8 8-8" class="item__arrow" />
+      <g class="item__arrow">
+        <!-- The shadow is a second stroke instead of a drop-shadow filter on a moving path. -->
+        <path d="M50 59V77M42 70l8 8 8-8" class="item__arrow-shadow" />
+        <path d="M50 58V76M42 69l8 8 8-8" />
+      </g>
     </template>
 
     <!-- Prism: a rainbow ball that clears every piece of one kind. -->
@@ -376,13 +380,16 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
   stroke-linecap: round;
 }
 
+.item__arrow-shadow {
+  stroke: #5e3510;
+}
+
 .item__arrow {
   fill: none;
   stroke: #fff;
   stroke-width: 7;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 1px 0 #5e3510);
   animation: arrow-bob 1.1s ease-in-out infinite;
 }
 
@@ -518,6 +525,14 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
   to {
     transform: rotate(360deg);
   }
+}
+
+:root[data-still] .item__arrow,
+:root[data-still] .rocket__flame,
+:root[data-still] .rocket__flame-core,
+:root[data-still] .bomb__spark,
+:root[data-still] .prism__wheel {
+  animation-play-state: paused;
 }
 
 :root[data-motion='reduced'] .item__arrow,

@@ -28,6 +28,16 @@ describe('i18n', () => {
     expect(t('settings.version', { version: '1.0.0' })).toBe('Version 1.0.0')
   })
 
+  it('picks plural forms by the language rules', () => {
+    settings.value.locale = 'en'
+    expect(t('cards.pileCount', { pile: 'Stock', count: 1 })).toBe('Stock: 1 card')
+    expect(t('cards.pileCount', { pile: 'Stock', count: 0 })).toBe('Stock: 0 cards')
+    expect(t('mines.play.minesLeftValue', { count: 2 })).toBe('2 mines left')
+    settings.value.locale = 'de'
+    expect(t('cards.pileCount', { pile: 'Stapel', count: 1 })).toBe('Stapel: 1 Karte')
+    expect(t('cards.pileCount', { pile: 'Stapel', count: 24 })).toBe('Stapel: 24 Karten')
+  })
+
   it('includes game namespaces', () => {
     settings.value.locale = 'en'
     expect(t('sudoku.name')).toBe('Sudoku')

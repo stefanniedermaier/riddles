@@ -1,3 +1,5 @@
+import { isInt } from '@/core/guards'
+
 export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
@@ -39,11 +41,10 @@ export interface ArrowsSave {
   hintsUsed: number
 }
 
-export function isDifficulty(value: unknown): value is Difficulty {
+function isDifficulty(value: unknown): value is Difficulty {
   return (DIFFICULTIES as readonly unknown[]).includes(value)
 }
 
-const isInt = (value: unknown): value is number => Number.isInteger(value)
 
 /** Step of a direction on a board of `size`: [dRow, dCol]. */
 export const DELTAS: Record<Direction, readonly [number, number]> = {
@@ -54,7 +55,7 @@ export const DELTAS: Record<Direction, readonly [number, number]> = {
 }
 
 /** Direction from cell `a` to the orthogonally adjacent cell `b`, or null. */
-export function directionBetween(size: number, a: number, b: number): Direction | null {
+function directionBetween(size: number, a: number, b: number): Direction | null {
   const dr = Math.floor(b / size) - Math.floor(a / size)
   const dc = (b % size) - (a % size)
   for (const dir of [0, 1, 2, 3] as const) {

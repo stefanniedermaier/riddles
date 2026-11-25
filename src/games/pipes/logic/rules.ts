@@ -28,7 +28,7 @@ export function masks(puzzle: PipesPuzzle, turns: readonly number[]): number[] {
 }
 
 /** Water of a cell: index of the source that reaches it, `DRY` or `MIXED` (two sources). */
-export const DRY = -1
+const DRY = -1
 export const MIXED = -2
 
 /** Per cell the source whose water reaches it through matching ends (see `DRY`, `MIXED`). */

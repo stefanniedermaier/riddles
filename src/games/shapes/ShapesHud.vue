@@ -264,7 +264,7 @@ const fmt = (status: GoalStatus, value: number) =>
   border-radius: var(--radius-full);
   background: linear-gradient(180deg, #8ff07c 0 35%, #3cb850 36%, #23913a);
   transform-origin: left center;
-  transition: transform 0.2s linear;
+  transition: transform var(--dur-med) linear;
 }
 
 .timebar__fill--low {
@@ -353,7 +353,7 @@ const fmt = (status: GoalStatus, value: number) =>
   justify-content: center;
   width: 32px;
   height: 32px;
-  color: #e3a000;
+  color: var(--gold-deep);
   filter: drop-shadow(0 2px 1px rgb(0 0 0 / 18%));
 }
 

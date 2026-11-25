@@ -9,6 +9,7 @@ import ChoiceList from '@/components/ChoiceList.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
+import { useChallengeVariant } from '@/core/share'
 import { getVariantStats } from '@/core/stats'
 import { MODES, type Mode } from './logic/types'
 import ShapesRules from './ShapesRules.vue'
@@ -16,6 +17,7 @@ import GardenBackdrop from './GardenBackdrop.vue'
 import { levelProgress, loadRun } from './store'
 
 const router = useRouter()
+const challenge = useChallengeVariant()
 
 // Storage is not reactive; the lobby remounts on every visit, so reading once is enough.
 const saved = Object.fromEntries(MODES.map((mode) => [mode, loadRun(mode)])) as Record<
@@ -73,7 +75,7 @@ function select(id: string): void {
     <RulesCard class="intro" :title="t('shapes.lobby.howToTitle')" accent="var(--game-shapes)">
       <ShapesRules />
     </RulesCard>
-    <ChoiceList class="modes" :items="items" @select="select" />
+    <ChoiceList class="modes" :items="items" :highlight="challenge" @select="select" />
   </main>
 </template>
 

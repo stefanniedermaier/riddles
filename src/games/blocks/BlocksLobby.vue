@@ -29,7 +29,7 @@ const items = computed(() => {
   return [
     {
       id: 'new',
-      label: t('blocks.lobby.newGame'),
+      label: t('common.newGame'),
       detail: t('blocks.lobby.newGameDetail'),
       meta: best,
     },
@@ -70,9 +70,9 @@ function select(): void {
 
   <ConfirmDialog
     :open="confirmNew"
-    :title="t('blocks.lobby.confirmNewTitle')"
-    :message="t('blocks.lobby.confirmNew')"
-    :confirm-label="t('blocks.lobby.start')"
+    :title="t('common.confirmNewTitle')"
+    :message="t('common.confirmNew')"
+    :confirm-label="t('common.start')"
     @confirm="start"
     @cancel="confirmNew = false"
   />

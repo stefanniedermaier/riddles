@@ -1,28 +1,24 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref, shallowRef } from 'vue'
 
-import AppBar from '@/components/AppBar.vue'
-import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
-import AppDialog from '@/components/AppDialog.vue'
-import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import HintPanel from '@/components/HintPanel.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import PlayBar from '@/components/PlayBar.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
-import { formatDuration } from '@/core/format'
-import { returnTo } from '@/core/navigation'
-import { t } from '@/core/i18n'
-import { recordFinish, recordStart } from '@/core/stats'
-import { load, remove, save } from '@/core/storage'
-import { motionEnabled } from '@/core/theme'
-import { useStopwatch } from '@/core/timer'
 import { checkMessage } from '@/core/check'
+import { formatDuration } from '@/core/format'
+import { diffCells, pushStep, revertStep } from '@/core/history'
+import { t } from '@/core/i18n'
 import { showToast } from '@/core/toast'
-import CrownsBoard, { type BoardHighlight } from './CrownsBoard.vue'
+import { usePuzzleSession } from '@/core/usePuzzleSession'
+import CrownsBoard from './CrownsBoard.vue'
+import type { BoardHighlight } from './boardTypes'
 import CrownsRules from './CrownsRules.vue'
 import { hintText, hintTitle } from './hintText'
-import { DIFFICULTIES, SAVE_KEY, type Difficulty } from './index'
+import { DIFFICULTIES, saveSlot } from './index'
 import { createGeometry } from './logic/geometry'
 import {
   applyHint,
@@ -32,20 +28,30 @@ import {
   wrongCells,
   type Hint,
 } from './logic/hints'
-import { diffCells, pushStep, revertStep } from './logic/history'
 import { blockedCells, countCrowns, findConflicts, isSolved } from './logic/rules'
-import { CROWN, EMPTY, MARK, isCrownsSave, type CellState, type CrownsSave } from './logic/types'
+import { CROWN, EMPTY, MARK, type CellState, type CrownsSave } from './logic/types'
 import { crownsPool } from './pool'
 import { crownsSettings } from './settings'
 
-const route = useRoute()
-const router = useRouter()
-
-type Status = 'loading' | 'playing' | 'won'
-
-const status = ref<Status>('loading')
-const game = ref<CrownsSave | null>(null)
-const stopwatch = useStopwatch(0)
+const session = usePuzzleSession({
+  gameId: 'crowns',
+  slot: saveSlot,
+  variants: DIFFICULTIES,
+  variantOf: (save) => save.puzzle.difficulty,
+  create: async (difficulty): Promise<CrownsSave> => {
+    const next = await crownsPool.take(difficulty)
+    return {
+      puzzle: next,
+      cells: new Array<CellState>(next.size * next.size).fill(EMPTY),
+      elapsedMs: 0,
+      hintsUsed: 0,
+      undo: [],
+    }
+  },
+  onShow: () => (hint.value = null),
+  onUndo: () => undo(),
+})
+const { status, game, stopwatch, result, showResult, showRules, saveProgress } = session
 
 const puzzle = computed(() => game.value?.puzzle ?? null)
 const geo = computed(() => (puzzle.value ? createGeometry(puzzle.value.size, puzzle.value.regions) : null))
@@ -75,81 +81,6 @@ const title = computed(() =>
     : t('crowns.name'),
 )
 
-// --- Persistence ------------------------------------------------------------------
-
-function persist(): void {
-  if (!game.value || status.value !== 'playing') return
-  save(SAVE_KEY, { ...toRaw(game.value), elapsedMs: Math.round(stopwatch.elapsedMs.value) })
-}
-
-function onVisibilityChange(): void {
-  if (document.hidden) persist()
-}
-
-let autosave: ReturnType<typeof setInterval> | undefined
-
-function onKeydown(event: KeyboardEvent): void {
-  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
-    event.preventDefault()
-    undo()
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibilityChange)
-  window.addEventListener('pagehide', persist)
-  window.addEventListener('keydown', onKeydown)
-  autosave = setInterval(persist, 5000)
-})
-
-onBeforeUnmount(() => {
-  // Invalidate a puzzle generation that is still running, so it cannot navigate back here.
-  startToken++
-  persist()
-  clearInterval(autosave)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  window.removeEventListener('pagehide', persist)
-  window.removeEventListener('keydown', onKeydown)
-})
-
-// --- Starting / resuming ------------------------------------------------------------
-
-let startToken = 0
-
-async function startNew(difficulty: Difficulty): Promise<void> {
-  const token = ++startToken
-  status.value = 'loading'
-  hint.value = null
-  result.value = null
-  stopwatch.reset(0)
-  // Drop the ?new= query right away (before waiting for the puzzle), so the play view never
-  // navigates after an await – that could cancel a "back" the user tapped in the meantime.
-  void router.replace({ name: 'crowns-play' })
-  const next = await crownsPool.take(difficulty)
-  if (token !== startToken) return
-  game.value = {
-    puzzle: next,
-    cells: new Array<CellState>(next.size * next.size).fill(EMPTY),
-    elapsedMs: 0,
-    hintsUsed: 0,
-    undo: [],
-  }
-  recordStart('crowns', difficulty)
-  status.value = 'playing'
-  persist()
-  stopwatch.start()
-}
-
-function resume(): boolean {
-  const saved = load(SAVE_KEY, null, (raw) => (isCrownsSave(raw) ? raw : undefined))
-  if (!saved) return false
-  game.value = saved
-  stopwatch.reset(saved.elapsedMs)
-  status.value = 'playing'
-  stopwatch.start()
-  return true
-}
-
 // --- Moves & undo ---------------------------------------------------------------------
 
 /** Records the change from `before` to the current board as one undo step. */
@@ -160,7 +91,7 @@ function commit(before: readonly CellState[]): void {
 
 function afterMove(): void {
   hint.value = null
-  persist()
+  saveProgress()
   checkWin()
 }
 
@@ -198,7 +129,7 @@ function undo(): void {
   game.value.cells = revertStep(game.value.cells, step)
   game.value.undo = history.slice(0, -1)
   hint.value = null
-  persist()
+  saveProgress()
 }
 
 const confirmClear = ref(false)
@@ -214,19 +145,10 @@ function clearBoard(): void {
 
 // --- Win ------------------------------------------------------------------------------
 
-const result = ref<{ timeMs: number; newBest: boolean } | null>(null)
-const showResult = ref(false)
-
 function checkWin(): void {
   if (!game.value || !geo.value || !isSolved(geo.value, game.value.cells)) return
-  stopwatch.pause()
-  status.value = 'won'
-  const timeMs = Math.round(stopwatch.elapsedMs.value)
-  const { newBestTime } = recordFinish('crowns', game.value.puzzle.difficulty, { timeMs })
-  remove(SAVE_KEY)
-  result.value = { timeMs, newBest: newBestTime }
-  // Let the crowns celebrate before the dialog covers the board.
-  setTimeout(() => (showResult.value = true), motionEnabled.value ? 900 : 0)
+  // The stars celebrate before the dialog covers the board.
+  session.win()
 }
 
 const resultRows = computed(() => {
@@ -240,22 +162,6 @@ const resultRows = computed(() => {
     { label: t('common.hints'), value: String(game.value.hintsUsed) },
   ]
 })
-
-function playAgain(): void {
-  showResult.value = false
-  const difficulty = game.value?.puzzle.difficulty ?? 'easy'
-  void startNew(difficulty)
-}
-
-function goToMenu(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'crowns' })
-}
-
-function goHome(): void {
-  showResult.value = false
-  void returnTo(router, { name: 'home' })
-}
 
 // --- Check ------------------------------------------------------------------------------
 
@@ -271,7 +177,7 @@ function check(): void {
   const counted = new Set(wrong.value ?? [])
   g.mistakes = (g.mistakes ?? 0) + found.filter((cell) => !counted.has(cell)).length
   g.checked = found
-  persist()
+  saveProgress()
   showToast(checkMessage(found.length))
 }
 
@@ -285,7 +191,7 @@ function requestHint(): void {
   hint.value = next
   if (next.kind === 'step' || next.kind === 'wrongCrown' || next.kind === 'wrongMark') {
     game.value.hintsUsed += 1
-    persist()
+    saveProgress()
   }
 }
 
@@ -323,39 +229,22 @@ const highlight = computed<BoardHighlight | null>(() => {
   return { tint, focus, ghost }
 })
 
-const showRules = ref(false)
-
-// Start a new game (?new=<difficulty>) or resume the saved one. Runs last so that all
-// state above is initialised.
-watch(
-  () => route.query.new,
-  (value) => {
-    if (typeof value === 'string' && (DIFFICULTIES as readonly string[]).includes(value)) {
-      void startNew(value as Difficulty)
-    }
-  },
-  { immediate: true },
-)
-
-if (typeof route.query.new !== 'string' && !resume()) {
-  void router.replace({ name: 'crowns' })
-}
+session.init()
 </script>
 
 <template>
-  <AppBar :title="title" back-to="/crowns">
-    <template #actions>
-      <span v-if="status !== 'loading'" class="timer tabular" :aria-label="t('common.time')">
-        <AppIcon name="clock" :size="18" />
-        {{ formatDuration(stopwatch.elapsedMs.value) }}
-      </span>
-      <button type="button" class="icon-btn" :aria-label="t('crowns.play.rules')" @click="showRules = true">
-        <AppIcon name="info" />
-      </button>
-    </template>
-  </AppBar>
+  <PlayBar
+    v-model:rules-open="showRules"
+    :title="title"
+    back-to="/crowns"
+    :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
+    :rules-label="t('crowns.play.rules')"
+    :rules-title="t('crowns.rules.title')"
+  >
+    <CrownsRules />
+  </PlayBar>
 
-  <main class="play">
+  <main class="puzzle-play">
     <GameBackdrop game="crowns" />
     <LoadingOverlay v-if="status === 'loading' || !game" :label="t('common.generating')" />
 
@@ -381,35 +270,29 @@ if (typeof route.query.new !== 'string' && !resume()) {
         />
       </div>
 
-      <section v-if="hint" class="hint card" aria-live="polite">
-        <div class="hint__head">
-          <AppIcon name="hint" :size="20" class="hint__icon" />
-          <h2 class="hint__title">{{ hintTitle(hint) }}</h2>
-          <button type="button" class="hint__close" :aria-label="t('common.close')" @click="hint = null">
-            <AppIcon name="close" :size="18" />
-          </button>
-        </div>
-        <p class="hint__text">{{ hintText(hint) }}</p>
-        <AppButton v-if="canApply" variant="primary" block @click="applyCurrentHint">
-          {{ hint.kind === 'step' ? t('common.apply') : t('crowns.hint.fix') }}
-        </AppButton>
-      </section>
+      <HintPanel
+        v-if="hint"
+        :title="hintTitle(hint)"
+        :action-label="canApply ? (hint.kind === 'step' ? t('common.apply') : t('crowns.hint.fix')) : undefined"
+        @apply="applyCurrentHint"
+        @close="hint = null"
+      >
+        <p>{{ hintText(hint) }}</p>
+      </HintPanel>
 
       <div v-else class="toolbar">
         <AppButton
           class="toolbar__undo"
           icon="undo"
           :disabled="!canUndo"
-          :aria-label="t('crowns.play.undo')"
-          :title="t('crowns.play.undo')"
+          :label="t('crowns.play.undo')"
           @click="undo"
         />
         <AppButton
           class="toolbar__undo"
           icon="inspect"
           :disabled="status !== 'playing'"
-          :aria-label="t('common.check')"
-          :title="t('common.check')"
+          :label="t('common.check')"
           @click="check"
         />
         <AppButton icon="hint" :disabled="status !== 'playing'" @click="requestHint">
@@ -421,10 +304,6 @@ if (typeof route.query.new !== 'string' && !resume()) {
       </div>
     </template>
   </main>
-
-  <AppDialog :open="showRules" :title="t('crowns.rules.title')" @close="showRules = false">
-    <CrownsRules />
-  </AppDialog>
 
   <ConfirmDialog
     :open="confirmClear"
@@ -444,36 +323,14 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :badge="result?.newBest ? t('common.newBest') : undefined"
   >
     <template #actions>
-      <AppButton variant="primary" block @click="playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="goToMenu">{{ t('crowns.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
+      <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
+      <AppButton block @click="session.goToMenu">{{ t('crowns.play.toMenu') }}</AppButton>
+      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
 
 <style scoped>
-.play {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  max-width: var(--content-max);
-  margin: 0 auto;
-  padding: var(--space-2) max(var(--space-3), env(safe-area-inset-right))
-    max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-3), env(safe-area-inset-left));
-}
-
-.timer {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
 .progress {
   font-size: var(--text-sm);
   font-weight: 600;
@@ -486,16 +343,8 @@ if (typeof route.query.new !== 'string' && !resume()) {
   min-width: min(100%, 260px);
 }
 
-.toolbar {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: center;
-  width: 100%;
-}
-
 .toolbar > * {
-  flex: 1;
-  max-width: 200px;
+  white-space: normal;
 }
 
 .toolbar > .toolbar__undo {
@@ -504,44 +353,4 @@ if (typeof route.query.new !== 'string' && !resume()) {
   padding: 0;
 }
 
-.hint {
-  width: 100%;
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  border-left: 4px solid var(--color-accent);
-}
-
-.hint__head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.hint__icon {
-  color: var(--color-accent);
-}
-
-.hint__title {
-  flex: 1;
-  font-size: var(--text-md);
-  font-weight: 700;
-}
-
-.hint__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin-right: calc(-1 * var(--space-2));
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.hint__text {
-  margin: var(--space-2) 0 var(--space-3);
-  font-size: var(--text-sm);
-}
 </style>

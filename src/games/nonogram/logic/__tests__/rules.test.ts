@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { diffCells, pushStep, revertStep, MAX_UNDO_STEPS } from '../history'
+import { diffCells, pushStep, revertStep, MAX_UNDO_STEPS } from '@/core/history'
 import { cluesFor } from '../lines'
 import {
   applyStroke,
@@ -56,7 +56,7 @@ describe('nonogram rules', () => {
     let erase = beginStroke(filled, 3, 'fill')
     erase = moveStroke(erase, 0, 3)
     expect(erase.axis).toBe('col')
-    expect(applyStroke(filled, erase, 3).filter((m, i) => i === 0 || i === 3)).toEqual([UNKNOWN, UNKNOWN])
+    expect(applyStroke(filled, erase, 3).filter((_, i) => i === 0 || i === 3)).toEqual([UNKNOWN, UNKNOWN])
   })
 
   it('is solved when exactly the solution is filled, crosses do not matter', () => {

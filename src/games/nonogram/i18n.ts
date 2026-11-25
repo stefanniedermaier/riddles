@@ -13,12 +13,6 @@ export const en = {
     controls:
       'Choose Fill or Cross, then tap a cell – or drag along a row or column to mark several. Tapping a marked cell again clears it.',
   },
-  lobby: {
-    newGame: 'New game',
-    confirmNewTitle: 'Start a new puzzle?',
-    confirmNew: 'Your current puzzle will be lost.',
-    start: 'Start',
-  },
   play: {
     fill: 'Fill',
     cross: 'Cross',
@@ -71,12 +65,6 @@ export const de: Messages<typeof en> = {
     gaps: 'Zwischen zwei Blöcken liegt mindestens ein leeres Feld. Jedes Rätsel ist rein logisch lösbar.',
     controls:
       'Wähle Füllen oder Kreuz und tippe ein Feld an – oder ziehe entlang einer Zeile oder Spalte, um mehrere zu markieren. Erneutes Antippen löscht die Markierung.',
-  },
-  lobby: {
-    newGame: 'Neues Spiel',
-    confirmNewTitle: 'Neues Rätsel starten?',
-    confirmNew: 'Dein aktuelles Rätsel geht dabei verloren.',
-    start: 'Starten',
   },
   play: {
     fill: 'Füllen',

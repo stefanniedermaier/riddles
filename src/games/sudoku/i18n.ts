@@ -18,10 +18,7 @@ export const en = {
     notes: 'Notes mode lets you jot down candidates. A hint explains the next logical step.',
   },
   lobby: {
-    newGame: 'New game',
     continueDetail: '{difficulty} · {time}',
-    replaceTitle: 'Start a new game?',
-    replaceConfirm: 'Your saved game will be lost.',
     best: 'Best {time}',
     noBest: 'Not solved yet',
   },
@@ -79,7 +76,7 @@ export const en = {
     fillIn: 'Fill in',
     first: 'First:',
     then: 'Then:',
-    moreSteps: '(plus {count} more preparation steps)',
+    moreSteps: '(plus {count} more preparation {count|step|steps})',
     explain: {
       nakedSingle: '{cell} has only one possible digit left: {digit}.',
       hiddenSingle: 'In {unit}, the {digit} fits only in {cell}.',
@@ -115,10 +112,7 @@ export const de: Messages<typeof en> = {
     notes: 'Im Notizmodus notierst du Kandidaten. Ein Hinweis erklärt den nächsten logischen Schritt.',
   },
   lobby: {
-    newGame: 'Neues Spiel',
     continueDetail: '{difficulty} · {time}',
-    replaceTitle: 'Neues Spiel starten?',
-    replaceConfirm: 'Dein gespeichertes Spiel geht dabei verloren.',
     best: 'Bestzeit {time}',
     noBest: 'Noch nicht gelöst',
   },
@@ -177,7 +171,7 @@ export const de: Messages<typeof en> = {
     fillIn: 'Eintragen',
     first: 'Zuerst:',
     then: 'Dann:',
-    moreSteps: '(plus {count} weitere Vorbereitungsschritte)',
+    moreSteps: '(plus {count} {count|weiterer Vorbereitungsschritt|weitere Vorbereitungsschritte})',
     explain: {
       nakedSingle: 'In {cell} ist nur noch eine Ziffer möglich: {digit}.',
       hiddenSingle: 'In {unit} passt die {digit} nur in {cell}.',

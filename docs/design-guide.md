@@ -51,7 +51,7 @@ it; a new game gets it for free by using `GameBackdrop`.
 ### Dark mode
 
 - Game colours are lighter in dark mode. Text **on** a game colour is therefore white in
-  light mode and dark (`--color-bg`) in dark mode (see `ContinueButton`).
+  light mode and dark (`--color-bg`) in dark mode: use the `--on-game` token.
 - Banners in a game colour are darkened in dark mode so white text keeps its contrast
   (`LobbyHero`).
 - Fixed dark artwork (black spider, black outlines on a dark page) must switch to
@@ -81,8 +81,8 @@ The UI follows Material Design 3 with square shapes.
 | State layer | Hover / focus / pressed tint the element with its content colour at `--state-hover` (8 %) and `--state-pressed` (10 %) – CSS in `base.css`. No scale or lift on press. |
 | Ripple | `core/ripple.ts`: a wave from the pointer on every UI control in `RIPPLE_TARGETS` (keep the list in `base.css` in sync). Add new controls there or give them `md-ripple-target`. Never on game boards. Off with reduced motion. |
 | Buttons | `primary` = filled (accent), `secondary` = outlined (accent text), `ghost` = text button, `danger` = tonal error. Min. height 44 px, 600 weight, disabled 38 % opacity. |
-| Switches | Material 3 switch, square: off = outlined track and a small thumb, on = filled accent track and a large thumb (`ToggleRow`, game list). |
-| Segmented buttons | Outlined row; the chosen segment is tinted (`--color-accent-soft`) and shows a check mark (`SegmentedControl`). |
+| Switches | Material 3 switch, square: off = outlined track and a small thumb, on = filled accent track and a large thumb (`SwitchControl`, used by `ToggleRow` and the game list). |
+| Segmented buttons | Outlined row; the chosen segment is tinted (`--color-accent-soft`) and shows a check mark – or the option's icon in tool groups (`SegmentedControl`). One tab stop; arrow keys choose. |
 | Snackbar | Inverse surface, left-aligned text, elevation 3 (`ToastHost`). |
 | Easing | `--ease-standard` for state changes, `--ease-emphasized` for elements that grow or move in (switch thumb). |
 
@@ -170,9 +170,12 @@ Line icons in `src/components/icons.ts`: 24 × 24, 2 px stroke, round caps and j
 ### Rules
 
 - Every animation has a `:root[data-motion='reduced']` rule that turns it **off**
-  (`animation: none`); logic that waits for animations checks `motionEnabled`.
-- Use the tokens `--dur-fast/med/slow` and `--ease-out` for UI; game feedback may use
-  springy curves such as `cubic-bezier(0.3, 1.6, 0.5, 1)` for pops.
+  (`animation: none`); logic that waits for animations checks `motionEnabled`. A global
+  safety net in `base.css` shortens anything that slips through to 1 ms.
+- Use the tokens `--dur-fast/med/slow` and `--ease-out` for UI transitions; game
+  choreography (keyframe sequences, idle loops) keeps its own timings. Game feedback may
+  use springy curves such as `cubic-bezier(0.3, 1.6, 0.5, 1)` for pops.
+- Stacking order only via `--z-*` (`tokens.css`); `z-index` 0–5 stays local.
 - Animate `transform` and `opacity` only; no layout properties.
 - No idle animation in the shell (lobby banners are static). In games, small idle loops
   are fine where they carry meaning: rocket flame, fuse spark, swinging padlock, bobbing
@@ -195,7 +198,8 @@ Line icons in `src/components/icons.ts`: 24 × 24, 2 px stroke, round caps and j
 - *Share result* (win or new best) shares a challenge link plus an image drawn on a canvas
   (`core/shareImage.ts`): the game colour (darkened if too light), the golden trophy on rays,
   the title, a square white panel with the logo, name, difficulty and result, a gold
-  "personal best" badge and the app address. The dialog shows it as a preview.
+  "personal best" badge and the app address. It is only shared, not shown in the dialog
+  (the dialog must fit a phone screen without scrolling).
 
 - **Win** (trophy icon, or `celebrate`): confetti cannons and rain (`CelebrationBurst`),
   golden icon on rotating rays, stars and rows pop in one after another.

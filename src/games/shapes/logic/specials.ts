@@ -12,7 +12,7 @@ import {
 } from './types'
 
 /** Kind with the most pieces on the board (ties → lowest kind), or `null` if none. */
-export function mostCommonKind(board: Board): number | null {
+function mostCommonKind(board: Board): number | null {
   const counts = new Map<number, number>()
   for (const piece of board) {
     if (piece && piece.kind >= 0) counts.set(piece.kind, (counts.get(piece.kind) ?? 0) + 1)
@@ -28,7 +28,7 @@ export function mostCommonKind(board: Board): number | null {
   return best
 }
 
-export function cellsOfKind(board: Board, kind: number): number[] {
+function cellsOfKind(board: Board, kind: number): number[] {
   const cells: number[] = []
   for (let cell = 0; cell < CELLS; cell++) if (board[cell]?.kind === kind) cells.push(cell)
   return cells

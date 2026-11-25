@@ -6,11 +6,11 @@
  */
 import { computed, ref, watchEffect } from 'vue'
 
+import type { GameId } from '@/games/types'
 import { getMessages, type MessageKey } from '@/i18n'
 import { settings } from './settings'
 
 export type Locale = 'en' | 'de'
-export const locales: readonly Locale[] = ['en', 'de']
 export type { MessageKey }
 
 /** Device language as reported by the browser (reactive to `languagechange`). */
@@ -40,14 +40,42 @@ function lookup(source: unknown, key: string): string | undefined {
 
 export type MessageParams = Record<string, string | number>
 
-/** Translates `key`, replacing `{name}` placeholders with `params.name`. */
+const pluralRules = new Map<Locale, Intl.PluralRules>()
+
+function pluralOf(count: number): Intl.LDMLPluralRule {
+  let rules = pluralRules.get(locale.value)
+  if (!rules) {
+    rules = new Intl.PluralRules(locale.value)
+    pluralRules.set(locale.value, rules)
+  }
+  return rules.select(count)
+}
+
+/**
+ * Translates `key`, replacing `{name}` placeholders with `params.name`.
+ *
+ * Plural forms: `{name|one|other}` picks the form for the number `params.name` by the
+ * language's plural rules, e.g. `'{count} {count|card|cards}'`.
+ */
 export function t(key: MessageKey, params?: MessageParams): string {
   const messages = getMessages()
   const text = lookup(messages[locale.value], key) ?? lookup(messages.en, key) ?? key
   if (!params) return text
-  return text.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
-  )
+  return text
+    .replace(/\{(\w+)\|([^|{}]*)\|([^{}]*)\}/g, (match, name: string, one: string, other: string) =>
+      name in params ? (pluralOf(Number(params[name])) === 'one' ? one : other) : match,
+    )
+    .replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? String(params[name]) : match))
+}
+
+/** Display name of a game (`<id>.name`). */
+export function gameName(id: GameId): string {
+  return t(`${id}.name`)
+}
+
+/** One-line description of a game (`<id>.tagline`). */
+export function gameTagline(id: GameId): string {
+  return t(`${id}.tagline`)
 }
 
 /** Keeps `<html lang>` in sync with the active locale. */

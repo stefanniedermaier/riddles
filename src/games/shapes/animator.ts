@@ -48,13 +48,13 @@ export interface BoardEffect {
   kind: number
 }
 
-export const SWAP_MS = 160
-export const CLEAR_MS = 260
-export const FALL_BASE_MS = 110
-export const FALL_ROW_MS = 55
-export const SHUFFLE_MS = 380
+const SWAP_MS = 160
+const CLEAR_MS = 260
+const FALL_BASE_MS = 110
+const FALL_ROW_MS = 55
+const SHUFFLE_MS = 380
 /** Lifetime of a board effect. */
-export const EFFECT_MS = 650
+const EFFECT_MS = 650
 /** At most this many juice splashes per clear (big combos would flood the DOM). */
 const MAX_POPS = 24
 
@@ -147,6 +147,8 @@ export function useBoardAnimator(motion: Ref<boolean>) {
       effects.value = effects.value.filter((effect) => !ids.has(effect.id))
     }, EFFECT_MS)
   }
+
+  let stopped = false
 
   async function playPhase(phase: Phase, callbacks: PlayCallbacks): Promise<void> {
     switch (phase.type) {
@@ -250,7 +252,11 @@ export function useBoardAnimator(motion: Ref<boolean>) {
     animating.value = true
     try {
       if (motion.value) {
-        for (const phase of phases) await playPhase(phase, callbacks)
+        for (const phase of phases) {
+          // Left the game: skip the rest of the show (and its callbacks: points, toasts).
+          if (stopped) break
+          await playPhase(phase, callbacks)
+        }
       } else {
         for (const phase of phases) {
           if (phase.type === 'clear') callbacks.onClear?.(phase.score, phase.cells)
@@ -265,5 +271,10 @@ export function useBoardAnimator(motion: Ref<boolean>) {
     }
   }
 
-  return { pieces, effects, animating, field, show, play }
+  /** Stops animating for good (the view is gone); a running `play` finishes right away. */
+  function stop(): void {
+    stopped = true
+  }
+
+  return { pieces, effects, animating, field, show, play, stop }
 }

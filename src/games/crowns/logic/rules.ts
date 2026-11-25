@@ -1,5 +1,6 @@
 /** Rule checks on a player's board. */
-import { createGeometry, neighbors8, type Geometry } from './geometry'
+import { neighbors8 } from '@/core/grid'
+import { createGeometry, type Geometry } from './geometry'
 import { CROWN, type CellState } from './types'
 
 /** `true` for every crown that breaks a rule (shares a unit with or touches another crown). */
