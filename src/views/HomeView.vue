@@ -87,16 +87,18 @@ async function share(): Promise<void> {
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-4);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: color-mix(in srgb, var(--card-accent) 14%, var(--color-surface));
   box-shadow: var(--shadow-sm);
   color: var(--color-text);
   text-decoration: none;
-  transition: transform var(--dur-fast) var(--ease-out);
+  transition: box-shadow var(--dur-fast) var(--ease-standard);
 }
 
-.game-card:active {
-  transform: scale(0.985);
+@media (hover: hover) {
+  .game-card:hover {
+    box-shadow: var(--elevation-2);
+  }
 }
 
 .game-card__text {
@@ -122,7 +124,7 @@ async function share(): Promise<void> {
   top: var(--space-3);
   right: var(--space-3);
   padding: 2px var(--space-2);
-  border-radius: var(--radius-full);
+  border-radius: 0;
   background: var(--card-accent);
   color: #fff;
   font-size: var(--text-xs);

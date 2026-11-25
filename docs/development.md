@@ -68,6 +68,7 @@ The dev server listens on all interfaces (`--host`), so you can open
   import from each other.
 - Styling with scoped CSS and the tokens from `src/styles/tokens.css` – no hard-coded
   colours except in game palettes, which must provide light and dark variants.
+- Look and motion follow the [design guide](design-guide.md).
 - Touch targets ≥ 44 px; test at 360 px width and in both themes.
 - Storage keys: `<game>:<what>:v<n>`; bump the version when the format changes.
 - Formatting follows `.editorconfig` (2 spaces, LF, max. 100 columns).
@@ -88,8 +89,9 @@ an option in the settings view.
    `module.ts` (`export default defineGame({ id: '<id>', descriptor, routes, messages })`).
 2. Add the module to `gameModules` in `src/games/modules.ts` – this registers the id
    (`GameId`), the routes, the statistics/settings entries and the texts.
-3. Add an accent colour `--game-<id>` in `tokens.css` and artwork in
-   `components/GameArt.vue`.
+3. Add an accent colour `--game-<id>` in `tokens.css`, a background motif in
+   `components/GameBackdrop.vue` and a logo in `components/GameArt.vue` – see the
+   [design guide](design-guide.md#10-checklist-for-a-new-game-or-a-redesign) checklist.
 4. Put rules and generators into `logic/` with tests; heavy generation into a worker
    (`core/worker.ts`) behind a puzzle pool (`core/pool.ts`).
 5. Persist the running game under `<id>:current:v1`, record statistics via `core/stats.ts`.

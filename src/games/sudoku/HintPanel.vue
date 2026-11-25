@@ -64,7 +64,7 @@ const emit = defineEmits<{ apply: []; close: [] }>()
   height: 36px;
   margin-right: calc(-1 * var(--space-2));
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: 0;
   background: transparent;
   cursor: pointer;
 }

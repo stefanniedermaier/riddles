@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } fro
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -352,6 +353,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
       '--palette-cols': params.colors <= 6 ? params.colors : Math.ceil(params.colors / 2),
     }"
   >
+    <GameBackdrop game="codebreaker" />
     <div class="hud tabular">
       <div class="hud__item">
         <span class="hud__label">{{ t('common.difficulty') }}</span>
@@ -478,6 +480,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
     :icon="status === 'won' ? 'trophy' : 'restart'"
+    :share="status === 'won' && result && game ? { game: 'codebreaker', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
   >
     <template #actions>
       <AppButton variant="primary" block @click="playAgain">
@@ -551,7 +554,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   display: flex;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface-2);
 }
 
@@ -568,7 +571,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   width: 100%;
   min-height: 0;
   margin: 0;
-  padding: 0;
+  padding: 6px 4px; /* room for the selection ring of the current row (overflow clips) */
   overflow-y: auto;
   list-style: none;
 }
@@ -583,7 +586,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
 }
 
 .row--current {
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
 }

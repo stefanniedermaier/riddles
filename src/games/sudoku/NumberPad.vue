@@ -52,7 +52,7 @@ const remaining = (digit: number): number => Math.max(0, (props.size ?? 9) - (pr
   height: 58px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
   color: var(--game-sudoku);

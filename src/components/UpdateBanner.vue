@@ -33,7 +33,7 @@ watch(offlineReady, (ready) => {
   gap: var(--space-3);
   width: min(calc(100% - 2 * var(--space-4)), 440px);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-lg);
   transform: translateX(-50%);

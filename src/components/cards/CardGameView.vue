@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch, ty
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -22,6 +23,7 @@ import { useStopwatch } from '@/core/timer'
 import { showToast } from '@/core/toast'
 import CardTable from './CardTable.vue'
 import { cardWidth } from './sizing'
+import type { GameId } from '@/games/types'
 import type { CardGameDef } from './types'
 
 /**
@@ -530,6 +532,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   </AppBar>
 
   <main class="play" :style="{ '--card-back': `var(--game-${game.id})`, '--game-text': `var(--game-${game.id})` }">
+    <GameBackdrop :game="game.id as GameId" />
     <LoadingOverlay v-if="status === 'loading' || !run || !state" :label="t('common.generating')" />
 
     <template v-else>
@@ -635,6 +638,17 @@ if (typeof route.query.new !== 'string' && !resume()) {
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"
     :icon="status === 'won' ? 'trophy' : 'restart'"
+    :share="
+      status === 'won' && result && run
+        ? {
+            game: game.id,
+            variant: String(run.variant),
+            result: pointsMode ? formatNumber(result.score) : formatDuration(result.timeMs),
+            kind: pointsMode ? 'score' : 'time',
+            newBest: result.newBest,
+          }
+        : undefined
+    "
   >
     <template #actions>
       <template v-if="status === 'won'">

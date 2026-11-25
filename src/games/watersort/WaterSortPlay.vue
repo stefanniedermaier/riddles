@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import GameBackdrop from '@/components/GameBackdrop.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -149,7 +150,7 @@ function doPour(g: WaterSortSave, from: number, to: number): boolean {
   hintPlan = followsPlan ? hintPlan.slice(1) : []
   hint.value = null
   selected.value = null
-  poured.value = { to, amount: result.move.amount, key: ++animationKey }
+  poured.value = { from, to, amount: result.move.amount, key: ++animationKey }
   if (isSolved(g.tubes)) win()
   else persist()
   return true
@@ -242,7 +243,8 @@ function win(): void {
   const { newBestTime } = recordFinish('watersort', g.puzzle.difficulty, { timeMs })
   remove(SAVE_KEY)
   result.value = { timeMs, newBest: newBestTime }
-  resultTimer = setTimeout(() => (showResult.value = true), motionEnabled.value ? 700 : 0)
+  // Let the last pour finish (and the cork pop on) before the dialog opens.
+  resultTimer = setTimeout(() => (showResult.value = true), motionEnabled.value ? 2200 : 0)
 }
 
 const resultRows = computed(() => {
@@ -303,6 +305,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   </AppBar>
 
   <main v-if="game" class="play">
+    <GameBackdrop game="watersort" />
     <div class="info" aria-live="polite">
       <p v-if="hint" class="info__hint">
         <strong>{{ t('watersort.play.hint') }}:</strong>
@@ -377,6 +380,7 @@ if (typeof route.query.new !== 'string' && !resume()) {
   <ResultDialog
     :open="showResult"
     :title="t('common.solved')"
+    :share="result && game ? { game: 'watersort', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
     :subtitle="t('watersort.result.solvedText')"
     :rows="resultRows"
     :badge="result?.newBest ? t('common.newBest') : undefined"

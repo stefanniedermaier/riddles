@@ -17,6 +17,8 @@ const props = defineProps<{
   hint: [number, number] | null
   /** Ignore input (animations running, paused, finished). */
   locked: boolean
+  /** Game lost: the pieces tumble off the board. */
+  collapse?: boolean
   /** Level obstacles (crates, target tiles, chains). */
   field?: Field | null
 }>()
@@ -108,11 +110,8 @@ const hintIds = computed(() => {
   )
 })
 
-/** Eight juice drops per splash, evenly spread with a little jitter. */
-const DROPS = Array.from({ length: 8 }, (_, i) => ({
-  angle: i * 45 + (i % 2 ? 12 : -8),
-  distance: i % 2 ? 0.75 : 1,
-}))
+/** Beams and waves are DOM effects; juice splashes are canvas particles (BoardParticles). */
+const beamEffects = computed(() => props.effects.filter((effect) => effect.type !== 'pop'))
 
 function effectStyle(effect: BoardEffect) {
   return {
@@ -145,6 +144,7 @@ function isSelected(piece: DisplayPiece): boolean {
   <div
     ref="boardEl"
     class="board no-select"
+    :class="{ 'board--collapse': collapse }"
     role="application"
     :aria-label="t('shapes.board.label')"
     @pointerdown="onPointerDown"
@@ -168,14 +168,26 @@ function isSelected(piece: DisplayPiece): boolean {
         'piece--firing': piece.firing,
         'piece--selected': isSelected(piece),
         'piece--hint': hintIds.has(piece.id),
+        'piece--fall': piece.ease === 'fall',
       }"
       :style="{
         transform: `translate3d(${piece.col * 100}%, ${piece.row * 100}%, 0)`,
         transitionDuration: `${piece.durationMs}ms`,
+        '--drop': SIZE - piece.row,
+        '--delay': `${(SIZE - 1 - piece.row) * 45 + ((piece.col * 37) % 80)}ms`,
+        '--spin': `${((piece.id * 47) % 90) - 45}deg`,
       }"
     >
       <div class="piece__inner">
-        <ShapePiece :kind="piece.kind" :special="piece.special" />
+        <!-- Re-created on every fall (key), which restarts the landing squash. -->
+        <div
+          :key="piece.land"
+          class="piece__land"
+          :class="{ 'piece__land--go': piece.land > 0 }"
+          :style="{ animationDelay: `${piece.landDelayMs}ms` }"
+        >
+          <ShapePiece :kind="piece.kind" :special="piece.special" />
+        </div>
       </div>
     </div>
 
@@ -198,23 +210,14 @@ function isSelected(piece: DisplayPiece): boolean {
     </TransitionGroup>
 
     <div
-      v-for="effect in effects"
+      v-for="effect in beamEffects"
       :key="`fx${effect.id}`"
       class="fx"
       :class="`fx--${effect.type}`"
       :style="effectStyle(effect)"
       aria-hidden="true"
     >
-      <template v-if="effect.type === 'pop'">
-        <span class="fx__ring" />
-        <span
-          v-for="(drop, i) in DROPS"
-          :key="i"
-          class="fx__drop"
-          :style="{ '--angle': `${drop.angle}deg`, '--dist': drop.distance }"
-        />
-      </template>
-      <span v-else-if="effect.type === 'line-h' || effect.type === 'line-v'" class="fx__beam" />
+      <span v-if="effect.type === 'line-h' || effect.type === 'line-v'" class="fx__beam" />
       <span v-else class="fx__wave" />
     </div>
   </div>
@@ -222,9 +225,9 @@ function isSelected(piece: DisplayPiece): boolean {
 
 <style scoped>
 .board {
-  /* A light garden-green checkerboard. */
-  --board-a: color-mix(in srgb, #6cc35a 9%, var(--color-surface));
-  --board-b: color-mix(in srgb, #6cc35a 20%, var(--color-surface-2));
+  /* Cream / pale-green tiles; slightly see-through so the frame's wood glows through. */
+  --board-a: rgb(255 250 232 / 92%);
+  --board-b: rgb(232 243 208 / 92%);
   /* Effect colours per kind (match the fruit colours in ShapePiece). */
   --fx-0: #f0213f;
   --fx-1: #ff8a00;
@@ -238,11 +241,19 @@ function isSelected(piece: DisplayPiece): boolean {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   background: repeating-conic-gradient(var(--board-a) 0 25%, var(--board-b) 0 50%) 0 0 / 25% 25%;
-  box-shadow: var(--shadow-sm);
+  /* Sunk into the frame. */
+  box-shadow:
+    inset 0 4px 10px rgb(60 30 0 / 30%),
+    inset 0 0 0 1px rgb(90 53 21 / 35%);
   touch-action: none;
   cursor: pointer;
+}
+
+:root[data-theme='dark'] .board {
+  --board-a: rgb(52 58 84 / 92%);
+  --board-b: rgb(40 46 70 / 92%);
 }
 
 .cell-layer {
@@ -292,6 +303,21 @@ function isSelected(piece: DisplayPiece): boolean {
   pointer-events: none;
 }
 
+/* Falling pieces accelerate like under gravity and land with a squash (below). */
+.piece--fall {
+  transition-timing-function: cubic-bezier(0.45, 0, 0.85, 0.55);
+}
+
+.piece__land {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 92%;
+}
+
+.piece__land--go {
+  animation: land-squash 0.32s ease-out both;
+}
+
 .piece__inner {
   width: 100%;
   height: 100%;
@@ -328,26 +354,6 @@ function isSelected(piece: DisplayPiece): boolean {
   height: 12.5%;
   pointer-events: none;
   transform: translate(-50%, -50%);
-}
-
-.fx__ring {
-  position: absolute;
-  inset: 10%;
-  border: 3px solid var(--fx-color);
-  border-radius: 50%;
-  animation: fx-ring 0.45s var(--ease-out) forwards;
-}
-
-.fx__drop {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 16%;
-  height: 16%;
-  margin: -8% 0 0 -8%;
-  border-radius: 50%;
-  background: var(--fx-color);
-  animation: fx-drop 0.55s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
 }
 
 .fx--line-h,
@@ -418,28 +424,6 @@ function isSelected(piece: DisplayPiece): boolean {
   }
 }
 
-@keyframes fx-ring {
-  from {
-    transform: scale(0.4);
-    opacity: 0.9;
-  }
-  to {
-    transform: scale(1.5);
-    opacity: 0;
-  }
-}
-
-@keyframes fx-drop {
-  from {
-    transform: rotate(var(--angle)) translateY(0) scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: rotate(var(--angle)) translateY(calc(-260% * var(--dist))) scale(0.3);
-    opacity: 0;
-  }
-}
-
 @keyframes fx-beam-h {
   from {
     transform: translate(-50%, -50%) scaleX(0.05);
@@ -490,6 +474,24 @@ function isSelected(piece: DisplayPiece): boolean {
   }
 }
 
+@keyframes land-squash {
+  0% {
+    transform: none;
+  }
+  25% {
+    transform: scale(1.16, 0.8);
+  }
+  55% {
+    transform: scale(0.94, 1.08) translateY(-4%);
+  }
+  80% {
+    transform: scale(1.03, 0.97);
+  }
+  100% {
+    transform: none;
+  }
+}
+
 @keyframes hint-pulse {
   0%,
   100% {
@@ -519,6 +521,33 @@ function isSelected(piece: DisplayPiece): boolean {
 }
 
 :root[data-motion='reduced'] .piece--selected .piece__inner {
+  animation: none;
+}
+
+/* Lost: every piece hops, then falls out of the board (bottom rows first). */
+.board--collapse .piece__inner {
+  animation: collapse-fall 0.8s cubic-bezier(0.5, 0, 0.9, 0.5) var(--delay) forwards;
+}
+
+.board--collapse .cell-layer {
+  transition: opacity 0.6s;
+  opacity: 0.3;
+}
+
+@keyframes collapse-fall {
+  0% {
+    transform: none;
+  }
+  18% {
+    transform: translateY(-14%) rotate(calc(var(--spin) * -0.2));
+  }
+  100% {
+    transform: translateY(calc(var(--drop) * 100% + 60%)) rotate(var(--spin));
+    opacity: 0.6;
+  }
+}
+
+:root[data-motion='reduced'] .piece__land--go {
   animation: none;
 }
 

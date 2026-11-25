@@ -92,10 +92,11 @@ a {
   color: var(--color-text-muted);
 }
 
+/* Material card: square, elevation 1. */
 .card {
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border-radius: 0;
+  box-shadow: var(--elevation-1);
 }
 
 .muted {
@@ -104,4 +105,145 @@ a {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Lobbies and play views sit above their themed page background (GameBackdrop as first child,
+ * or Shapes' garden before the page): their own stacking context keeps it behind the content.
+ */
+.page.lobby,
+main:has(> .game-backdrop) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Inside a game (lobby or play view) the accent colour is the game's colour (gameAccent.ts). */
+:root[data-game] {
+  --color-accent: color-mix(in srgb, var(--game-current) 88%, #000);
+  --color-accent-strong: color-mix(in srgb, var(--game-current) 72%, #000);
+  --color-accent-soft: color-mix(in srgb, var(--game-current) 16%, var(--color-surface));
+}
+
+:root[data-game][data-theme='dark'] {
+  --color-accent: var(--game-current);
+  --color-accent-strong: color-mix(in srgb, var(--game-current) 80%, #fff);
+  --color-accent-soft: color-mix(in srgb, var(--game-current) 22%, var(--color-surface));
+}
+
+/*
+ * Material state layer and ripple for UI controls (not for game boards and pieces).
+ * Keep the list in sync with RIPPLE_TARGETS in core/ripple.ts.
+ */
+:where(
+    .app-btn,
+    .icon-btn,
+    .app-bar__icon-btn,
+    .dialog__close,
+    .choice,
+    .continue,
+    .game-card,
+    .segmented__option,
+    .rules-card__summary,
+    .order__hidden-summary,
+    .game-picker__item,
+    .toggle-row,
+    .pad__key,
+    .tool,
+    .hint__close,
+    .md-ripple-target
+  ) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(
+    .app-btn,
+    .icon-btn,
+    .app-bar__icon-btn,
+    .dialog__close,
+    .choice,
+    .continue,
+    .game-card,
+    .segmented__option,
+    .rules-card__summary,
+    .order__hidden-summary,
+    .game-picker__item,
+    .toggle-row,
+    .pad__key,
+    .tool,
+    .hint__close,
+    .md-ripple-target
+  )::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  :where(
+      .app-btn,
+      .icon-btn,
+      .app-bar__icon-btn,
+      .dialog__close,
+      .choice,
+      .continue,
+      .game-card,
+      .segmented__option,
+      .rules-card__summary,
+      .order__hidden-summary,
+      .game-picker__item,
+      .toggle-row,
+      .pad__key,
+      .tool,
+      .hint__close,
+      .md-ripple-target
+    ):hover:not(:disabled)::after {
+    opacity: var(--state-hover);
+  }
+}
+
+:where(
+    .app-btn,
+    .icon-btn,
+    .app-bar__icon-btn,
+    .dialog__close,
+    .choice,
+    .continue,
+    .game-card,
+    .segmented__option,
+    .rules-card__summary,
+    .order__hidden-summary,
+    .game-picker__item,
+    .toggle-row,
+    .pad__key,
+    .tool,
+    .hint__close,
+    .md-ripple-target
+  ):is(:focus-visible, :active):not(:disabled)::after {
+  opacity: var(--state-pressed);
+}
+
+.md-ripple {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.16;
+  pointer-events: none;
+  transform: scale(0);
+  animation: md-ripple 450ms var(--ease-standard) forwards;
+}
+
+@keyframes md-ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
 }

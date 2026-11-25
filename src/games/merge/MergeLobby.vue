@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import LobbyHero from '@/components/LobbyHero.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import { formatNumber } from '@/core/format'
@@ -60,7 +61,8 @@ function select(id: string): void {
 
 <template>
   <AppBar :title="t('merge.name')" back-to="/" />
-  <main class="page lobby" :class="{ 'lobby--played': hasPlayed }">
+  <main class="page lobby" style="--lobby-accent: var(--game-merge)" :class="{ 'lobby--played': hasPlayed }">
+    <LobbyHero game="merge" />
     <RulesCard class="intro" :title="t('merge.lobby.howToTitle')" accent="var(--game-merge)">
       <MergeRules />
     </RulesCard>

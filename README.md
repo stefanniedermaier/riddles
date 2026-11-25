@@ -79,6 +79,7 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest, Playwrig
 
 - [Architecture](docs/architecture.md) – structure, core modules, how games plug in, storage keys
 - [Development](docs/development.md) – setup, testing, conventions, adding a game or translation
+- [Design guide](docs/design-guide.md) – colours, shapes, game art, lobbies, motion and accessibility for app and games
 - [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, releasing a version, PWA updates
 - [Privacy](docs/privacy.md) – what is stored and where
 - [Security](docs/security.md) – threat model, supply chain, SBOM & provenance, CRA alignment

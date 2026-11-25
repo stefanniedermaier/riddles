@@ -26,6 +26,7 @@ all data on the device. Every level is generated on the fly.
 | 15 | [Water Sort](15-water-sort.md)               | Colour sorting with a solver-checked generator and hints      |
 | 16 | [Code Breaker](16-code-breaker.md)           | Code breaking with consistent-code hints                      |
 | 17 | [Card games](17-card-games.md)               | Solitaire, Spider, FreeCell, TriPeaks on a shared engine; points, pass limits |
+| 19 | [Shared puzzles](19-shared-puzzles.md)         | Evaluation: seed links for the same puzzle, versioning, daily puzzle |
 
 ## Decisions (from the kick-off wizard)
 

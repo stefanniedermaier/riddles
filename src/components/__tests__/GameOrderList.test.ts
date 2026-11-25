@@ -37,7 +37,7 @@ describe('GameOrderList', () => {
     list.getBoundingClientRect = () => ({ top: 0, height: 60 * names(wrapper).length }) as DOMRect
     for (const row of wrapper.findAll('.order__row')) {
       const index = Number(names(wrapper).indexOf(row.find('.order__name').text()))
-      ;(row.element as HTMLElement).getBoundingClientRect = () => ({ top: index * 60 }) as DOMRect
+      ;(row.element as HTMLElement).getBoundingClientRect = () => ({ top: index * 60, height: 60 }) as DOMRect
     }
     const handle = wrapper.findAll('.order__handle')[0]!
     await handle.trigger('pointerdown', { pointerId: 1, clientY: 30, button: 0 })
@@ -50,11 +50,27 @@ describe('GameOrderList', () => {
 
   it('hides games via the switch but never the last enabled one', async () => {
     const wrapper = mount(GameOrderList)
-    const switches = () => wrapper.findAll('input[role="switch"]')
-    for (const input of switches().slice(1)) await input.setValue(false)
+    const toggle = (id: string) => wrapper.find(`[data-game="${id}"] input[role="switch"]`)
+    for (const id of gameLayout.value.order.slice(1)) await toggle(id).setValue(false)
     expect(visibleGames.value.map((game) => game.id)).toEqual(['sudoku'])
-    expect(switches()[0]!.attributes('disabled')).toBeDefined()
-    await switches()[2]!.setValue(true)
+    expect(toggle('sudoku').attributes('disabled')).toBeDefined()
+    await toggle('links').setValue(true)
     expect(visibleGames.value.map((game) => game.id)).toEqual(['sudoku', 'links'])
+  })
+
+  it('moves hidden games into a collapsible list below the sortable one', async () => {
+    gameLayout.value = normalizeLayout({ disabled: ['crowns', 'mines'] })
+    const wrapper = mount(GameOrderList)
+    const sortable = wrapper.find('.order__list:not(.order__list--hidden)')
+    expect(sortable.findAll('.order__name').map((el) => el.text())).not.toContain('Stars')
+    expect(sortable.findAll('.order__handle')).toHaveLength(14)
+    const hidden = wrapper.find('details.order__hidden')
+    expect(hidden.attributes('open')).toBeUndefined()
+    expect(hidden.find('summary').text()).toContain('Hidden games (2)')
+    expect(hidden.findAll('.order__name').map((el) => el.text())).toEqual(['Stars', 'Mines'])
+    // Showing a game again puts it back at its old place.
+    await hidden.find('[data-game="crowns"] input[role="switch"]').setValue(true)
+    expect(names(wrapper).slice(0, 3)).toEqual(['Sudoku', 'Stars', 'Links'])
+    expect(wrapper.find('details.order__hidden').text()).toContain('Hidden games (1)')
   })
 })

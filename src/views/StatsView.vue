@@ -232,7 +232,7 @@ function confirmReset(): void {
   gap: 2px;
   min-width: 0;
   padding: var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface-2);
 }
 

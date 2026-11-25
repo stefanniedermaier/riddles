@@ -62,14 +62,14 @@ const fmt = (status: GoalStatus, value: number) =>
   <section class="hud" :class="{ 'hud--levels': mode === 'levels' }">
     <!-- Zen / Time -->
     <div v-if="mode !== 'levels'" class="hud__row">
-      <div class="hud__stat">
+      <div class="hud__stat plate">
         <span class="hud__label">{{ t('shapes.hud.score') }}</span>
         <strong :key="scoreBump" class="hud__value tabular score-bump" data-score-target>
           {{ formatNumber(score) }}
         </strong>
       </div>
 
-      <div v-if="mode === 'time'" class="hud__stat hud__stat--end">
+      <div v-if="mode === 'time'" class="hud__stat hud__stat--end plate">
         <span class="hud__label">{{ t('shapes.hud.time') }}</span>
         <strong class="hud__value tabular" :class="{ 'hud__value--low': lowTime }">
           {{ seconds }} s
@@ -96,7 +96,7 @@ const fmt = (status: GoalStatus, value: number) =>
           <span class="moves__label">{{ t('shapes.hud.movesLeft') }}</span>
         </div>
 
-        <ul v-if="goals" class="goals" :aria-label="t('shapes.hud.goals')">
+        <ul v-if="goals" class="goals plate" :aria-label="t('shapes.hud.goals')">
           <li
             v-for="(status, i) in goals"
             :key="i"
@@ -138,6 +138,7 @@ const fmt = (status: GoalStatus, value: number) =>
         </ul>
       </div>
       <p class="level-score">
+        <AppIcon name="starFilled" :size="20" class="level-score__star" />
         {{ t('shapes.hud.score') }}
         <strong :key="scoreBump" class="tabular score-bump" data-score-target>
           {{ formatNumber(score) }}
@@ -148,23 +149,66 @@ const fmt = (status: GoalStatus, value: number) =>
 </template>
 
 <style scoped>
+/*
+ * Game-style HUD: cream "plates" with a bevel, a green moves badge and a golden score
+ * ribbon – it sits on the garden backdrop, so it carries its own colours.
+ */
 .hud {
+  --plate-top: #fffbf0;
+  --plate-bottom: #f3e3bf;
+  --plate-border: #c99a5b;
+  --plate-text: #5a3515;
+  --plate-muted: #9a7449;
+  --track: rgb(120 80 30 / 22%);
+
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: var(--space-3);
 }
 
+:root[data-theme='dark'] .hud {
+  --plate-top: #3d3756;
+  --plate-bottom: #2b2640;
+  --plate-border: #6d6194;
+  --plate-text: #f3ecff;
+  --plate-muted: #b7aad8;
+  --track: rgb(0 0 0 / 35%);
+}
+
+.plate {
+  border: 2px solid var(--plate-border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--plate-top), var(--plate-bottom));
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 55%),
+    inset 0 -3px 0 rgb(120 80 30 / 18%),
+    0 4px 10px rgb(0 0 0 / 22%);
+  color: var(--plate-text);
+}
+
+:root[data-theme='dark'] .plate {
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 12%),
+    inset 0 -3px 0 rgb(0 0 0 / 25%),
+    0 4px 10px rgb(0 0 0 / 40%);
+}
+
 .hud__row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: stretch;
+  gap: var(--space-2);
 }
 
 .hud__stat {
   position: relative;
   display: flex;
   flex-direction: column;
+  min-width: 110px;
+  padding: 6px var(--space-3) 8px;
 }
 
 .hud__stat--end {
@@ -173,49 +217,58 @@ const fmt = (status: GoalStatus, value: number) =>
 
 .hud__label {
   font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--plate-muted);
 }
 
 .hud__value {
   font-size: var(--text-2xl);
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.1;
 }
 
 .hud__value--low {
-  color: var(--color-error);
+  color: #e0283c;
 }
 
 .hud__bonus {
   position: absolute;
   top: 100%;
-  right: 0;
-  color: var(--color-success);
+  right: var(--space-2);
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, #6fdc77, #2e9a3e);
+  color: #fff;
   font-size: var(--text-sm);
-  font-weight: 800;
+  font-weight: 900;
+  text-shadow: 0 1px 0 #1d6b2a;
   white-space: nowrap;
   animation: bonus-fade 1.2s var(--ease-out) forwards;
 }
 
 .timebar {
-  height: 8px;
+  height: 14px;
+  padding: 2px;
   overflow: hidden;
+  border: 2px solid var(--plate-border);
   border-radius: var(--radius-full);
-  background: var(--color-surface-3);
+  background: var(--plate-bottom);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 20%);
 }
 
 .timebar__fill {
   height: 100%;
-  background: var(--game-shapes);
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, #8ff07c 0 35%, #3cb850 36%, #23913a);
   transform-origin: left center;
   transition: transform 0.2s linear;
 }
 
 .timebar__fill--low {
-  background: var(--color-error);
+  background: linear-gradient(180deg, #ff9aa6 0 35%, #f2263f 36%, #b0101f);
 }
 
 /* --- Levels ------------------------------------------------------------------------ */
@@ -232,15 +285,21 @@ const fmt = (status: GoalStatus, value: number) =>
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 76px;
+  width: 80px;
   padding: var(--space-2) var(--space-1);
-  border-radius: var(--radius-md);
-  background: var(--color-text);
-  color: var(--color-bg);
+  border: 2px solid #1d6b2a;
+  border-radius: 18px;
+  background: radial-gradient(circle at 35% 25%, #8ff07c, #3cb850 55%, #23913a);
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 45%),
+    inset 0 -4px 0 rgb(0 0 0 / 18%),
+    0 4px 10px rgb(0 0 0 / 25%);
+  color: #fff;
+  text-shadow: 0 2px 0 rgb(0 60 10 / 55%);
 }
 
 .moves__value {
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 900;
   line-height: 1;
 }
@@ -248,23 +307,25 @@ const fmt = (status: GoalStatus, value: number) =>
 .moves__label {
   margin-top: 2px;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 800;
   text-align: center;
   line-height: 1.15;
 }
 
 .moves--low {
-  background: var(--color-error);
-  color: #fff;
+  border-color: #7d0718;
+  background: radial-gradient(circle at 35% 25%, #ff9aa6, #f2263f 55%, #a30c22);
+  text-shadow: 0 2px 0 rgb(90 0 15 / 55%);
+  animation: moves-pulse 1s ease-in-out infinite;
 }
 
 .goals {
   display: flex;
   flex: 1;
-  gap: var(--space-2);
+  gap: var(--space-1);
   min-width: 0;
   margin: 0;
-  padding: 0;
+  padding: 6px;
   list-style: none;
 }
 
@@ -275,16 +336,14 @@ const fmt = (status: GoalStatus, value: number) =>
   align-items: center;
   gap: 4px;
   min-width: 0;
-  padding: var(--space-2) var(--space-1) 6px;
-  border: 2px solid color-mix(in srgb, var(--color-border-strong) 30%, transparent);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
+  padding: 4px var(--space-1) 4px;
+  border-radius: 12px;
+  color: var(--plate-text);
+  transition: background var(--dur-med) var(--ease-out);
 }
 
 .goal--done {
-  border-color: var(--color-success);
-  background: var(--color-success-soft);
+  background: rgb(60 184 80 / 16%);
 }
 
 .goal__icon {
@@ -292,9 +351,10 @@ const fmt = (status: GoalStatus, value: number) =>
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  color: var(--game-crowns);
+  width: 32px;
+  height: 32px;
+  color: #e3a000;
+  filter: drop-shadow(0 2px 1px rgb(0 0 0 / 18%));
 }
 
 .goal__chain {
@@ -316,12 +376,13 @@ const fmt = (status: GoalStatus, value: number) =>
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--color-surface);
+  width: 19px;
+  height: 19px;
+  border: 2px solid #fff;
   border-radius: 50%;
-  background: var(--color-success);
+  background: linear-gradient(180deg, #6fdc77, #2e9a3e);
   color: #fff;
+  animation: check-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
 .goal__count {
@@ -337,36 +398,57 @@ const fmt = (status: GoalStatus, value: number) =>
 .goal__target {
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--color-text-muted);
+  color: var(--plate-muted);
 }
 
 .goal__bar {
   width: 100%;
-  height: 5px;
+  height: 7px;
   overflow: hidden;
   border-radius: var(--radius-full);
-  background: var(--color-surface-3);
+  background: var(--track);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 20%);
 }
 
 .goal__fill {
   display: block;
   height: 100%;
-  background: var(--game-shapes);
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, #ffe27a 0 40%, #ffb020 41%, #e08a00);
   transform-origin: left center;
   transition: transform var(--dur-med) var(--ease-out);
 }
 
 .goal--done .goal__fill {
-  background: var(--color-success);
+  background: linear-gradient(180deg, #8ff07c 0 40%, #3cb850 41%, #23913a);
 }
 
+/* Golden score ribbon (levels). */
 .level-score {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 14px 3px 6px;
+  border: 2px solid #c77800;
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, #fff0a8, #ffc838 55%, #f3a300);
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 60%),
+    0 3px 8px rgb(0 0 0 / 22%);
+  color: #5a3000;
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  font-weight: 800;
+}
+
+.level-score__star {
+  color: #fff;
+  filter: drop-shadow(0 1px 0 #b36a00);
 }
 
 .level-score strong {
-  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: 900;
 }
 
 .score-bump {
@@ -376,23 +458,37 @@ const fmt = (status: GoalStatus, value: number) =>
 
 @keyframes score-bump {
   40% {
-    transform: scale(1.25);
-    color: var(--game-shapes);
+    transform: scale(1.3);
+    color: #e0283c;
   }
 }
 
-:root[data-motion='reduced'] .score-bump {
+@keyframes moves-pulse {
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes check-pop {
+  from {
+    transform: scale(0);
+  }
+}
+
+:root[data-motion='reduced'] .score-bump,
+:root[data-motion='reduced'] .moves--low,
+:root[data-motion='reduced'] .goal__check {
   animation: none;
 }
 
 @keyframes bonus-fade {
   0% {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-4px) scale(0.7);
   }
   15% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1.1);
   }
   100% {
     opacity: 0;

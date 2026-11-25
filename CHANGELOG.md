@@ -6,6 +6,51 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- *Share result* in the win dialog of every game: shares a challenge link (game, difficulty,
+  time or points). The link opens the game's lobby with a challenge note and the difficulty
+  marked – it never replaces a running game. Installed apps open such links where the browser
+  supports it (`handle_links`, `launch_handler`).
+- The shared result comes with an image (1080 × 1080): golden trophy, game logo, difficulty,
+  result and a "personal best" badge; shown as a preview in the win dialog.
+- Plan 19: evaluation of shared puzzles via seed links.
+- Design guide (`docs/design-guide.md`) for the app and all games.
+- Shapes in a garden look: glossy pieces, a garden scene behind the board, a wooden board
+  frame and a game-style HUD. Particles when pieces pop and obstacles break, pieces squash when
+  they land, the board shakes for bombs, praise for cascades ("Great!"). Garden-bed target
+  tiles, chains with a padlock; after a lost level the pieces tumble off the board. The rules
+  show every special and obstacle with a label.
+- End of a game: wins are celebrated with confetti, rays and popping stars; a lost game gets
+  a little rain cloud and a soft shower.
+- Every lobby has a banner in its game's colour and a matching background motif.
+- Water Sort: test tubes with a lip, shaded liquid with wavy, moving borders between the
+  colours, an animated pour (the tube flies over, tilts and pours) and a cork on finished tubes.
+- Inside a game (lobby and play view) buttons, selections and highlights use the game's colour
+  instead of the app's violet. One "Continue" bar for all lobbies; square mode cards with a
+  plain play triangle.
+- Mines: glossy meadow tiles on sand (higher contrast), new flag and mine artwork.
+- Stars: glossy golden stars on flat region tiles, a sparkle when a star is placed and a
+  livelier win animation.
+- Game logos share one look (square tiles with a glaze; Stars, Mines, Water Sort, Code
+  Breaker, Blocks and Shapes redrawn in their game's style; Solitaire, Spider and FreeCell got
+  their own motifs). Square corners on the home screen, mode cards, rules and switches.
+- Water Sort: when several layers are poured, they fill up one after the other, bottom up.
+
+### Changed
+
+- Material Design with square corners for the whole UI (games' boards and pieces excepted):
+  elevation levels, state layers and a ripple on all controls, Material 3 buttons (filled,
+  outlined, text), switches, segmented buttons with a check mark and a snackbar.
+- Settings → Games: hidden games move into a collapsible "Hidden games" list below the
+  sortable list (shorter page); showing a game again puts it back at its old place.
+
+### Fixed
+
+- Settings on desktop: the game picker under *Game settings* scrolls with the mouse wheel and
+  can be dragged with the mouse; reordering games scrolls the page when dragging near the
+  edge or with the wheel.
+
 ## [0.12.0] – 2026-11-25
 
 ### Added

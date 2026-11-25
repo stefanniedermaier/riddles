@@ -3,18 +3,31 @@ import { useId } from 'vue'
 
 /**
  * Original artwork for level obstacles (viewBox 0–100), used on the board and in the HUD.
- * - `target`: marked tile under a piece (striped, framed)
+ * - `target`: a patch of garden soil with grass tufts under a piece (clear it to "plant" it)
  * - `crate`:  wooden crate; `hp = 2` is reinforced with metal corners and bands
- * - `chain`:  two crossed chains lying over a piece
+ * - `chain`:  two crossed steel chains with a small golden padlock lying over a piece
  */
 defineProps<{ type: 'target' | 'crate' | 'chain'; hp?: number }>()
 
 const LINKS = [10, 30, 50, 70, 90]
 const uid = useId()
-const patternId = `stripes-${uid}`
+const soilId = `soil-${uid}`
+const steelId = `steel-${uid}`
+const goldId = `gold-${uid}`
 const woodId = `wood-${uid}`
 const frameId = `frame-${uid}`
 const metalId = `metal-${uid}`
+
+/** Light specks in the soil. */
+const SPECKS: [number, number, number][] = [
+  [18, 30, 2.2],
+  [30, 80, 1.8],
+  [74, 20, 2],
+  [84, 62, 2.4],
+  [62, 86, 1.6],
+  [14, 58, 1.6],
+  [44, 14, 1.4],
+]
 
 /** Metal corner brackets of a reinforced crate. */
 const CORNERS = [
@@ -29,13 +42,22 @@ const CORNERS = [
   <svg class="obstacle" :class="`obstacle--${type}`" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
     <template v-if="type === 'target'">
       <defs>
-        <pattern :id="patternId" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect width="7" height="14" class="obstacle__stripe" />
-        </pattern>
+        <radialGradient :id="soilId" cx="0.4" cy="0.35" r="0.8">
+          <stop offset="0" stop-color="#9a6a3e" />
+          <stop offset="0.6" stop-color="#7a4d26" />
+          <stop offset="1" stop-color="#55331a" />
+        </radialGradient>
       </defs>
-      <rect x="4" y="4" width="92" height="92" rx="14" class="obstacle__target-fill" />
-      <rect x="4" y="4" width="92" height="92" rx="14" :fill="`url(#${patternId})`" />
-      <rect x="4" y="4" width="92" height="92" rx="14" class="obstacle__target-frame" />
+      <rect x="3" y="3" width="94" height="94" rx="18" :fill="`url(#${soilId})`" class="soil" />
+      <circle v-for="([x, y, r], i) in SPECKS" :key="i" :cx="x" :cy="y" :r="r" class="soil__speck" />
+      <rect x="3" y="3" width="94" height="94" rx="18" class="soil__rim" />
+      <!-- Grass tufts on the corners. -->
+      <path d="M6 22Q8 10 12 6Q13 14 16 8Q16 16 22 6Q20 16 24 14Q16 22 6 22Z" class="tuft" />
+      <path d="M94 78Q92 90 88 94Q87 86 84 92Q84 84 78 94Q80 84 76 86Q84 78 94 78Z" class="tuft" />
+      <path d="M78 6Q86 4 94 8Q88 10 92 16Q86 12 84 18Q82 10 78 6Z" class="tuft tuft--light" />
+      <path d="M22 94Q14 96 6 92Q12 90 8 84Q14 88 16 82Q18 90 22 94Z" class="tuft tuft--light" />
+      <circle cx="12" cy="9" r="2.6" class="daisy" />
+      <circle cx="88" cy="91" r="2.6" class="daisy" />
     </template>
 
     <template v-else-if="type === 'crate'">
@@ -72,6 +94,7 @@ const CORNERS = [
       />
       <path d="M17 17h66v66H17z" class="crate__inner-edge" />
       <rect x="5" y="5" width="90" height="90" rx="7" class="crate__outline" />
+      <path d="M12 8.5H88M8.5 12V60" class="crate__highlight" />
       <!-- Nails. -->
       <g class="crate__nail">
         <circle cx="11" cy="11" r="2.6" />
@@ -104,6 +127,18 @@ const CORNERS = [
     </template>
 
     <template v-else>
+      <defs>
+        <linearGradient :id="steelId" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.45" stop-color="#c3cad6" />
+          <stop offset="1" stop-color="#7c8698" />
+        </linearGradient>
+        <radialGradient :id="goldId" cx="0.35" cy="0.3" r="0.8">
+          <stop offset="0" stop-color="#fff3a8" />
+          <stop offset="0.5" stop-color="#ffbf1f" />
+          <stop offset="1" stop-color="#c77800" />
+        </radialGradient>
+      </defs>
       <g v-for="(direction, d) in [45, -45]" :key="d" :transform="`rotate(${direction} 50 50)`">
         <template v-for="(x, i) in LINKS" :key="i">
           <rect
@@ -120,9 +155,23 @@ const CORNERS = [
             width="18"
             :height="i % 2 === 0 ? 16 : 8"
             :rx="i % 2 === 0 ? 8 : 4"
+            :stroke="`url(#${steelId})`"
             class="obstacle__link"
           />
+          <path
+            v-if="i % 2 === 0"
+            :d="`M${x - 5} 44.5H${x + 4}`"
+            class="obstacle__link-shine"
+          />
         </template>
+      </g>
+      <!-- Padlock where the chains cross. -->
+      <g class="lock">
+        <path d="M43 52V45a7 7 0 0 1 14 0v7" class="lock__shackle-outline" />
+        <path d="M43 52V45a7 7 0 0 1 14 0v7" class="lock__shackle" />
+        <rect x="38" y="50" width="24" height="19" rx="4" :fill="`url(#${goldId})`" class="lock__body" />
+        <path d="M50 56.5a2.6 2.6 0 0 1 1.4 4.8L52.5 65h-5l1.1-3.7A2.6 2.6 0 0 1 50 56.5z" class="lock__hole" />
+        <path d="M41.5 53.5h8" class="lock__shine" />
       </g>
     </template>
   </svg>
@@ -136,19 +185,33 @@ const CORNERS = [
   overflow: visible;
 }
 
-/* Target tile: shapes accent, clearly visible around the piece on top of it. */
-.obstacle__target-fill {
-  fill: color-mix(in srgb, var(--game-shapes) 26%, transparent);
+/* Target tile: a patch of garden soil – dark and warm, so it shows around the piece on top. */
+.soil__speck {
+  fill: #c99a66;
+  opacity: 0.55;
 }
 
-.obstacle__stripe {
-  fill: color-mix(in srgb, var(--game-shapes) 30%, transparent);
-}
-
-.obstacle__target-frame {
+.soil__rim {
   fill: none;
-  stroke: var(--game-shapes);
-  stroke-width: 6;
+  stroke: #3d230f;
+  stroke-width: 3.5;
+}
+
+.tuft {
+  fill: #3cb850;
+  stroke: #1d6b2a;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.tuft--light {
+  fill: #7ee05a;
+}
+
+.daisy {
+  fill: #fff;
+  stroke: #ffc21a;
+  stroke-width: 1.6;
 }
 
 /* Crate: wooden planks in a frame, dark outline in both themes. */
@@ -204,6 +267,13 @@ const CORNERS = [
   stroke-width: 4;
 }
 
+.crate__highlight {
+  fill: none;
+  stroke: rgb(255 230 190 / 55%);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
 .crate__nail circle {
   fill: #c9cfd8;
   stroke: #3a3f4a;
@@ -231,7 +301,68 @@ const CORNERS = [
 
 .obstacle__link {
   fill: none;
-  stroke: #d4d9e3;
+  stroke-width: 4;
+}
+
+.obstacle__link-shine {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+
+.lock__shackle-outline {
+  fill: none;
+  stroke: #1f2330;
+  stroke-width: 7;
+}
+
+.lock__shackle {
+  fill: none;
+  stroke: #c3cad6;
   stroke-width: 3.5;
+}
+
+.lock {
+  transform-origin: 50px 40px;
+  animation: lock-swing 3.2s ease-in-out infinite;
+}
+
+@keyframes lock-swing {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0deg);
+  }
+  78% {
+    transform: rotate(-9deg);
+  }
+  86% {
+    transform: rotate(6deg);
+  }
+  93% {
+    transform: rotate(-2deg);
+  }
+}
+
+:root[data-motion='reduced'] .lock {
+  animation: none;
+}
+
+.lock__body {
+  stroke: #6b3d00;
+  stroke-width: 2.4;
+}
+
+.lock__hole {
+  fill: #5a3000;
+}
+
+.lock__shine {
+  fill: none;
+  stroke: rgb(255 255 255 / 80%);
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 </style>

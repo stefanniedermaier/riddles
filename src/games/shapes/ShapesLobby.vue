@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
+import LobbyHero from '@/components/LobbyHero.vue'
 import GameSettingsButton from '@/components/GameSettingsButton.vue'
 import ChoiceList from '@/components/ChoiceList.vue'
 import RulesCard from '@/components/RulesCard.vue'
@@ -11,6 +12,7 @@ import { t } from '@/core/i18n'
 import { getVariantStats } from '@/core/stats'
 import { MODES, type Mode } from './logic/types'
 import ShapesRules from './ShapesRules.vue'
+import GardenBackdrop from './GardenBackdrop.vue'
 import { levelProgress, loadRun } from './store'
 
 const router = useRouter()
@@ -60,12 +62,14 @@ function select(id: string): void {
 </script>
 
 <template>
+  <GardenBackdrop />
   <AppBar :title="t('shapes.name')" back-to="/">
     <template #actions>
       <GameSettingsButton game="shapes" />
     </template>
   </AppBar>
-  <main class="page lobby" :class="{ 'lobby--played': hasPlayed }">
+  <main class="page lobby" style="--lobby-accent: var(--game-shapes)" :class="{ 'lobby--played': hasPlayed }">
+    <LobbyHero game="shapes" :tint="false" />
     <RulesCard class="intro" :title="t('shapes.lobby.howToTitle')" accent="var(--game-shapes)">
       <ShapesRules />
     </RulesCard>

@@ -27,28 +27,30 @@ withDefaults(
 </template>
 
 <style scoped>
+/*
+ * Material 3 buttons, square: primary = filled, secondary = outlined, ghost = text,
+ * danger = tonal error. Feedback comes from the state layer and the ripple (base.css).
+ */
 .app-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-5);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: 0;
+  font-size: var(--text-sm);
   font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition:
-    transform var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast);
-}
-
-.app-btn:active:not(:disabled) {
-  transform: scale(0.97);
+    box-shadow var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
 }
 
 .app-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.38;
   cursor: default;
 }
 
@@ -62,15 +64,21 @@ withDefaults(
   color: var(--color-on-accent);
 }
 
+@media (hover: hover) {
+  .app-btn--primary:hover:not(:disabled) {
+    box-shadow: var(--elevation-1);
+  }
+}
+
 .app-btn--secondary {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-  color: var(--color-text);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--color-text) 35%, transparent);
+  color: var(--color-accent);
 }
 
 .app-btn--ghost {
   background: transparent;
-  color: var(--color-text);
+  color: var(--color-accent);
 }
 
 .app-btn--danger {

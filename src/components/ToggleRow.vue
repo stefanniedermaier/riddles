@@ -52,32 +52,50 @@ const id = useId()
 .toggle-row__switch {
   position: relative;
   flex: none;
-  width: 46px;
-  height: 28px;
-  border-radius: var(--radius-full);
+  box-sizing: border-box;
+  width: 52px;
+  height: 32px;
+  /* Material 3 switch, square (design guide): outlined track and a small thumb when off,
+    filled track and a large thumb when on. */
+  border: 2px solid color-mix(in srgb, var(--color-text) 45%, transparent);
+  border-radius: 0;
   background: var(--color-surface-3);
-  transition: background-color var(--dur-fast);
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
 }
 
 .toggle-row__switch::after {
   content: '';
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--dur-fast) var(--ease-out);
+  top: 50%;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-text) 55%, transparent);
+  transform: translateY(-50%);
+  transition:
+    left var(--dur-med) var(--ease-emphasized),
+    width var(--dur-med) var(--ease-emphasized),
+    height var(--dur-med) var(--ease-emphasized),
+    background-color var(--dur-fast);
 }
 
 .toggle-row__input:checked + .toggle-row__switch {
+  border-color: var(--color-accent);
   background: var(--color-accent);
 }
 
 .toggle-row__input:checked + .toggle-row__switch::after {
-  transform: translateX(18px);
+  left: 22px;
+  width: 24px;
+  height: 24px;
+  background: var(--color-on-accent);
+}
+
+.toggle-row__input:disabled + .toggle-row__switch {
+  opacity: 0.38;
 }
 
 .toggle-row__input:focus-visible + .toggle-row__switch {

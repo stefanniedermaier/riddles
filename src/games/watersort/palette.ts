@@ -61,3 +61,16 @@ export function symbolColor(theme: 'light' | 'dark', color: number): string {
 export function colorLabel(color: number): string {
   return String.fromCharCode(65 + color)
 }
+
+/** Mixes a #rrggbb colour with white (`amount` > 0) or black (`amount` < 0). */
+export function shade(hex: string, amount: number): string {
+  const target = amount > 0 ? 255 : 0
+  const a = Math.abs(amount)
+  const channels = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16)
+    return Math.round(c + (target - c) * a)
+      .toString(16)
+      .padStart(2, '0')
+  })
+  return `#${channels.join('')}`
+}

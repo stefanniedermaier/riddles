@@ -44,6 +44,12 @@ const emit = defineEmits<{
 const board = ref<HTMLElement | null>(null)
 /** Prefix for cell ids (the focused grid points screen readers to the cursor cell). */
 const idPrefix = useId()
+/** Gradient ids for the flag and mine artwork (unique per board). */
+const grad = {
+  cloth: `${idPrefix}-cloth`,
+  pole: `${idPrefix}-pole`,
+  bomb: `${idPrefix}-bomb`,
+}
 const total = computed(() => props.width * props.height)
 
 interface CellView {
@@ -238,6 +244,24 @@ function onKeydown(event: KeyboardEvent): void {
     @focus="cursor < 0 && (cursor = 0)"
     @contextmenu.prevent
   >
+    <svg class="defs" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient :id="grad.cloth" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ff7a88" />
+          <stop offset="0.5" stop-color="#f2263f" />
+          <stop offset="1" stop-color="#b0101f" />
+        </linearGradient>
+        <linearGradient :id="grad.pole" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#c98a52" />
+          <stop offset="1" stop-color="#7a4a1f" />
+        </linearGradient>
+        <radialGradient :id="grad.bomb" cx="0.36" cy="0.3" r="0.78">
+          <stop offset="0" stop-color="#8d96ab" />
+          <stop offset="0.5" stop-color="#2d3242" />
+          <stop offset="1" stop-color="#0b0d14" />
+        </radialGradient>
+      </defs>
+    </svg>
     <div v-for="r in height" :key="r" class="row" role="row">
       <div
         v-for="c in view.slice((r - 1) * width, r * width)"
@@ -251,17 +275,24 @@ function onKeydown(event: KeyboardEvent): void {
       >
         <span v-if="c.number" class="cell__number" :style="{ color: c.color }" aria-hidden="true">{{ c.number }}</span>
         <svg v-else-if="c.icon === 'flag'" class="cell__icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path class="flag__pole" d="M7 3.5v17" />
-          <path class="flag__cloth" d="M8 4.2l10 4.3-10 4.3z" />
-          <path class="flag__base" d="M4.5 20.5h7" />
+          <ellipse class="flag__mound" cx="9" cy="20.6" rx="6.2" ry="2.1" />
+          <rect class="flag__pole" x="6.7" y="3" width="1.9" height="17.6" rx="0.95" :fill="`url(#${grad.pole})`" />
+          <path
+            class="flag__cloth"
+            d="M8.5 3.9Q13 2.6 19 5.9Q14.6 7.7 19 11.4Q13.2 9.7 8.5 11.2Z"
+            :fill="`url(#${grad.cloth})`"
+          />
+          <path class="flag__shine" d="M9.8 5.2Q12.4 4.5 15 5.6" />
+          <circle class="flag__knob" cx="7.65" cy="3" r="1.4" />
           <path v-if="c.classes['cell--wrong']" class="flag__cross" d="M4 4l16 16M20 4L4 20" />
         </svg>
         <svg v-else-if="c.icon === 'mine'" class="cell__icon" viewBox="0 0 24 24" aria-hidden="true">
           <g class="mine__spikes">
-            <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" />
+            <path d="M12 2.6v4M12 17.4v4M2.6 12h4M17.4 12h4M5.4 5.4l2.8 2.8M15.8 15.8l2.8 2.8M18.6 5.4l-2.8 2.8M8.2 15.8l-2.8 2.8" />
           </g>
-          <circle class="mine__body" cx="12" cy="12" r="6" />
-          <circle class="mine__shine" cx="10" cy="10" r="1.6" />
+          <circle class="mine__body" cx="12" cy="12" r="6.6" :fill="`url(#${grad.bomb})`" />
+          <ellipse class="mine__shine" cx="9.8" cy="9.4" rx="2.2" ry="1.4" transform="rotate(-35 9.8 9.4)" />
+          <circle class="mine__light" cx="14.2" cy="14.2" r="1.3" />
         </svg>
       </div>
     </div>
@@ -270,11 +301,17 @@ function onKeydown(event: KeyboardEvent): void {
 
 <style scoped>
 .mines-board {
-  /* Covered cells keep ≥ 3:1 contrast to revealed cells (WCAG 1.4.11). */
-  --covered: #948fa3;
-  --covered-hi: color-mix(in srgb, var(--covered) 55%, #fff);
-  --covered-lo: color-mix(in srgb, var(--covered) 80%, #000);
-  --open: var(--color-surface);
+  /*
+   * Glossy meadow tiles over sand: covered cells keep ≥ 3:1 contrast to revealed cells
+   * (WCAG 1.4.11) – mid green #3f8f33 vs. sand #f6efdc ≈ 3.5:1.
+   */
+  --covered: #3f8f33;
+  --covered-top: #74c95f;
+  --covered-bottom: #2f7428;
+  --covered-hi: rgb(255 255 255 / 45%);
+  --covered-lo: rgb(0 40 0 / 35%);
+  --open: #f6efdc;
+  --frame: #2f6b2a;
   --gap: 2px;
 
   container-type: inline-size;
@@ -285,19 +322,33 @@ function onKeydown(event: KeyboardEvent): void {
   width: 100%;
   aspect-ratio: var(--w) / var(--h);
   padding: var(--gap);
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--frame);
   border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-  box-shadow: var(--shadow-md);
+  background: color-mix(in srgb, var(--frame) 70%, #000);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 35%),
+    0 8px 18px rgb(20 40 10 / 30%);
   touch-action: manipulation;
   outline: none;
   cursor: pointer;
 }
 
 :root[data-theme='dark'] .mines-board {
-  --covered: #6c6880;
-  --covered-hi: color-mix(in srgb, var(--covered) 75%, #fff);
-  --covered-lo: color-mix(in srgb, var(--covered) 70%, #000);
+  /* Mid green #4a9a3e vs. the dark sand ≈ 4:1. */
+  --covered: #4a9a3e;
+  --covered-top: #6cbf58;
+  --covered-bottom: #3a7f30;
+  --covered-hi: rgb(255 255 255 / 30%);
+  --covered-lo: rgb(0 0 0 / 40%);
+  --open: #23222e;
+  --frame: #24461f;
+}
+
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 .row {
@@ -315,8 +366,8 @@ function onKeydown(event: KeyboardEvent): void {
   justify-content: center;
   min-width: 0;
   min-height: 0;
-  border-radius: 3px;
-  background: var(--covered);
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--covered-top), var(--covered) 55%, var(--covered-bottom));
   box-shadow:
     inset 0 2px 0 var(--covered-hi),
     inset 0 -2px 0 var(--covered-lo);
@@ -327,7 +378,7 @@ function onKeydown(event: KeyboardEvent): void {
 
 .cell--open {
   background: var(--open);
-  box-shadow: none;
+  box-shadow: inset 0 1px 2px rgb(60 40 0 / 18%);
 }
 
 .cell__number {
@@ -338,29 +389,45 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .cell__icon {
-  width: 72%;
-  height: 72%;
+  width: 94%;
+  height: 94%;
+  overflow: visible;
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 30%));
 }
 
-.flag__pole,
-.flag__base {
-  fill: none;
-  stroke: var(--color-text);
-  stroke-width: 2;
-  stroke-linecap: round;
+.flag__mound {
+  fill: #6b4a2a;
+  opacity: 0.85;
+}
+
+.flag__pole {
+  stroke: #3a2410;
+  stroke-width: 0.6;
 }
 
 .flag__cloth {
-  fill: var(--color-error);
-  stroke: var(--color-error);
-  stroke-width: 1.2;
+  stroke: #6e0614;
+  stroke-width: 1;
   stroke-linejoin: round;
+}
+
+.flag__shine {
+  fill: none;
+  stroke: rgb(255 255 255 / 75%);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+}
+
+.flag__knob {
+  fill: #ffc21a;
+  stroke: #a86800;
+  stroke-width: 0.6;
 }
 
 .flag__cross {
   fill: none;
-  stroke: var(--color-text);
-  stroke-width: 2.4;
+  stroke: #1d1b26;
+  stroke-width: 2.6;
   stroke-linecap: round;
 }
 
@@ -369,34 +436,37 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .mine__spikes {
-  stroke: var(--color-text);
-  stroke-width: 2.2;
+  stroke: #23262f;
+  stroke-width: 2.6;
   stroke-linecap: round;
 }
 
 .mine__body {
-  fill: var(--color-text);
+  stroke: #05060a;
+  stroke-width: 0.8;
 }
 
 .mine__shine {
-  fill: var(--color-surface);
+  fill: rgb(255 255 255 / 80%);
+}
+
+.mine__light {
+  fill: #ff4d64;
+  stroke: #7d0718;
+  stroke-width: 0.5;
+}
+
+:root[data-theme='dark'] .mine__spikes {
+  stroke: #c9cfdb;
 }
 
 .cell--hit {
-  background: var(--color-error);
+  background: radial-gradient(circle, #ffd36b 0 18%, #ff5a1f 45%, #c0101f 80%);
   animation: hit 420ms ease-out;
 }
 
 .cell--hit .mine__spikes {
-  stroke: var(--color-on-accent);
-}
-
-.cell--hit .mine__body {
-  fill: var(--color-on-accent);
-}
-
-.cell--hit .mine__shine {
-  fill: var(--color-error);
+  stroke: #23262f;
 }
 
 .cell--pressing::after {
@@ -414,12 +484,13 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .cell--safe {
-  box-shadow: inset 0 0 0 3px var(--color-success);
+  /* White on the green tiles (green would vanish there). */
+  box-shadow: inset 0 0 0 3px #fff;
   animation: glow 1.1s ease-in-out infinite;
 }
 
 .cell--danger {
-  box-shadow: inset 0 0 0 3px var(--color-error);
+  box-shadow: inset 0 0 0 3px #ff3b4f;
   animation: glow 1.1s ease-in-out infinite;
 }
 
@@ -434,12 +505,14 @@ function onKeydown(event: KeyboardEvent): void {
 
 .cell--safe:not(.cell--open)::before {
   content: '✓';
-  color: var(--color-success);
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 40 0 / 70%);
 }
 
 .cell--danger:not(.cell--open)::before {
   content: '!';
-  color: var(--color-error);
+  color: #fff;
+  text-shadow: 0 0 3px #b0101f, 0 1px 0 #7d0718;
 }
 
 .mines-board:focus-visible .cell--cursor {

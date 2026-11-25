@@ -56,7 +56,7 @@ function cellStyle(cell: number): Record<string, string> {
   const sideColor = (other: number, inside: boolean) =>
     inside && props.regions[other] !== region ? 'var(--crowns-line-strong)' : 'var(--crowns-line)'
   return {
-    background: regionColor(resolvedTheme.value, region ?? 0),
+    backgroundColor: regionColor(resolvedTheme.value, region ?? 0),
     borderTopWidth: side(cell - n, r > 0),
     borderBottomWidth: side(cell + n, r < n - 1),
     borderLeftWidth: side(cell - 1, c > 0),
@@ -245,7 +245,7 @@ function onKeydown(event: KeyboardEvent): void {
         :class="{ 'cell__crown--conflict': conflicts?.[cell - 1] }"
         :style="{ '--i': cell - 1 }"
       >
-        <StarGlyph />
+        <StarGlyph :conflict="Boolean(conflicts?.[cell - 1]) || wrong?.has(cell - 1)" />
       </span>
       <svg v-else-if="cells[cell - 1] === MARK" class="cell__mark" viewBox="0 0 10 10" aria-hidden="true">
         <path d="M2 2l6 6M8 2l-6 6" />
@@ -254,7 +254,7 @@ function onKeydown(event: KeyboardEvent): void {
 
       <template v-if="highlight?.ghost.has(cell - 1) && cells[cell - 1] === EMPTY">
         <span v-if="highlight.ghost.get(cell - 1) === 'crown'" class="cell__crown cell__ghost">
-          <StarGlyph />
+          <StarGlyph ghost />
         </span>
         <svg v-else class="cell__mark cell__ghost" viewBox="0 0 10 10" aria-hidden="true">
           <path d="M2 2l6 6M8 2l-6 6" />
@@ -276,9 +276,11 @@ function onKeydown(event: KeyboardEvent): void {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  border: 3px solid var(--color-border-strong);
+  border: 4px solid color-mix(in srgb, var(--color-border-strong) 85%, #000);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--game-crowns) 55%, transparent),
+    0 10px 24px rgb(0 0 0 / 22%);
   touch-action: none;
   outline: none;
   cursor: pointer;
@@ -330,7 +332,18 @@ function onKeydown(event: KeyboardEvent): void {
   width: 100%;
   height: 100%;
   color: var(--color-text);
-  animation: crown-pop var(--dur-med) var(--ease-out);
+  animation: crown-pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+/* A golden ring bursts out when a star is placed. */
+.cell__crown:not(.cell__ghost)::after {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  border: 2px solid #ffd23f;
+  border-radius: 50%;
+  opacity: 0;
+  animation: crown-ring 0.5s ease-out;
 }
 
 .cell__crown--conflict,
@@ -378,25 +391,53 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 .crowns-board--solved .cell__crown {
-  animation: crown-celebrate var(--dur-slow) var(--ease-out) both;
-  animation-delay: calc(var(--i) * 6ms);
-  color: var(--game-crowns);
+  animation: crown-celebrate 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 8ms);
+  filter: drop-shadow(0 0 6px rgb(255 210 60 / 90%));
 }
 
-:root[data-motion='reduced'] .cell__ghost {
+.crowns-board--solved .cell {
+  animation: solved-shine 0.9s ease-out both;
+  animation-delay: calc(var(--i, 0) * 8ms);
+}
+
+:root[data-motion='reduced'] .cell__ghost,
+:root[data-motion='reduced'] .cell__crown,
+:root[data-motion='reduced'] .cell__crown::after,
+:root[data-motion='reduced'] .crowns-board--solved .cell {
   animation: none;
 }
 
 @keyframes crown-pop {
   from {
-    transform: scale(0.4);
+    transform: scale(0.2) rotate(-40deg);
     opacity: 0;
   }
 }
 
+@keyframes crown-ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes solved-shine {
+  40% {
+    filter: brightness(1.25) saturate(1.2);
+  }
+}
+
 @keyframes crown-celebrate {
-  50% {
-    transform: scale(1.3) rotate(-8deg);
+  35% {
+    transform: scale(1.45) rotate(-14deg);
+  }
+  65% {
+    transform: scale(0.95) rotate(6deg);
   }
 }
 
