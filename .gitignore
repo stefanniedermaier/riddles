@@ -30,3 +30,6 @@ coverage
 /blob-report
 /.bin
 /.venv
+
+# Local Claude Code launch config (machine-specific paths)
+/.claude/launch.json
