@@ -6,6 +6,18 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Four card games on a shared card engine: **Solitaire** (draw 1 or 3, unlimited or limited
+  passes), **Spider** (1, 2 or 4 suits), **FreeCell** (4, 3 or 2 free cells) and **TriPeaks**.
+  Original card design, drag & drop or tap, full keyboard support, unlimited undo, hints from a
+  solver, *Only solvable deals*, scoring by **time or points**, optional four-colour suits.
+- Statistics show best time and high score for the card games.
+
+### Changed
+
+- Size budget for all JavaScript/CSS raised from 280 to 360 kB (gzip) for the card games.
+
 ## [0.11.0] – 2026-11-24
 
 ### Added

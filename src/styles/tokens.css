@@ -37,6 +37,10 @@
   --game-pipes: #0f6fb0;
   --game-watersort: #7c3aed;
   --game-codebreaker: #a3470d;
+  --game-solitaire: #b42318;
+  --game-spider: #4338ca;
+  --game-freecell: #3d5a80;
+  --game-tripeaks: #a15c07;
 
   /* Typography */
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -110,6 +114,10 @@
   --game-pipes: #5cb8f5;
   --game-watersort: #b794ff;
   --game-codebreaker: #f59e5b;
+  --game-solitaire: #f87171;
+  --game-spider: #a5b4fc;
+  --game-freecell: #9db4d0;
+  --game-tripeaks: #fbbf24;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 45%);

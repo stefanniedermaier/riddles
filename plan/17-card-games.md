@@ -315,3 +315,21 @@ card art of the four games (≈ 6 kB).
 4. Spider.
 5. TriPeaks (different table layout: peaks instead of columns).
 6. Docs (`docs/games/<game>.md` for all four), README, CHANGELOG.
+
+## 14. As implemented
+
+- Point rules live in each game's `apply` (moves return their points); `core/cards/game.ts` holds
+  the shared constants (undo −2, hint −20, win bonus, time bonus) instead of a separate
+  `scoring.ts`. The score is clamped at 0 *before* the win bonus is added.
+- One shared play view (`components/cards/CardGameView.vue`), lobby and settings panel; each
+  game provides a `CardGameDef` (`game.ts`). Saves hold seed, variant, moves and action marks;
+  the state is rebuilt by replay.
+- Worker: up to 40 deals per request (Spider 4 suits: 4, TriPeaks Hard: no check), node budgets
+  60 000–100 000. Measured solve rates: see `docs/games/cards.md`.
+- Solitaire's solver also splits runs to free a place for the waste card – needed without
+  turning the stock over.
+- TriPeaks: 23 cards in the stock plus one on the waste at the start.
+- **Deviation:** *Draw 1 · one pass* cannot be offered as "only solvable" – the solver found no
+  solution in 25 deals and proved 10 of them unsolvable. These deals are not checked; the rules
+  text says that the variant is rarely winnable. *Draw 3 · three passes* is checked (≈ 24 % of
+  random deals pass, so the worker needs a few attempts).

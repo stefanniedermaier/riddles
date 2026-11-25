@@ -16,7 +16,8 @@ export interface GameDescriptor {
   /** Difficulties or modes, used as statistics variants. */
   variants: readonly string[]
   /** Whether statistics show times (puzzles) or scores. */
-  statKind: 'time' | 'score'
+  /** `both`: card games record time and points (the scoring setting picks what is shown). */
+  statKind: 'time' | 'score' | 'both'
   /** Human readable label of a variant (already translated). */
   variantLabel: (variant: string) => string
   /** `true` if there is a game that can be continued. */

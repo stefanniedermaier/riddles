@@ -188,6 +188,40 @@ defineProps<{ game: GameId }>()
       </g>
       <path d="M8 22h40" stroke="var(--game-codebreaker)" stroke-width="1.5" opacity=".4" />
     </template>
+    <template v-else-if="game === 'solitaire' || game === 'spider' || game === 'freecell' || game === 'tripeaks'">
+      <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
+      <!-- Original card motifs: fanned cards with a suit (♥, ♠, ♦, ♣ as paths). -->
+      <g v-if="game === 'tripeaks'">
+        <rect x="23" y="9" width="18" height="25" rx="3" :fill="`var(--game-${game})`" />
+        <rect x="11" y="22" width="18" height="25" rx="3" fill="#fff" stroke="#8a8699" stroke-width="1.2" />
+        <rect x="35" y="22" width="18" height="25" rx="3" fill="#fff" stroke="#8a8699" stroke-width="1.2" />
+        <text x="15" y="33" font-family="var(--font-sans)" font-weight="800" font-size="9" fill="#c0262f">7</text>
+        <text x="39" y="33" font-family="var(--font-sans)" font-weight="800" font-size="9" fill="#1d1b26">8</text>
+        <rect x="23" y="42" width="18" height="16" rx="3" fill="#fff" stroke="#8a8699" stroke-width="1.2" />
+        <text x="27" y="53" font-family="var(--font-sans)" font-weight="800" font-size="9" fill="#c0262f">9</text>
+      </g>
+      <g v-else>
+        <rect x="10" y="14" width="22" height="31" rx="3" :fill="`var(--game-${game})`" transform="rotate(-12 21 30)" />
+        <rect x="22" y="12" width="22" height="31" rx="3" fill="#fff" stroke="#8a8699" stroke-width="1.2" transform="rotate(4 33 28)" />
+        <rect x="32" y="20" width="22" height="31" rx="3" fill="#fff" stroke="#8a8699" stroke-width="1.2" transform="rotate(14 43 36)" />
+        <g transform="translate(38 30) rotate(14) scale(1.3)">
+          <path
+            v-if="game === 'solitaire'"
+            d="M5 9.6C3 7.8 0 5.6 0 3.2 0 1.4 1.3 0 3 0c.9 0 1.6.5 2 1.2C5.4.5 6.1 0 7 0c1.7 0 3 1.4 3 3.2 0 2.4-3 4.6-5 6.4z"
+            fill="#c0262f"
+          />
+          <path
+            v-else-if="game === 'spider'"
+            d="M5 0C3.4 2.4 0 4.3 0 6.6c0 1.9 1.9 3 3.6 2.2.4-.2.7-.5.9-.8L4 10h2l-.5-2c.2.3.5.6.9.8C8.1 9.6 10 8.5 10 6.6 10 4.3 6.6 2.4 5 0z"
+            fill="#1d1b26"
+          />
+          <path v-else d="M5 0l4 5-4 5-4-5z" fill="#c0262f" />
+        </g>
+        <text x="26" y="24" font-family="var(--font-sans)" font-weight="800" font-size="8" fill="#1d1b26" transform="rotate(4 33 28)">
+          {{ game === 'spider' ? 'K' : 'A' }}
+        </text>
+      </g>
+    </template>
     <template v-else>
       <rect x="4" y="4" width="56" height="56" rx="10" fill="var(--color-surface)" />
       <!-- Strawberry, orange, leaf and grapes – the fruit-garden pieces of the game. -->

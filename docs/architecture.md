@@ -131,6 +131,7 @@ incompatible format change instead of crashing the app.
 | `pipes:current:v1`           | Running Pipes game                          |
 | `watersort:current:v1`       | Running Water Sort game (settings: `watersort:settings`) |
 | `codebreaker:current:v1`     | Running Code Breaker game (settings: `codebreaker:settings`) |
+| `<card game>:current:v1`     | Running Solitaire / Spider / FreeCell / TriPeaks game: seed, variant, moves (pool: `<game>:pool:v1`, settings: `<game>:settings`) |
 | `shapes:current:<mode>:v1`   | Running Shapes game per mode (levels: `v2`) |
 | `shapes:progress:v2`         | Current (highest unlocked) level            |
 | `sudoku:mini:current:v1`     | Running Mini-Sudoku game (pool: `sudoku:mini:pool:v1`) |

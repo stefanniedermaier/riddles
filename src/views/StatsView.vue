@@ -17,6 +17,8 @@ interface Row {
   started: number
   finished: number
   best: string
+  /** Card games (`statKind: 'both'`): the high score next to the best time. */
+  bestScore?: string
   average?: string
 }
 
@@ -52,7 +54,7 @@ function rowsFor(game: GameDescriptor, stats: Record<string, VariantStats>): Row
     .filter((variant) => stats[variant])
     .map((variant) => {
       const s = stats[variant]!
-      const timeGame = game.statKind === 'time'
+      const timeGame = game.statKind !== 'score'
       return {
         variant,
         label: game.variantLabel(variant),
@@ -65,6 +67,8 @@ function rowsFor(game: GameDescriptor, stats: Record<string, VariantStats>): Row
           : s.bestScore !== undefined
             ? formatNumber(s.bestScore)
             : '–',
+        bestScore:
+          game.statKind === 'both' ? (s.bestScore !== undefined ? formatNumber(s.bestScore) : '–') : undefined,
         average: timeGame
           ? s.finished > 0
             ? formatDuration(s.totalTimeMs / s.finished)
@@ -83,7 +87,7 @@ const sections = computed(() =>
     const kpis = [
       { label: t('stats.started'), value: formatNumber(totals.started) },
       { label: t('stats.finished'), value: formatNumber(totals.finished) },
-      game.statKind === 'time'
+      game.statKind !== 'score'
         ? { label: t('stats.solvingTime'), value: totals.timeMs > 0 ? formatDuration(totals.timeMs) : '–' }
         : {
             label: t('stats.avgScore'),
@@ -176,9 +180,10 @@ function confirmReset(): void {
               <th scope="col">{{ t('stats.started') }}</th>
               <th scope="col">{{ t('stats.finished') }}</th>
               <th scope="col">
-                {{ game.statKind === 'time' ? t('stats.bestTime') : t('stats.bestScore') }}
+                {{ game.statKind === 'score' ? t('stats.bestScore') : t('stats.bestTime') }}
               </th>
-              <th scope="col">{{ game.statKind === 'time' ? t('stats.avgTime') : t('stats.avgScore') }}</th>
+              <th v-if="game.statKind === 'both'" scope="col">{{ t('stats.bestScore') }}</th>
+              <th scope="col">{{ game.statKind === 'score' ? t('stats.avgScore') : t('stats.avgTime') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -187,6 +192,7 @@ function confirmReset(): void {
               <td>{{ row.started }}</td>
               <td>{{ row.finished }}</td>
               <td>{{ row.best }}</td>
+              <td v-if="game.statKind === 'both'">{{ row.bestScore }}</td>
               <td>{{ row.average ?? '–' }}</td>
             </tr>
           </tbody>
