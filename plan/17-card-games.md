@@ -13,8 +13,16 @@ screen (own lobby, statistics and settings):
 The rules are generic and centuries (TriPeaks: decades) old. Names, card design, animations,
 scoring and deals are original; nothing is taken from commercial versions (no green felt
 look, no copied card backs or face illustrations, no "bouncing cards" win animation, no
-deal-number algorithm of other apps). Check the names *FreeCell* and *TriPeaks* for
-trademarks before the release; fallbacks: *Free Cells* and *Peaks*.
+deal-number algorithm of other apps).
+
+**Names (checked 2026-11-25, US register via public aggregators):** no registration for the
+plain words *Solitaire*, *Spider*, *FreeCell* or *TriPeaks*. Existing marks only combine them
+with more words or a design (e.g. FREECELL SOLITAIRE and SPIDER SOLITAIRE with a triangle
+design, SOLITAIRE TRIPEAKS: FARM AND FAMILY) and **disclaim** the game names, i.e. the office
+treats them as descriptive. *Microsoft Solitaire Collection* is a trademark – we never use
+"Microsoft" or that collection name. The EU/German register (TMview) could not be queried
+from the development environment; check it once by hand (classes 9 and 41) before the
+release. Fallbacks if needed: *Free Cells*, *Peaks*.
 
 All four offer **time or points** as scoring (§ 3). Solitaire additionally has **limited
 passes** through the stock (§ 4).
