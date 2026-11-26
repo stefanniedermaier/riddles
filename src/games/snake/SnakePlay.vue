@@ -483,8 +483,8 @@ onBeforeUnmount(() => {
   --reserved: 380px;
 }
 
-/* Start / paused note in the lower part of the board (the snake starts in the middle);
-   taps go through to the board. */
+/* Start / paused note in the lower part of the board (the snake starts in the middle); taps go
+ * through to the board. */
 .board-note {
   position: absolute;
   inset: 0;
