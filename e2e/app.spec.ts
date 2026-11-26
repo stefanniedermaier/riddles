@@ -53,6 +53,23 @@ test('works offline once the service worker is active', async ({ page, context }
   await context.setOffline(false)
 })
 
+test('files are not answered with the app once the service worker is active', async ({ page, context }) => {
+  await page.goto('./')
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready
+  })
+  // Only page addresses get the app shell – the sitemap, the licences and the like are files.
+  // (A tab of its own: for a file the browser also asks for /favicon.ico at the domain root,
+  // which does not exist on the project site.)
+  const tab = await context.newPage()
+  for (const file of ['sitemap.xml', 'licenses.txt']) {
+    const response = await tab.goto(`./${file}`)
+    expect(response?.headers()['content-type'], file).not.toContain('text/html')
+    expect(await tab.content(), file).not.toContain('id="app"')
+  }
+  await tab.close()
+})
+
 test('settings check for updates and report the latest version', async ({ page }) => {
   await page.goto('./')
   await page.evaluate(async () => {
