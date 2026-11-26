@@ -6,6 +6,10 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.14.1] – 2026-11-26
+
+Hotfix: the sitemap and other files open directly again in a browser that has the app.
+
 ### Fixed
 
 - Files opened directly in a browser that already has the app (the sitemap, the licence
