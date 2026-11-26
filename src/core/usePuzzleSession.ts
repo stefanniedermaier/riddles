@@ -1,7 +1,8 @@
 /**
  * The life cycle of a puzzle game's play view, shared by the puzzle games:
  *
- * - start a new game (`?new=<variant>` in the route), resume the saved one, or go back to
+ * - start a new game (`?new=<variant>` in the route, given to the view as the `newGame` prop),
+ *   resume the saved one, or go back to
  *   the lobby when there is neither;
  * - generation may be asynchronous (worker pools): a start that finishes after the player
  *   left or started something else is dropped;
@@ -12,7 +13,7 @@
  * - Ctrl/⌘+Z → `onUndo`; timers started with `later` are cleared when leaving.
  */
 import { onBeforeUnmount, onMounted, ref, toRaw, watch, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import type { GameId } from '@/games/types'
 import { returnTo } from './navigation'
@@ -35,6 +36,8 @@ export interface PuzzleSessionOptions<S extends { elapsedMs: number }, V extends
   gameId: GameId
   slot: SaveSlot<S>
   variants: readonly V[]
+  /** The view's `newGame` prop (`?new=<variant>`), read reactively. */
+  newGame: () => string | undefined
   /** Statistics variant of a game (its difficulty). */
   variantOf: (save: S) => V
   /** A fresh game for a variant; may wait for a worker. */
@@ -54,9 +57,8 @@ const AUTOSAVE_MS = 5000
 export function usePuzzleSession<S extends { elapsedMs: number }, V extends string>(
   options: PuzzleSessionOptions<S, V>,
 ) {
-  const { gameId, slot, variants, variantOf, create, onShow, onUndo } = options
+  const { gameId, slot, variants, newGame, variantOf, create, onShow, onUndo } = options
   const savedWhile = options.savedWhile ?? ['playing']
-  const route = useRoute()
   const router = useRouter()
   const playRoute = { name: `${gameId}-play` }
   const lobbyRoute = { name: gameId }
@@ -222,18 +224,18 @@ export function usePuzzleSession<S extends { elapsedMs: number }, V extends stri
     window.removeEventListener('keydown', onKeydown)
   })
 
-  /** Reads `?new=` (also when it changes while the view is open) or resumes. */
+  /** Reads `newGame` (also when it changes while the view is open) or resumes. */
   function init(): void {
     watch(
-      () => route.query.new,
+      newGame,
       (value) => {
-        if (typeof value === 'string' && (variants as readonly string[]).includes(value)) {
+        if (value !== undefined && (variants as readonly string[]).includes(value)) {
           void startNew(value as V)
         }
       },
       { immediate: true },
     )
-    if (typeof route.query.new !== 'string' && !resume()) void router.replace(lobbyRoute)
+    if (newGame() === undefined && !resume()) void router.replace(lobbyRoute)
   }
 
   return {

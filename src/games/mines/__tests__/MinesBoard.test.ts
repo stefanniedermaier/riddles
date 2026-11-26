@@ -50,6 +50,19 @@ describe('MinesBoard', () => {
     expect(wrapper.emitted('tap')).toHaveLength(1)
   })
 
+  it('a second finger (pinch to zoom) cancels the tap and the long press', async () => {
+    vi.useFakeTimers()
+    const wrapper = mountBoard()
+    const board = wrapper.find('.mines-board')
+    await board.trigger('pointerdown', { clientX: 150, clientY: 50, pointerId: 1, isPrimary: true })
+    await board.trigger('pointerdown', { clientX: 250, clientY: 250, pointerId: 2, isPrimary: false })
+    vi.advanceTimersByTime(400)
+    await board.trigger('pointerup', { clientX: 150, clientY: 50, pointerId: 1, isPrimary: true })
+    await board.trigger('pointerup', { clientX: 250, clientY: 250, pointerId: 2, isPrimary: false })
+    expect(wrapper.emitted('tap')).toBeUndefined()
+    expect(wrapper.emitted('alt')).toBeUndefined()
+  })
+
   it('cancels when the finger moves to another cell; right click is the other action', async () => {
     const wrapper = mountBoard()
     const board = wrapper.find('.mines-board')

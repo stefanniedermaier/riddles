@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 
 import { t } from '@/core/i18n'
+import { createTouchGuard } from '@/core/touchGuard'
 import type { BoardEffect, DisplayPiece } from './animator'
 import { CELLS, SIZE, areAdjacent, cellAt, type Field } from './logic/types'
 import ObstacleArt from './ObstacleArt.vue'
@@ -40,6 +41,9 @@ interface Gesture {
 }
 let gesture: Gesture | null = null
 
+/** A second finger (pinch to zoom) cancels the swipe: its movement is no move. */
+const touches = createTouchGuard()
+
 function cellFromPoint(x: number, y: number): number | null {
   const rect = boardEl.value?.getBoundingClientRect()
   if (!rect || rect.width === 0) return null
@@ -51,6 +55,10 @@ function cellFromPoint(x: number, y: number): number | null {
 
 function onPointerDown(event: PointerEvent): void {
   emit('interact')
+  if (!touches.down(event)) {
+    gesture = null
+    return
+  }
   if (props.locked || !event.isPrimary) return
   const cell = cellFromPoint(event.clientX, event.clientY)
   if (cell === null) return
@@ -59,7 +67,7 @@ function onPointerDown(event: PointerEvent): void {
 }
 
 function onPointerMove(event: PointerEvent): void {
-  if (!gesture || gesture.pointerId !== event.pointerId || props.locked) return
+  if (!gesture || touches.multi || gesture.pointerId !== event.pointerId || props.locked) return
   const rect = boardEl.value?.getBoundingClientRect()
   const threshold = Math.max(12, ((rect?.width ?? 320) / SIZE) * 0.35)
   const dx = event.clientX - gesture.x
@@ -83,6 +91,7 @@ function onPointerMove(event: PointerEvent): void {
 }
 
 function onPointerUp(event: PointerEvent): void {
+  touches.up(event)
   if (!gesture || gesture.pointerId !== event.pointerId) return
   const cell = gesture.cell
   gesture = null
@@ -101,7 +110,8 @@ function tap(cell: number): void {
   } else emit('select', cell)
 }
 
-function onPointerCancel(): void {
+function onPointerCancel(event: PointerEvent): void {
+  touches.up(event)
   gesture = null
 }
 
@@ -313,7 +323,8 @@ function isSelected(piece: DisplayPiece): boolean {
   box-shadow:
     inset 0 4px 10px rgb(60 30 0 / 30%),
     inset 0 0 0 1px rgb(90 53 21 / 35%);
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
   cursor: pointer;
 }
 
@@ -632,6 +643,12 @@ function isSelected(piece: DisplayPiece): boolean {
 
 :root[data-motion='reduced'] .piece__land--go {
   animation: none;
+}
+
+/* Reduced motion: matched pieces fade (no pop) before they are removed. */
+:root[data-motion='reduced'] .piece--clearing .piece__inner {
+  animation: none;
+  opacity: 0.3;
 }
 
 :root[data-motion='reduced'] .fx {

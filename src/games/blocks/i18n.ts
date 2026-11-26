@@ -1,9 +1,11 @@
-import type { Messages } from '@/i18n/types'
-
 /** English texts of the Blocks game (namespace `blocks`). */
 export const en = {
   name: 'Blocks',
   tagline: 'Place blocks and clear full rows and columns.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Block puzzle: place three pieces at a time on an 8×8 board and clear full rows and columns. Combos and a cleared board earn bonus points.',
+  },
   variants: {
     classic: 'Classic',
   },
@@ -42,49 +44,5 @@ export const en = {
     moves: 'Pieces placed',
     playAgain: 'Play again',
     menu: 'Menu',
-  },
-}
-
-export const de: Messages<typeof en> = {
-  name: 'Blocks',
-  tagline: 'Lege Blöcke und räume volle Reihen und Spalten ab.',
-  variants: {
-    classic: 'Klassisch',
-  },
-  lobby: {
-    howToTitle: 'So geht’s',
-    howTo:
-      'Ziehe eines der drei Teile aufs Feld – oder tippe ein Teil und dann ein Feld an. Jede volle Reihe und Spalte verschwindet. Teile lassen sich nicht drehen.',
-    howToScore:
-      'Mehrere Linien auf einmal und Abräumen mit mehreren Teilen hintereinander (Combo) bringen Bonuspunkte. Das Spiel endet, wenn kein Teil mehr passt.',
-    newGameDetail: '8×8-Feld, jeweils drei Teile',
-    continue: 'Fortsetzen',
-    continueDetail: '{score} Punkte',
-    best: 'Rekord: {score}',
-  },
-  play: {
-    best: 'Rekord',
-    tray: 'Teile',
-    piece: 'Teil {n}, {cells} {cells|Block|Blöcke}',
-    piecePlaced: 'Teil {n}, bereits gelegt',
-    board: 'Blocks-Spielfeld, 8 mal 8. Pfeiltasten bewegen, Enter legt das gewählte Teil.',
-    combo: 'Combo ×{n}',
-    lines: '{n} Linien!',
-    boardCleared: 'Feld leer geräumt! +{bonus}',
-    noSpace: 'Kein Teil passt mehr – Spielende.',
-    keyboardHint: 'Tasten: 1–3 wählen ein Teil, Pfeile bewegen, Enter legt.',
-  },
-  pause: {
-    title: 'Pause',
-    newGame: 'Neues Spiel',
-    confirmNew: 'Dieses Spiel beenden und ein neues starten?',
-    quit: 'Zurück zum Menü',
-  },
-  result: {
-    gameOver: 'Kein Platz mehr',
-    lines: 'Linien abgeräumt',
-    moves: 'Teile gelegt',
-    playAgain: 'Nochmal spielen',
-    menu: 'Menü',
   },
 }

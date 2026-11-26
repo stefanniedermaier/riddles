@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // Checks the production build in dist/ before it is deployed:
-//   - index.html carries the Content-Security-Policy and no inline event handlers
+//   - every HTML page carries the Content-Security-Policy and no inline event handlers
+//   - search engine pages (plan 21): unique title and description, canonical URL = its own
+//     address, noindex where intended, valid JSON-LD, preview images exist, sitemap lists
+//     exactly the indexable pages
 //   - no source maps, no eval / new Function in shipped JavaScript
 //   - PWA files (service worker, manifest, icons) are present
 //   - licenses.txt lists every third-party package shipped (incl. Workbox in the service worker)
@@ -34,19 +37,72 @@ const files = readdirSync(dist, { recursive: true })
 const gzipKb = (file) => gzipSync(readFileSync(file)).length / 1024
 const text = (file) => readFileSync(file, 'utf8')
 
-// --- index.html -------------------------------------------------------------------------
+// --- HTML pages ---------------------------------------------------------------------------
 const indexHtml = text(join(dist, 'index.html'))
-const csp = /<meta http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(indexHtml)?.[1]
-if (!csp) fail('index.html: Content-Security-Policy <meta> missing')
-else {
-  for (const directive of ["default-src 'self'", "object-src 'none'", "base-uri 'self'"]) {
-    if (!csp.includes(directive)) fail(`index.html: CSP lacks "${directive}"`)
+const htmlFiles = files.filter((file) => extname(file) === '.html')
+for (const file of htmlFiles) {
+  const name = relative(dist, file)
+  const html = text(file)
+  const csp = /<meta http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html)?.[1]
+  if (!csp) fail(`${name}: Content-Security-Policy <meta> missing`)
+  else {
+    for (const directive of ["default-src 'self'", "object-src 'none'", "base-uri 'self'"]) {
+      if (!csp.includes(directive)) fail(`${name}: CSP lacks "${directive}"`)
+    }
+    if (/'unsafe-(inline|eval)'/.test(csp)) fail(`${name}: CSP allows 'unsafe-inline'/'unsafe-eval'`)
   }
-  if (/'unsafe-(inline|eval)'/.test(csp)) fail("index.html: CSP allows 'unsafe-inline'/'unsafe-eval'")
+  if (/\son[a-z]+\s*=/i.test(html)) fail(`${name}: inline event handler attribute found`)
+  // Loaded resources only – canonical and language links point to the site's own address.
+  const remoteScript = /<script\b[^>]*\bsrc="(https?:)?\/\//i.test(html)
+  const remoteStyle = [...html.matchAll(/<link\b[^>]*>/gi)].some(
+    ([tag]) => /\brel="(stylesheet|modulepreload|preload)"/i.test(tag) && /\bhref="(https?:)?\/\//i.test(tag),
+  )
+  if (remoteScript || remoteStyle) fail(`${name}: script or stylesheet loaded from another origin`)
 }
-if (/\son[a-z]+\s*=/i.test(indexHtml)) fail('index.html: inline event handler attribute found')
-if (/<(script|link)\b[^>]*\b(src|href)="(https?:)?\/\//i.test(indexHtml)) {
-  fail('index.html: script or stylesheet loaded from another origin')
+
+// --- search engine pages (plan 21) ---------------------------------------------------------
+const SITE = 'https://stefanniedermaier.github.io/riddles/'
+const attr = (html, pattern) => pattern.exec(html)?.[1]
+const titles = new Map()
+const indexable = new Set()
+for (const file of htmlFiles) {
+  const name = relative(dist, file).split('\\').join('/')
+  const html = text(file)
+  const title = attr(html, /<title>([^<]+)<\/title>/)
+  const noindex = /<meta name="robots" content="noindex"/.test(html)
+  if (!title) fail(`${name}: <title> missing`)
+  if (name === '404.html') {
+    if (!noindex) fail('404.html: must be noindex')
+    continue
+  }
+  if (!/<meta name="description" content="[^"]{50,}"/.test(html)) fail(`${name}: description missing or short`)
+  if (!/<div class="prerender">[\s\S]*<h1>/.test(html)) fail(`${name}: static content with <h1> missing`)
+  if (noindex) continue
+  const expected = SITE + name.replace(/index\.html$/, '')
+  if (attr(html, /<link rel="canonical" href="([^"]+)"/) !== expected) fail(`${name}: canonical is not ${expected}`)
+  for (const language of ['en', 'de', 'x-default']) {
+    if (!html.includes(`hreflang="${language}"`)) fail(`${name}: hreflang ${language} missing`)
+  }
+  const image = attr(html, /<meta property="og:image" content="([^"]+)"/)
+  if (!image?.startsWith(SITE) || !files.includes(join(dist, image.slice(SITE.length)))) {
+    fail(`${name}: og:image ${image ?? '(none)'} not in dist/`)
+  }
+  const jsonLd = attr(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/)
+  try {
+    if (!jsonLd || !JSON.parse(jsonLd)['@type']) fail(`${name}: JSON-LD missing`)
+  } catch {
+    fail(`${name}: JSON-LD is not valid JSON`)
+  }
+  if (titles.has(title)) fail(`${name}: same title as ${titles.get(title)}`)
+  titles.set(title, name)
+  indexable.add(expected)
+}
+const sitemapFile = join(dist, 'sitemap.xml')
+if (!files.includes(sitemapFile)) fail('sitemap.xml missing')
+else {
+  const listed = new Set([...text(sitemapFile).matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]))
+  for (const url of indexable) if (!listed.has(url)) fail(`sitemap.xml: ${url} missing`)
+  for (const url of listed) if (!indexable.has(url)) fail(`sitemap.xml: ${url} is not an indexable page`)
 }
 
 // --- shipped code -----------------------------------------------------------------------

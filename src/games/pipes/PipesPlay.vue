@@ -18,6 +18,7 @@ import { colors, getHint, isSolved } from './logic/rules'
 import { sourcesOf, type PipesPuzzle, type PipesSave } from './logic/types'
 import PipesBoard from './PipesBoard.vue'
 import PipesRules from './PipesRules.vue'
+import type { PlayRouteProps } from '../routes'
 
 const highlight = ref<number | null>(null)
 
@@ -25,10 +26,13 @@ function fresh(puzzle: PipesPuzzle): PipesSave {
   return { puzzle, turns: [...puzzle.scramble], locked: [], moves: 0, elapsedMs: 0, hintsUsed: 0, undo: [] }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'pipes',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: (difficulty) => fresh(generatePuzzle(difficulty, randomSeed())),
   onShow: () => (highlight.value = null),
@@ -229,6 +233,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('pipes.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'pipes', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
@@ -238,8 +245,6 @@ session.init()
   >
     <template #actions>
       <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('pipes.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

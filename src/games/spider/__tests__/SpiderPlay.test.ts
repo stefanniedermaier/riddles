@@ -7,6 +7,7 @@ import type { PileView } from '@/components/cards/types'
 import { settings as appSettings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import { spider } from '../game'
 import SpiderPlay from '../SpiderPlay.vue'
 
@@ -24,7 +25,7 @@ async function start() {
     ],
   })
   await router.push('/spider/play?new=suits1')
-  const wrapper = mount(SpiderPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(SpiderPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await vi.waitFor(() => expect(wrapper.find('.card-table').exists()).toBe(true))
   await flushPromises()
   return { wrapper, router, table: () => wrapper.findComponent(CardTable) }

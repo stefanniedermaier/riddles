@@ -16,6 +16,8 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}/riddles/`,
     trace: 'retain-on-failure',
     serviceWorkers: 'allow',
+    // Optional: another Chromium binary (e.g. a preinstalled one of a different version).
+    launchOptions: { executablePath: process.env.CHROMIUM_PATH },
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },

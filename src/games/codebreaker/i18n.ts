@@ -1,9 +1,11 @@
-import type { Messages } from '@/i18n/types'
-
 /** English texts of the Code Breaker game (namespace `codebreaker`). */
 export const en = {
   name: 'Code Breaker',
   tagline: 'Crack the hidden colour code – every guess tells you a little more.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Code breaking logic game: crack the hidden colour code – the pegs tell you how close you are. 4 to 6 pegs, 6 to 8 colours with shapes.',
+  },
   sizeLabel: '{positions} pegs · {colors} colours',
   variantLabel: '{difficulty} · {size}',
   rules: {
@@ -57,64 +59,5 @@ export const en = {
     checkGuessesDesc: 'Warns before you submit a guess that contradicts earlier clues.',
     showPossible: 'Show possible codes',
     showPossibleDesc: 'Shows how many codes still fit every clue.',
-  },
-}
-
-export const de: Messages<typeof en> = {
-  name: 'Code Breaker',
-  tagline: 'Knacke den versteckten Farbcode – jeder Versuch verrät ein bisschen mehr.',
-  sizeLabel: '{positions} Stecker · {colors} Farben',
-  variantLabel: '{difficulty} · {size}',
-  rules: {
-    title: 'So wird gespielt',
-    goal: 'Finde den versteckten Code aus farbigen Steckern mit den erlaubten Versuchen.',
-    feedback:
-      'Nach jedem Versuch bedeutet ein voller Punkt: richtige Farbe an der richtigen Stelle, ein Ring: richtige Farbe an der falschen Stelle.',
-    order: 'Die Punkte verraten nicht, zu welchem Stecker sie gehören.',
-    repeats: 'Bei Leicht kommt jede Farbe höchstens einmal vor, ab Mittel können sich Farben wiederholen.',
-  },
-  play: {
-    guessesLeft: 'Versuche',
-    possible: 'Möglich',
-    guess: 'Raten',
-    clear: 'Leeren',
-    restart: 'Neuer Code',
-    restartConfirm: 'Diesen Code aufgeben und einen neuen beginnen?',
-    toMenu: 'Code-Breaker-Menü',
-    rules: 'Regeln',
-    colors: 'Farben',
-    color: 'Farbe {n}',
-    secret: 'Versteckter Code',
-    hidden: 'verdeckt',
-    row: 'Versuch {n}',
-    slot: 'Stelle {n}',
-    emptySlot: 'leer',
-    feedback: '{exact} an der richtigen Stelle, {partial} an der falschen Stelle',
-    contradicts: 'Dieser Versuch widerspricht früheren Hinweisen.',
-    repeatsNotAllowed: 'Bei Leicht jede Farbe nur einmal.',
-    hintFilled: 'Der Versuch passt jetzt zu allen bisherigen Hinweisen.',
-  },
-  colorNames: {
-    c0: 'roter Kreis',
-    c1: 'blaues Quadrat',
-    c2: 'grünes Dreieck',
-    c3: 'gelbe Raute',
-    c4: 'oranger Stern',
-    c5: 'lila Plus',
-    c6: 'türkises Sechseck',
-    c7: 'rosa Herz',
-  },
-  result: {
-    solvedText: 'Du hast den Code geknackt.',
-    guesses: 'Versuche',
-    lostTitle: 'Keine Versuche mehr',
-    lostText: 'Der Code steht jetzt oben.',
-    newCode: 'Neuer Code',
-  },
-  settings: {
-    checkGuesses: 'Versuche prüfen',
-    checkGuessesDesc: 'Warnt vor dem Raten, wenn ein Versuch früheren Hinweisen widerspricht.',
-    showPossible: 'Mögliche Codes zeigen',
-    showPossibleDesc: 'Zeigt, wie viele Codes noch zu allen Hinweisen passen.',
   },
 }

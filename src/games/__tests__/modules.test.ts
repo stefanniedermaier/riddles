@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { t } from '@/core/i18n'
+import de from '@/i18n/locales/messages.de'
+import en from '@/i18n/locales/messages.en'
 import { settings } from '@/core/settings'
+import { gameSlug } from '../slugs'
 import { gameModules } from '../modules'
 import { gameRoutes, games } from '../registry'
 
@@ -12,11 +15,12 @@ describe('game modules', () => {
     for (const module of gameModules) expect(module.descriptor.id).toBe(module.id)
   })
 
-  it('only register routes under their own id', () => {
+  it('only register routes under their own slug (and the id it redirects from)', () => {
     for (const module of gameModules) {
       expect(module.routes.length).toBeGreaterThan(0)
+      const prefixes = [gameSlug(module.id), module.id]
       for (const route of module.routes) {
-        expect(route.path === `/${module.id}` || route.path.startsWith(`/${module.id}/`)).toBe(true)
+        expect(prefixes.some((p) => route.path === `/${p}` || route.path.startsWith(`/${p}/`))).toBe(true)
       }
     }
   })
@@ -27,9 +31,18 @@ describe('game modules', () => {
     for (const locale of ['en', 'de'] as const) {
       settings.value.locale = locale
       for (const module of gameModules) {
-        expect(t(`${module.id}.name`)).toBe(module.messages[locale].name)
+        expect(t(`${module.id}.name`)).toBe({ en, de }[locale][module.id].name)
       }
     }
     settings.value.locale = 'system'
+  })
+
+  it('each have their texts in the catalogues – and nothing else is there', () => {
+    const ids = gameModules.map((module) => module.id)
+    const shellKeys = (catalogue: object) => Object.keys(catalogue).filter((key) => !(ids as string[]).includes(key))
+    for (const catalogue of [en, de]) {
+      for (const id of ids) expect(catalogue[id]).toBeDefined()
+    }
+    expect(shellKeys(de).sort()).toEqual(shellKeys(en).sort())
   })
 })

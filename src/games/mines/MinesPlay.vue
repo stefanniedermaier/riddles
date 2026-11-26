@@ -34,6 +34,7 @@ import MinesBoard from './MinesBoard.vue'
 import MinesRules from './MinesRules.vue'
 import { minesPool } from './pool'
 import { minesSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 type Tool = 'reveal' | 'flag'
 
@@ -49,10 +50,13 @@ function freshAttempt(next: MinesPuzzle): MinesSave {
   return { puzzle: next, cells: initialCells(next), actions: 0, elapsedMs: 0, hintsUsed: 0, mistakes: 0 }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'mines',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty) => freshAttempt(await minesPool.take(difficulty)),
   onShow: (save, reason) => {
@@ -337,6 +341,11 @@ function goHome(): void {
   session.goHome()
 }
 
+function goToMenu(): void {
+  showHit.value = false
+  session.goToMenu()
+}
+
 session.init()
 </script>
 
@@ -458,6 +467,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="goToMenu"
+    :menu-label="t('mines.play.toMenu')"
+    :on-home="goHome"
     :open="showHit"
     :title="t('mines.result.hitTitle')"
     :subtitle="t('mines.result.hitText')"
@@ -468,11 +480,13 @@ session.init()
       <AppButton variant="primary" icon="undo" block @click="undoHit">{{ t('mines.result.undoMove') }}</AppButton>
       <AppButton block @click="tryAgain">{{ t('mines.result.tryAgain') }}</AppButton>
       <AppButton block @click="newPuzzle">{{ t('mines.result.newPuzzle') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('mines.play.toMenu')"
+    :on-home="goHome"
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'mines', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
@@ -482,8 +496,6 @@ session.init()
   >
     <template #actions>
       <AppButton variant="primary" block @click="newPuzzle">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('mines.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

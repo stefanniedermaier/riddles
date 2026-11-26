@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ITEM_KIND, type Special } from './logic/types'
-import { ensurePieceDefs } from './pieceDefs'
+import { DYNAMITE_STICKS, ROCKET_HULL, ensurePieceDefs } from './pieceDefs'
 
 /**
  * One game piece as inline SVG (viewBox 0–100): glossy fruit and garden motifs. Every kind
@@ -12,8 +12,12 @@ import { ensurePieceDefs } from './pieceDefs'
  * darker rim, a dark outline and a white gloss highlight – a "candy" look that stays crisp
  * at small sizes.
  *
- * Specials are drawn on top of the piece: a rocket (clears a row or column), a bomb
- * (clears the area around it) and a rainbow ball (prism, clears one kind).
+ * Specials keep their kind (they match with pieces of that kind), so they are drawn in the
+ * colour and texture of their fruit but in their own shape: a rocket (clears a row or
+ * column; it points the way it clears) and a bundle of dynamite (clears the area around
+ * it). Each kind keeps a mark of its own beside the colour – seeds, pores, the lemon tip,
+ * veins, petals, berries – so they still tell apart without colour vision. The rainbow ball
+ * (prism, clears one kind) has no kind.
  */
 defineProps<{ kind: number; special: Special }>()
 
@@ -54,6 +58,32 @@ const PORES: [number, number][] = [
   [30, 62],
   [48, 66],
 ]
+
+/** Points of a staggered grid (textures on rockets and dynamite). */
+function grid(x0: number, x1: number, y0: number, y1: number, step: number): [number, number][] {
+  const points: [number, number][] = []
+  let row = 0
+  for (let y = y0; y <= y1; y += step * 0.86, row++) {
+    for (let x = x0 + (row % 2 ? step / 2 : 0); x <= x1; x += step) points.push([x, y])
+  }
+  return points
+}
+
+/** Rocket textures (inside the hull, nose to the right). */
+const ROCKET_SEEDS = grid(24, 90, 38, 64, 11)
+const ROCKET_PORES = grid(24, 90, 37, 64, 8)
+const ROCKET_GRAPES: [number, number][] = [
+  [28, 41], [28, 59], [44, 41], [44, 59], [60, 41], [60, 59], [76, 50], [36, 50], [52, 50], [68, 50],
+]
+
+/** Dynamite textures (across the three sticks). */
+const STICK_COLUMNS = [27, 50, 73]
+const DYNAMITE_SEEDS = grid(18, 86, 38, 92, 9)
+const DYNAMITE_PORES = grid(16, 88, 34, 94, 7)
+const DYNAMITE_FLOWERS = STICK_COLUMNS.flatMap((x, i) => [48, 84].map((y) => [x, y - (i === 1 ? 4 : 0)]))
+const DYNAMITE_GRAPES = STICK_COLUMNS.flatMap((x, i) =>
+  [42, 54, 82, 94].map((y, j) => [x + (j % 2 ? -4 : 4), y - (i === 1 ? 4 : 0)]),
+)
 
 /** Rainbow ball wedges (prism). */
 const WEDGES = Array.from({ length: 6 }, (_, i) => {
@@ -106,9 +136,129 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
       </g>
     </template>
 
+    <!-- Rocket in the fruit's colour and texture: clears a row (line-h) or a column (line-v). -->
+    <template v-else-if="special === 'line-h' || special === 'line-v'">
+      <ellipse cx="50" cy="94" rx="25" ry="4.5" class="ground" />
+      <g class="rocket" :transform="special === 'line-v' ? 'rotate(-90 50 50)' : undefined">
+        <path d="M18 50Q4 40 -2 50Q4 60 18 50Z" class="rocket__flame" />
+        <path d="M18 50Q10 45 5 50Q10 55 18 50Z" class="rocket__flame-core" />
+        <!-- Fins: the strawberry's calyx, two leaves, two petals or plain fins. -->
+        <path
+          v-if="kind === 0"
+          d="M34 35L18 16L42 30L46 22L50 34Z M34 65L18 84L42 70L46 78L50 66Z"
+          class="calyx"
+        />
+        <path v-else-if="kind === 3" d="M30 35Q16 26 16 16Q34 18 44 34Z M30 65Q16 74 16 84Q34 82 44 66Z" class="leaf" />
+        <template v-else-if="kind === 4">
+          <ellipse cx="32" cy="24" rx="8" ry="13" transform="rotate(-35 32 24)" class="body body--4" />
+          <ellipse cx="32" cy="76" rx="8" ry="13" transform="rotate(35 32 76)" class="body body--4" />
+        </template>
+        <path v-else d="M30 36L18 18H36L46 36ZM30 64L18 82H36L46 64Z" :class="`body body--${kind} rocket__fin`" />
+
+        <path :d="ROCKET_HULL" :class="`body body--${kind}`" />
+        <g clip-path="url(#sp-clip-rocket)">
+          <template v-if="kind === 0">
+            <g v-for="([x, y], i) in ROCKET_SEEDS" :key="i">
+              <ellipse :cx="x" :cy="y + 0.8" rx="2.6" ry="3.4" class="seed__pit" />
+              <ellipse :cx="x" :cy="y" rx="1.6" ry="2.5" class="seed" />
+            </g>
+          </template>
+          <template v-else-if="kind === 1">
+            <circle v-for="([x, y], i) in ROCKET_PORES" :key="i" :cx="x" :cy="y" r="1.4" class="pore" />
+          </template>
+          <template v-else-if="kind === 3">
+            <path d="M14 50H96" class="midrib" />
+            <path d="M30 50L40 36M46 50L56 36M62 50L72 38M30 50L40 64M46 50L56 64M62 50L72 62" class="vein" />
+          </template>
+          <template v-else-if="kind === 5">
+            <circle v-for="([x, y], i) in ROCKET_GRAPES" :key="i" :cx="x" :cy="y" r="9.5" class="body body--5 berry" />
+          </template>
+          <ellipse cx="50" cy="39" rx="26" ry="3.6" class="gloss" />
+        </g>
+        <!-- The lemon's pointed tip at the nose. -->
+        <path v-if="kind === 2" d="M95 46Q103 50 95 54Z" class="body body--2" />
+        <!-- Porthole; the flower's is its golden core. -->
+        <template v-if="kind === 4">
+          <circle cx="66" cy="50" r="9" class="flower__core" />
+          <circle cx="64" cy="48" r="1.6" class="flower__dot" />
+          <circle cx="68.5" cy="51" r="1.6" class="flower__dot" />
+        </template>
+        <template v-else>
+          <circle cx="66" cy="50" r="8" class="rocket__window" />
+          <circle cx="64" cy="48" r="2.2" class="sparkle" />
+        </template>
+      </g>
+    </template>
+
+    <!-- Dynamite in the fruit's colour and texture: clears the area around it. -->
+    <template v-else-if="special === 'burst'">
+      <ellipse cx="50" cy="95" rx="30" ry="4.5" class="ground" />
+      <g class="dynamite">
+        <g clip-path="url(#sp-clip-dynamite)">
+          <rect x="14" y="28" width="72" height="66" :class="`body--${kind} dynamite__fill`" />
+          <template v-if="kind === 0">
+            <g v-for="([x, y], i) in DYNAMITE_SEEDS" :key="i">
+              <ellipse :cx="x" :cy="y + 0.7" rx="2.2" ry="3" class="seed__pit" />
+              <ellipse :cx="x" :cy="y" rx="1.3" ry="2.1" class="seed" />
+            </g>
+          </template>
+          <template v-else-if="kind === 1">
+            <circle v-for="([x, y], i) in DYNAMITE_PORES" :key="i" :cx="x" :cy="y" r="1.3" class="pore" />
+          </template>
+          <template v-else-if="kind === 2">
+            <ellipse v-for="x in STICK_COLUMNS" :key="x" :cx="x" cy="94" rx="4" ry="3" class="lemon-tip" />
+          </template>
+          <template v-else-if="kind === 3">
+            <g v-for="x in STICK_COLUMNS" :key="x">
+              <path :d="`M${x} 30V96`" class="midrib midrib--thin" />
+              <path :d="`M${x} 46l-7-7M${x} 46l7-7M${x} 84l-7-7M${x} 84l7-7`" class="vein" />
+            </g>
+          </template>
+          <template v-else-if="kind === 4">
+            <g v-for="([x, y], i) in DYNAMITE_FLOWERS" :key="i" :transform="`translate(${x} ${y})`">
+              <ellipse
+                v-for="a in PETALS"
+                :key="a"
+                cy="-4.5"
+                rx="3"
+                ry="4"
+                :transform="`rotate(${a})`"
+                class="mini-petal"
+              />
+              <circle r="2.6" class="mini-core" />
+            </g>
+          </template>
+          <template v-else>
+            <circle v-for="([x, y], i) in DYNAMITE_GRAPES" :key="i" :cx="x" :cy="y" r="7" class="body body--5 berry" />
+          </template>
+        </g>
+        <template v-for="stick in DYNAMITE_STICKS" :key="stick.x">
+          <rect
+            :x="stick.x"
+            :y="stick.y"
+            width="22"
+            :height="stick.h"
+            rx="5"
+            :class="`body body--${kind} dynamite__stick`"
+          />
+          <ellipse :cx="stick.x + 11" :cy="stick.y + 3.5" rx="8" ry="2.6" class="dynamite__end" />
+          <path :d="`M${stick.x + 5} ${stick.y + 9}V${stick.y + stick.h - 6}`" class="dynamite__shine" />
+        </template>
+        <!-- Black tape around the bundle. -->
+        <rect x="12" y="62" width="76" height="11" rx="2" class="dynamite__tape" />
+        <path d="M12 65H88" class="dynamite__tape-shine" />
+        <!-- Fuse and flame stay inside the cell (the board clips at its edge). -->
+        <path d="M50 30Q49 17 58 13Q64 10 66 7" class="dynamite__fuse" />
+        <g class="dynamite__flame">
+          <path d="M66 -5Q75 3 70 10Q66 13 62 10Q57 3 66 -5Z" class="dynamite__flame-outer" />
+          <path d="M66 2Q70 6 68 9Q66 11 64 9Q62 6 66 2Z" class="dynamite__flame-core" />
+        </g>
+      </g>
+    </template>
+
     <template v-else>
       <ellipse cx="50" cy="94" rx="25" ry="4.5" class="ground" />
-      <g class="fruit" :class="{ 'fruit--under': special !== 'none' }">
+      <g class="fruit">
         <!-- 0 Strawberry -->
         <template v-if="kind === 0">
           <path
@@ -192,34 +342,6 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
           </template>
         </template>
       </g>
-
-      <!-- Rocket: clears a row (line-h) or a column (line-v). -->
-      <g
-        v-if="special === 'line-h' || special === 'line-v'"
-        class="rocket"
-        :transform="special === 'line-v' ? 'rotate(-90 50 50)' : undefined"
-      >
-        <path d="M24 50Q8 40 2 50Q8 60 24 50Z" class="rocket__flame" />
-        <path d="M24 50Q15 45 10 50Q15 55 24 50Z" class="rocket__flame-core" />
-        <path d="M34 38L23 23H38L47 38ZM34 62L23 77H38L47 62Z" class="rocket__fin" />
-        <path d="M24 38H66Q84 38 95 50Q84 62 66 62H24Z" class="rocket__body" />
-        <path d="M78 40.5Q89 44 95 50Q89 56 78 59.5Z" class="rocket__nose" />
-        <circle cx="60" cy="50" r="7" class="rocket__window" />
-        <circle cx="58" cy="48" r="2.2" class="sparkle" />
-        <path d="M30 42.5H62" class="rocket__shine" />
-      </g>
-
-      <!-- Bomb: clears the area around it. -->
-      <g v-else-if="special === 'burst'" class="bomb">
-        <circle cx="54" cy="60" r="27" class="bomb__body" />
-        <rect x="61" y="27" width="15" height="11" rx="2.5" transform="rotate(35 68.5 32.5)" class="bomb__cap" />
-        <path d="M73 29Q78 17 88 15" class="bomb__fuse" />
-        <path
-          d="M89 6l2.4 6.2 6.6.4-5.1 4.2 1.7 6.4L89 19.6l-5.6 3.6 1.7-6.4L80 12.6l6.6-.4z"
-          class="bomb__spark"
-        />
-        <ellipse cx="42" cy="48" rx="8" ry="12" transform="rotate(40 42 48)" class="gloss" />
-      </g>
     </template>
   </svg>
 </template>
@@ -253,12 +375,6 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
 /* A soft contact shadow under every piece (cheaper than a filter on 64 pieces). */
 .ground {
   fill: rgb(30 20 10 / 30%);
-}
-
-/* Under a rocket or bomb the fruit stays recognisable but steps back a little. */
-.fruit--under {
-  transform: scale(0.88);
-  opacity: 0.9;
 }
 
 .gloss {
@@ -399,77 +515,107 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
   }
 }
 
-/* --- Rocket -------------------------------------------------------------------- */
+/* --- Rocket (fruit colour and texture from .body--k) ------------------------------- */
 
-.rocket__body {
-  fill: url(#sp-metal);
-  stroke: #232b40;
-  stroke-width: 3.2;
-  stroke-linejoin: round;
+.berry {
+  stroke-width: 2;
 }
 
-.rocket__nose,
 .rocket__fin {
-  fill: url(#sp-rocket-red);
   stroke: #232b40;
   stroke-width: 3;
-  stroke-linejoin: round;
 }
 
 .rocket__window {
   fill: #59c8ff;
   stroke: #232b40;
-  stroke-width: 3.2;
-}
-
-.rocket__shine {
-  fill: none;
-  stroke: #fff;
   stroke-width: 3;
-  stroke-linecap: round;
-  opacity: 0.9;
 }
 
 .rocket__flame {
   fill: #ff7a00;
-  transform-origin: 24px 50px;
+  transform-origin: 18px 50px;
   animation: flame 0.35s ease-in-out infinite alternate;
 }
 
 .rocket__flame-core {
   fill: #ffe14d;
-  transform-origin: 24px 50px;
+  transform-origin: 18px 50px;
   animation: flame 0.25s ease-in-out infinite alternate-reverse;
 }
 
-/* --- Bomb ---------------------------------------------------------------------- */
+/* --- Dynamite (fruit colour and texture from .body--k) ----------------------------- */
 
-.bomb__body {
-  fill: url(#sp-bomb);
-  stroke: #07080c;
-  stroke-width: 3;
+.dynamite__fill {
+  stroke: none;
 }
 
-.bomb__cap {
-  fill: #6b7284;
-  stroke: #07080c;
-  stroke-width: 2.5;
-}
-
-.bomb__fuse {
+.dynamite__stick {
   fill: none;
-  stroke: #d9b07a;
-  stroke-width: 4;
+  stroke-width: 2.8;
+}
+
+.dynamite__end {
+  fill: rgb(255 255 255 / 45%);
+}
+
+.dynamite__shine {
+  stroke: rgb(255 255 255 / 60%);
+  stroke-width: 3;
   stroke-linecap: round;
 }
 
-.bomb__spark {
-  fill: #ffd21a;
-  stroke: #ff6a00;
+.dynamite__tape {
+  fill: #16181f;
+  stroke: #000;
+  stroke-width: 2.4;
+}
+
+.dynamite__tape-shine {
+  stroke: rgb(255 255 255 / 30%);
   stroke-width: 2;
-  stroke-linejoin: round;
-  transform-origin: 89px 15px;
-  animation: spark 0.45s ease-in-out infinite alternate;
+}
+
+.dynamite__fuse {
+  fill: none;
+  stroke: #c9955c;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.dynamite__flame {
+  transform-origin: 66px 10px;
+  animation: flicker 0.4s ease-in-out infinite alternate;
+}
+
+.dynamite__flame-outer {
+  fill: #ff7a00;
+  stroke: #d94a00;
+  stroke-width: 1.5;
+}
+
+.dynamite__flame-core {
+  fill: #ffe14d;
+}
+
+.midrib--thin {
+  stroke-width: 2.6;
+}
+
+.lemon-tip {
+  fill: rgb(160 110 0 / 35%);
+}
+
+.mini-petal {
+  fill: #c4dcff;
+  stroke: #0f378f;
+  stroke-width: 1;
+}
+
+.mini-core {
+  fill: #ffc21a;
+  stroke: #b35f00;
+  stroke-width: 1;
 }
 
 /* --- Prism (rainbow ball) ------------------------------------------------------- */
@@ -512,12 +658,12 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
   }
 }
 
-@keyframes spark {
+@keyframes flicker {
   from {
-    transform: scale(0.8) rotate(0deg);
+    transform: scale(0.85) rotate(-6deg);
   }
   to {
-    transform: scale(1.2) rotate(25deg);
+    transform: scale(1.15) rotate(6deg);
   }
 }
 
@@ -530,7 +676,7 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
 :root[data-still] .item__arrow,
 :root[data-still] .rocket__flame,
 :root[data-still] .rocket__flame-core,
-:root[data-still] .bomb__spark,
+:root[data-still] .dynamite__flame,
 :root[data-still] .prism__wheel {
   animation-play-state: paused;
 }
@@ -538,7 +684,7 @@ const WEDGES = Array.from({ length: 6 }, (_, i) => {
 :root[data-motion='reduced'] .item__arrow,
 :root[data-motion='reduced'] .rocket__flame,
 :root[data-motion='reduced'] .rocket__flame-core,
-:root[data-motion='reduced'] .bomb__spark,
+:root[data-motion='reduced'] .dynamite__flame,
 :root[data-motion='reduced'] .prism__wheel {
   animation: none;
 }

@@ -7,14 +7,20 @@
     "pwa-assets.config.*",
     "playwright.config.*",
     "knip.config.*",
-    "e2e/**/*"
+    "e2e/**/*",
+    "scripts/**/*.ts"
   ],
   "compilerOptions": {
     "module": "preserve",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "noEmit": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo"
-  }
+  },
+  "exclude": [
+    "scripts/og-images/**"
+  ]
 }

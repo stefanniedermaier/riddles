@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import PipesBoard from '../PipesBoard.vue'
 import PipesPlay from '../PipesPlay.vue'
 import { SAVE_KEY } from '../index'
@@ -28,7 +29,7 @@ const saved = () => load(SAVE_KEY, null, (raw) => (isPipesSave(raw) ? raw : unde
 async function start() {
   const router = makeRouter()
   await router.push('/pipes/play?new=easy')
-  const wrapper = mount(PipesPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(PipesPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await vi.waitFor(() => expect(wrapper.find('.pipes-board').exists()).toBe(true))
   await flushPromises()
   const emit = async (event: 'rotate' | 'lock', cell: number) => {
@@ -96,7 +97,7 @@ describe('PipesPlay', () => {
   it('redirects to the lobby without a saved game', async () => {
     const router = makeRouter()
     await router.push('/pipes/play')
-    mount(PipesPlay, { global: { plugins: [router] } })
+    mount(PipesPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('pipes')
   })

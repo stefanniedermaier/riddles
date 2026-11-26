@@ -5,6 +5,11 @@
  * element follows a piece through swaps and falls and CSS transitions do the animation.
  * The list is kept sorted by id: Vue then never has to move DOM nodes (which would cancel
  * running transitions) – it only appends new and removes cleared pieces.
+ *
+ * With reduced motion the same steps are shown, only without movement: pieces jump to
+ * their new cells, matches fade, and a short pause follows every step. Showing only the
+ * final board would make one swap look as if half the board changed by itself (cascades,
+ * refills and specials all at once) – confusing exactly for the players who turn motion off.
  */
 import { ref, shallowRef, type Ref } from 'vue'
 
@@ -55,6 +60,8 @@ const FALL_ROW_MS = 55
 const SHUFFLE_MS = 380
 /** Lifetime of a board effect. */
 const EFFECT_MS = 650
+/** Pauses between the steps with reduced motion (no movement, but the order stays visible). */
+const STILL_MS = { swap: 260, clear: 320, gap: 160, fall: 260, shuffle: 450 } as const
 /** At most this many juice splashes per clear (big combos would flood the DOM). */
 const MAX_POPS = 24
 
@@ -127,13 +134,13 @@ export function useBoardAnimator(motion: Ref<boolean>) {
     return pieces.value.find((p) => p.row === row && p.col === col && !p.clearing)
   }
 
-  function swapCells(a: number, b: number): void {
+  function swapCells(a: number, b: number, durationMs: number): void {
     const pa = pieceAt(a)
     const pb = pieceAt(b)
     if (!pa || !pb) return
     pieces.value = pieces.value.map((p) => {
-      if (p.id === pa.id) return { ...p, row: pb.row, col: pb.col, durationMs: SWAP_MS }
-      if (p.id === pb.id) return { ...p, row: pa.row, col: pa.col, durationMs: SWAP_MS }
+      if (p.id === pa.id) return { ...p, row: pb.row, col: pb.col, durationMs }
+      if (p.id === pb.id) return { ...p, row: pa.row, col: pa.col, durationMs }
       return p
     })
   }
@@ -150,14 +157,16 @@ export function useBoardAnimator(motion: Ref<boolean>) {
 
   let stopped = false
 
-  async function playPhase(phase: Phase, callbacks: PlayCallbacks): Promise<void> {
+  /** Plays one phase; `moving` = with motion (transitions), otherwise jumps and pauses. */
+  async function playPhase(phase: Phase, callbacks: PlayCallbacks, moving: boolean): Promise<void> {
     switch (phase.type) {
       case 'swap': {
-        swapCells(phase.a, phase.b)
-        await wait(SWAP_MS)
+        const duration = moving ? SWAP_MS : 0
+        swapCells(phase.a, phase.b, duration)
+        await wait(moving ? SWAP_MS : STILL_MS.swap)
         if (!phase.valid) {
-          swapCells(phase.a, phase.b)
-          await wait(SWAP_MS)
+          swapCells(phase.a, phase.b, duration)
+          await wait(moving ? SWAP_MS : STILL_MS.swap)
         }
         return
       }
@@ -176,14 +185,15 @@ export function useBoardAnimator(motion: Ref<boolean>) {
           const piece = pieceAt(cell)
           if (piece) pops.push({ type: 'pop', row: rowOf(cell), col: colOf(cell), kind: piece.kind })
         }
-        addEffects([...fired, ...pops])
+        if (moving) addEffects([...fired, ...pops])
         pieces.value = pieces.value.map((p) =>
           clearing.has(p.id) ? { ...p, clearing: true, firing: firing.has(p.id) } : p,
         )
         callbacks.onClear?.(phase.score, phase.cells)
         if (phase.field) field.value = phase.field
-        await wait(CLEAR_MS)
+        await wait(moving ? CLEAR_MS : STILL_MS.clear)
         pieces.value = display(phase.board)
+        if (!moving) await wait(STILL_MS.gap)
         return
       }
       case 'collect': {
@@ -191,11 +201,18 @@ export function useBoardAnimator(motion: Ref<boolean>) {
         pieces.value = pieces.value.map((p) => (collected.has(p.id) ? { ...p, clearing: true } : p))
         callbacks.onCollect?.(phase.cells.length)
         field.value = phase.field
-        await wait(CLEAR_MS)
+        await wait(moving ? CLEAR_MS : STILL_MS.clear)
         pieces.value = display(phase.board)
+        if (!moving) await wait(STILL_MS.gap)
         return
       }
       case 'fall': {
+        if (!moving) {
+          // Everything (refills included) jumps into place at once.
+          pieces.value = display(phase.board)
+          await wait(STILL_MS.fall)
+          return
+        }
         const durations = new Map<number, number>()
         for (const move of phase.moves) {
           durations.set(move.id, FALL_BASE_MS + (rowOf(move.to) - rowOf(move.from)) * FALL_ROW_MS)
@@ -232,16 +249,16 @@ export function useBoardAnimator(motion: Ref<boolean>) {
       case 'shuffle': {
         callbacks.onShuffle?.()
         if (phase.field) field.value = phase.field
-        pieces.value = display(phase.board, () => SHUFFLE_MS)
-        await wait(SHUFFLE_MS)
+        pieces.value = display(phase.board, () => (moving ? SHUFFLE_MS : 0))
+        await wait(moving ? SHUFFLE_MS : STILL_MS.shuffle)
         return
       }
     }
   }
 
   /**
-   * Animates the phases of one move and ends with `finalBoard` on screen.
-   * With reduced motion the result is shown immediately.
+   * Shows the phases of one move step by step and ends with `finalBoard` on screen (with
+   * reduced motion: without movement, see above).
    */
   async function play(
     phases: Phase[],
@@ -251,18 +268,10 @@ export function useBoardAnimator(motion: Ref<boolean>) {
   ) {
     animating.value = true
     try {
-      if (motion.value) {
-        for (const phase of phases) {
-          // Left the game: skip the rest of the show (and its callbacks: points, toasts).
-          if (stopped) break
-          await playPhase(phase, callbacks)
-        }
-      } else {
-        for (const phase of phases) {
-          if (phase.type === 'clear') callbacks.onClear?.(phase.score, phase.cells)
-          if (phase.type === 'collect') callbacks.onCollect?.(phase.cells.length)
-          if (phase.type === 'shuffle') callbacks.onShuffle?.()
-        }
+      for (const phase of phases) {
+        // Left the game: skip the rest of the show (and its callbacks: points, toasts).
+        if (stopped) break
+        await playPhase(phase, callbacks, motion.value)
       }
     } finally {
       pieces.value = display(finalBoard)

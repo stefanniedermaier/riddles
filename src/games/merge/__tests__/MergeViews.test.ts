@@ -142,8 +142,9 @@ describe('Merge views', () => {
     await press('ArrowRight')
     const text = document.body.textContent ?? ''
     expect(text).toContain('No more moves')
-    expect(text).toContain('Merge menu')
-    expect(text).toContain('Home')
+    // Menu and home are icon buttons, named by their label.
+    expect(document.body.querySelector('button[aria-label="Merge menu"]')).not.toBeNull()
+    expect(document.body.querySelector('button[aria-label="Home"]')).not.toBeNull()
     expect(loadRun('small')).toBeNull()
     expect(getVariantStats('merge', 'small').bestScore).toBe(500)
     expect(records.value.small).toBe(64)
@@ -171,6 +172,17 @@ describe('Merge views', () => {
     await swipe(10, 5) // too short
     await swipe(-40, 20)
     expect(board.emitted('move')).toEqual([['right'], ['up'], ['left']])
+    board.unmount()
+  })
+
+  it('board ignores a two-finger gesture (pinch to zoom)', async () => {
+    const board = mount(MergeBoard, { props: { size: 4, tiles: [] } })
+    const el = board.find('.merge-board')
+    await el.trigger('pointerdown', { pointerId: 1, isPrimary: true, clientX: 100, clientY: 100, button: 0 })
+    await el.trigger('pointerdown', { pointerId: 2, isPrimary: false, clientX: 200, clientY: 200, button: 0 })
+    window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, isPrimary: true, clientX: 40, clientY: 40 }))
+    window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2, isPrimary: false, clientX: 260, clientY: 260 }))
+    expect(board.emitted('move')).toBeUndefined()
     board.unmount()
   })
 })

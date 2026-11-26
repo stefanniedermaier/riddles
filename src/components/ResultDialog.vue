@@ -14,14 +14,16 @@ import GameArt from './GameArt.vue'
 import type { IconName } from './icons'
 
 /**
- * Generic "solved / game over" dialog. Pass the result rows and put buttons into the
- * `actions` slot.
+ * Generic "solved / game over" dialog. Pass the result rows and put the game's own buttons
+ * (new game, try again …) into the `actions` slot. "Game menu" and "Home" are icon buttons
+ * of the dialog itself (`@menu`, `@home`), side by side in the same look in every game.
  *
  * A win is celebrated: confetti, a golden icon on rotating rays, stars that pop in one by
  * one and rows that slide in. By default every dialog with the trophy icon celebrates;
  * pass `celebrate` to decide explicitly (e.g. a "game over" only with a new best).
  *
- * With `share`, a "Share result" button sends a challenge link (game lobby + difficulty +
+ * With `share`, a share button in the top right corner – also on a "game over" without celebration (score
+ * games like Blocks or Merge simply end with a score worth sharing) – sends a challenge link (game lobby + difficulty +
  * result) to the share sheet, or copies it. An image of the result (trophy, game logo,
  * difficulty, result, "personal best" badge) is prepared when the dialog opens and shared
  * along where the device can share files; it is not shown in the dialog (no scrolling).
@@ -42,6 +44,12 @@ const props = withDefaults(
     celebrate?: boolean
     /** Offer to share the result as a challenge link. */
     share?: ResultShare
+    /** Back to the game's lobby; shows the menu button (icon) when set. */
+    onMenu?: () => void
+    /** Accessible name of the menu button, e.g. "Stars menu". */
+    menuLabel?: string
+    /** Back to the home screen; shows the home button (icon) when set. */
+    onHome?: () => void
   }>(),
   {
     subtitle: undefined,
@@ -50,6 +58,9 @@ const props = withDefaults(
     icon: 'trophy',
     celebrate: undefined,
     share: undefined,
+    onMenu: undefined,
+    menuLabel: undefined,
+    onHome: undefined,
   },
 )
 
@@ -133,7 +144,7 @@ async function prepareImage(): Promise<void> {
 }
 
 watch(
-  () => (props.open && festive.value && shareInfo.value?.ready ? shareInfo.value.text : null),
+  () => (props.open && shareInfo.value?.ready ? shareInfo.value.text : null),
   (key) => {
     // The image is a bonus: if drawing fails, sharing still works with text and link.
     if (key) prepareImage().catch(() => dropImage())
@@ -167,6 +178,14 @@ async function shareResult(): Promise<void> {
 <template>
   <AppDialog :open="open" :label="title" :dismissible="false" @close="emit('close')">
     <div class="result" :class="festive ? 'result--festive' : 'result--gloomy'">
+      <AppButton
+        v-if="share"
+        class="result__share"
+        variant="ghost"
+        :icon="shareIcon"
+        :label="t('share.result')"
+        @click="shareResult"
+      />
       <div class="result__icon-wrap" aria-hidden="true">
         <span v-if="festive" class="result__rays" />
         <svg v-else class="result__cloud" viewBox="0 0 80 46">
@@ -204,7 +223,7 @@ async function shareResult(): Promise<void> {
           </dd>
         </div>
       </dl>
-      <template v-if="share && festive">
+      <template v-if="share">
         <!-- Source of the game logo for the image (drawn from the rendered SVG). -->
         <div ref="artSource" class="result__art-source theme-light" aria-hidden="true">
           <GameArt :game="share.game" />
@@ -215,9 +234,10 @@ async function shareResult(): Promise<void> {
       <!-- Main action across the full width, the others side by side: no scrolling on phones. -->
       <div class="result__actions">
         <slot name="actions" />
-        <AppButton v-if="share && festive" class="result__share" :icon="shareIcon" block @click="shareResult">
-          {{ t('share.result') }}
-        </AppButton>
+        <div v-if="onMenu || onHome" class="result__nav">
+          <AppButton v-if="onMenu" icon="grid" :label="menuLabel ?? t('common.menu')" block @click="onMenu" />
+          <AppButton v-if="onHome" icon="home" :label="t('common.home')" block @click="onHome" />
+        </div>
       </div>
     </template>
   </AppDialog>
@@ -226,6 +246,7 @@ async function shareResult(): Promise<void> {
 
 <style scoped>
 .result {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -325,6 +346,24 @@ async function shareResult(): Promise<void> {
 .result__actions > :deep(:first-child),
 .result__actions > :deep(:last-child:nth-child(even)) {
   grid-column: 1 / -1;
+}
+
+/* Menu and home: icon buttons side by side, below the game's own actions. */
+.result__actions > .result__nav {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: var(--space-2);
+}
+
+/* Share: an icon button in the top right corner of the dialog. */
+.result__share {
+  position: absolute;
+  z-index: 1;
+  /* Into the corner of the panel (it has padding all around); the tap area stays 44 px. */
+  top: calc(-1 * var(--space-4));
+  right: calc(-1 * var(--space-5));
+  padding: var(--space-3);
+  color: var(--color-accent);
 }
 
 .result__value--highlight {

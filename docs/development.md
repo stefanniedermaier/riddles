@@ -28,9 +28,10 @@ The dev server listens on all interfaces (`--host`), so you can open
 | `npm run test:e2e`   | Playwright E2E + axe accessibility tests against `dist/` (run `npm run build-only` and `npx playwright install chromium` first) |
 | `npm run lint`       | ESLint with type information (`npm run lint:fix` to fix)  |
 | `npm run type-check` | `vue-tsc --build` for app, tests and config files         |
-| `npm run build`      | Type-check + production build to `dist/`                  |
+| `npm run build`      | Type-check + production build to `dist/`, including the prerendered search engine pages and the sitemap |
 | `npm run preview`    | Serve `dist/` (with service worker)                       |
 | `npm run icons`      | Regenerate icons from `public/logo.svg`                   |
+| `npm run og-images`  | Render the link preview images to `public/og/` (Playwright; `CHROMIUM_PATH` picks another Chromium) |
 | `npm run check:deps` | Lockfile sources, integrity hashes, runtime licenses      |
 | `npm run audit:ci`   | Registry signatures + vulnerability audit (as in CI)      |
 | `npm run knip`       | Unused files, dependencies and exports (fails CI)         |
@@ -78,20 +79,24 @@ The dev server listens on all interfaces (`--host`), so you can open
 ## Translations
 
 1. Add the English text to `src/i18n/en.ts` (shell) or `src/games/<id>/i18n.ts` (game).
-2. Add the German text at the same path in `de` – type-checking fails until you do.
+2. Add the German text at the same path in `src/i18n/de.ts` or `src/games/<id>/i18n.de.ts` –
+   type-checking fails until you do.
 3. Use it with `t('path.to.key')`; placeholders use `{name}` and `t(key, { name })`.
 
-To add a language, add a new message object typed with `Messages<…>` in each i18n file,
-add it to `GameModule.messages` (`src/games/module.ts`), `src/i18n/index.ts` and `core/i18n.ts` (`Locale`, `detectLocale`), and add
-an option in the settings view.
+To add a language, add an `i18n.<lang>.ts` typed with `Messages<…>` next to each game's and
+the shell's English texts, collect them in `src/i18n/locales/messages.<lang>.ts`, add its
+loader to `catalogueLoaders` (`src/i18n/index.ts`), extend `Locale` and `detectLocale`
+(`core/i18n.ts`), and add an option in the settings view.
 
 ## Adding a game
 
 1. Create `src/games/<id>/` with `index.ts` (descriptor), `routes.ts` (usually
    `standardRoutes('<id>', () => import('./<Id>Lobby.vue'), () => import('./<Id>Play.vue'))`),
-   `i18n.ts` and `module.ts` (`export default defineGame({ id: '<id>', descriptor, routes, messages })`).
+   `i18n.ts` / `i18n.de.ts` (texts) and `module.ts`
+   (`export default defineGame({ id: '<id>', descriptor, routes })`).
 2. Add the module to `gameModules` in `src/games/modules.ts` – this registers the id
-   (`GameId`), the routes, the statistics/settings entries and the texts.
+   (`GameId`), the routes and the statistics/settings entries. Add its texts to
+   `src/i18n/locales/messages.en.ts` and `messages.de.ts` (a test checks both).
 3. Add an accent colour `--game-<id>` in `tokens.css`, a background motif in
    `components/GameBackdrop.vue` and a logo motif in `src/games/<id>/Logo.vue` (found by
    file name, drawn into `GameArt`'s frame; prop `ids` for the shared gradients) – see the

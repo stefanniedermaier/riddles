@@ -6,6 +6,74 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.14.0] – 2026-11-26
+
+Snake as the 17th game, real addresses and German pages for search engines and link
+previews, a faster start and fixes for players with zoom and reduced motion.
+
+### Search engines and link previews (plan 21)
+
+- **Real addresses:** every game has its own page – `/riddles/sudoku/` instead of
+  `#/sudoku` – and every page exists in German too (`/riddles/de/…`). Old links (`#/…`,
+  shared challenges, bookmarks, installed apps) keep working and are rewritten on start.
+- **Stars** lives at `/stars/`; `/crowns` redirects.
+- Every page is prerendered with its own title, description, canonical address, language
+  alternates, link preview (image and text) and structured data, plus a short readable
+  description and the rules – visible to search engines and link previews without
+  JavaScript. A sitemap lists all pages.
+- Shared challenge links point to the page in the sharer's language and show a preview
+  with the game's logo.
+- New description of the app (17 games instead of "Sudoku, Crowns and Shapes").
+- Google Search Console verification.
+
+### Added
+
+- **Snake** – the 17th game and the first in real time: steer the snake, eat and grow
+  without biting yourself. Three modes (Classic, Open with walls that lead to the other
+  side, Maze with stones), three speeds that pay more points the faster they are, and a
+  *Calm* speed that moves one step per input – no time pressure, with screen reader
+  announcements. Swipe, direction buttons (on by default on touch screens) or keys; the game
+  pauses by itself and never moves on without you. Reduced motion moves the snake cell by
+  cell.
+- Community files: [Code of Conduct](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1),
+  [Contributing guide](CONTRIBUTING.md), [Accessibility statement](ACCESSIBILITY.md) and an
+  issue template for accessibility barriers; the bug report lists every game.
+
+### Changed
+
+- Faster start: the app loads only the texts of the language it shows (the other language
+  follows when you switch, also offline), and the start page's code is one file instead of
+  thirty small ones – 80 instead of 97 kB to load on the first visit.
+- Shapes: rockets and the bomb no longer cover their fruit. A rocket is drawn in the colour
+  and texture of its fruit (seeds, pores, the lemon tip, veins, petals, berries) and points
+  the way it clears; the bomb is now a bundle of dynamite in the fruit's look, with black
+  tape, fuse and flame. The kind to match stays visible at a glance, also without colour
+  vision.
+- Result dialog: "Share" is an icon button in the top right corner; "Game menu" and "Home"
+  are icon buttons side by side in the same look in every game (named for screen readers),
+  below the game's own actions. The menu is offered in every result, also after a lost
+  round and after a mine hit.
+- The header at the top is fully opaque; nothing scrolling underneath shows through.
+- Installed app on Android: the manifest has dark system-bar colours (`color_scheme_dark`), so
+  the navigation bar can turn dark while the phone is in dark mode – where the browser
+  supports it, after Chrome updates the installed app (or after reinstalling it).
+- Play views get their route values (`?new=`, variant / mode) as props instead of reading the
+  route themselves.
+
+### Fixed
+
+- Shapes with reduced motion (e.g. Android's "Remove animations"): a move is shown step by
+  step – the swap, the matched pieces fading, the refill – instead of jumping straight to
+  the final board, which made one swap look as if half the board changed by itself.
+- All games: a second finger on the board (e.g. a pinch to zoom in) no longer plays – no
+  swap in Shapes, no move in Merge, no tap or long press in Mines, Pipes and Arrows, no
+  stroke in Links, Nonogram and Stars, no drag in Blocks and the card games. Two-finger zoom
+  now works on the boards too.
+- "Share result" after a Blocks or Merge game (and Shapes Zen / Time) also without a new
+  personal best: these games simply end with a score.
+- Statistics no longer scroll sideways on narrow phones (e.g. Galaxy S21 FE); a wide table
+  scrolls on its own.
+
 ## [0.13.2] – 2026-11-25
 
 Hotfix release with the app-wide QA and cleanup (plan 20): accessibility, lifecycle fixes,

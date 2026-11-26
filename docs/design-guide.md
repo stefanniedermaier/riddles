@@ -98,13 +98,13 @@ Every lobby uses the same building blocks, in this order:
 
 1. `GameBackdrop` (via `LobbyHero`) – page background in the game colour with a motif:
    grid (Sudoku, Nonogram, Blocks, Merge), dots (Stars, Links, Code Breaker), stripes
-   (Arrows), meadow (Mines), pipe runs (Pipes), bubbles (Water Sort), green felt (card
+   (Arrows), scales (Snake), meadow (Mines), pipe runs (Pipes), bubbles (Water Sort), green felt (card
    games). Shapes uses its garden scene instead (`tint=false` + `GardenBackdrop`).
 2. `LobbyHero` – banner in the game colour: logo on a white tile, name, tagline, a few
    faded copies of the logo. **No animation.**
 3. `RulesCard` – "How to play" expander (above the menu for new players, below it later).
 4. `ContinueButton` – the one continue bar for all games: game colour, details, play
-   triangle. Games with one save per mode (Shapes, Merge) show "continue" in the mode card
+   triangle. Games with one save per mode (Shapes, Merge, Snake) show "continue" in the mode card
    instead.
 5. `ChoiceList` – modes/difficulties as square cards with a coloured left edge and a plain
    play triangle in the game colour (no circle).
@@ -205,7 +205,7 @@ Line icons in `src/components/icons.ts`: 24 × 24, 2 px stroke, round caps and j
   golden icon on rotating rays, stars and rows pop in one after another.
 - **Game over** (otherwise): grey-blue drizzle over the screen, a small rain cloud over a
   grey icon that drops in, the title sinks and shakes.
-- "Game over" in endless games (Blocks, Merge, Shapes Zen/Time) celebrates only a new best.
+- "Game over" in endless games (Blocks, Merge, Snake, Shapes Zen/Time) celebrates only a new best.
 
 ### Particles
 

@@ -35,6 +35,7 @@ import NonogramBoard from './NonogramBoard.vue'
 import NonogramRules from './NonogramRules.vue'
 import { nonogramPool } from './pool'
 import { nonogramSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 const tool = ref<Tool>('fill')
 const toolOptions = computed(() => [
@@ -45,10 +46,13 @@ const stroke = shallowRef<Stroke | null>(null)
 const focusCell = ref<number | null>(null)
 const hint = shallowRef<Hint | null>(null)
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'nonogram',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty): Promise<NonogramSave> => {
     const next = await nonogramPool.take(difficulty)
@@ -403,6 +407,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('nonogram.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'nonogram', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
@@ -412,8 +419,6 @@ session.init()
   >
     <template #actions>
       <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('nonogram.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

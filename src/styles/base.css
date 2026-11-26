@@ -42,6 +42,36 @@ body {
   overscroll-behavior: none;
 }
 
+/*
+ * Static page content written by the build for crawlers and link previews (scripts/seo.ts).
+ * The app replaces it when it mounts; with JavaScript it is hidden until then (no flash).
+ */
+.js .prerender {
+  display: none;
+}
+
+.prerender {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-4);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.prerender h1 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--text-2xl);
+}
+
+.prerender h2 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.prerender a {
+  color: var(--color-accent);
+}
+
 #app {
   min-height: 100dvh;
   display: flex;

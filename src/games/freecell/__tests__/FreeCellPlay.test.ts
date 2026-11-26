@@ -7,6 +7,7 @@ import { solve } from '@/core/cards/solver'
 import { settings as appSettings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import FreeCellPlay from '../FreeCellPlay.vue'
 import { freecell, settings } from '../game'
 import { deal, rules } from '../logic/rules'
@@ -30,7 +31,7 @@ async function start() {
     ],
   })
   await router.push('/freecell/play?new=cells4')
-  const wrapper = mount(FreeCellPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(FreeCellPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await vi.waitFor(() => expect(wrapper.find('.card-table').exists()).toBe(true))
   await flushPromises()
   const table = () => wrapper.findComponent(CardTable)

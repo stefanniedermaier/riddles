@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import AppButton from '@/components/AppButton.vue'
@@ -13,6 +13,7 @@ import { returnTo } from '@/core/navigation'
 import { randomSeed } from '@/core/rng'
 import { getVariantStats, recordFinish, recordStart } from '@/core/stats'
 import { motionEnabled } from '@/core/theme'
+import type { PlayRouteProps } from '../routes'
 import { useCountdown } from '@/core/timer'
 import { showToast } from '@/core/toast'
 import { useBoardAnimator } from './animator'
@@ -29,9 +30,8 @@ import ShapesHud from './ShapesHud.vue'
 import ShapesRules from './ShapesRules.vue'
 import { clearRun, levelProgress, loadRun, recordLevelWin, saveRun } from './store'
 
-const props = defineProps<{ mode: Mode }>()
+const props = defineProps<PlayRouteProps & { mode: Mode }>()
 
-const route = useRoute()
 const router = useRouter()
 
 // ---------------------------------------------------------------------------
@@ -41,7 +41,7 @@ function newRun(level?: number): ShapesRun {
   return createRun(props.mode, randomSeed(), level ?? 1)
 }
 
-const isNew = route.query.new === '1'
+const isNew = props.newGame === '1'
 // Levels are played in order: a new level run always starts the current level.
 const initial: ShapesRun | null = isNew
   ? newRun(levelProgress.value.level)
@@ -303,7 +303,7 @@ function resume(): void {
   scheduleHint()
 }
 
-function newGame(): void {
+function restartRun(): void {
   const current = run.value
   if (props.mode === 'zen' && current && current.score > 0) {
     recordFinish('shapes', 'zen', { score: current.score })
@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
       <AppButton variant="primary" icon="play" block @click="resume">
         {{ t('common.resume') }}
       </AppButton>
-      <AppButton icon="restart" block @click="newGame">
+      <AppButton icon="restart" block @click="restartRun">
         {{ mode === 'levels' ? t('shapes.pause.restartLevel') : t('shapes.pause.newGame') }}
       </AppButton>
       <AppButton v-if="mode === 'zen'" icon="check" block @click="endZen">
@@ -513,6 +513,9 @@ onBeforeUnmount(() => {
   </AppDialog>
 
   <ResultDialog
+    :on-menu="toLobby"
+    :menu-label="t('shapes.result.menu')"
+    :on-home="toHome"
     :open="resultOpen"
     :title="resultTitle"
     :subtitle="result?.kind === 'lost' ? t('shapes.result.levelFailedText') : undefined"
@@ -544,7 +547,6 @@ onBeforeUnmount(() => {
         <AppButton variant="primary" block @click="startRun(newRun())">
           {{ t('shapes.result.playAgain') }}
         </AppButton>
-        <AppButton block @click="toLobby">{{ t('shapes.result.menu') }}</AppButton>
       </template>
       <template v-else-if="result?.kind === 'won'">
         <AppButton variant="primary" block @click="playCurrentLevel">
@@ -556,7 +558,6 @@ onBeforeUnmount(() => {
           {{ t('shapes.result.retry') }}
         </AppButton>
       </template>
-      <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
   <AppDialog :open="showRules" :title="t('shapes.lobby.howToTitle')" @close="showRules = false">

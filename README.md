@@ -7,7 +7,7 @@ Simple puzzle games for your phone – as an installable, offline-capable
 **Progressive Web App**. No account, no backend, no tracking: everything stays on your device.
 Every puzzle and level is generated on the fly.
 
-**Play:** <https://stefanniedermaier.github.io/riddles/>
+**Play:** <https://stefanniedermaier.github.io/riddles/> · auf Deutsch: <https://stefanniedermaier.github.io/riddles/de/>
 
 | Game       | What it is                                                                                       |
 | ---------- | ------------------------------------------------------------------------------------------------ |
@@ -16,6 +16,7 @@ Every puzzle and level is generated on the fly.
 | **Links**  | Connect each pair of coloured dots with a line – lines may not cross and every cell must be filled. 5×5 to 11×11, hints, undo, move counter. |
 | **Nonogram** | Fill the grid so every row and column matches its number clues. 5×5 to 15×20, unique and solvable by logic, mistake check, hints, undo. |
 | **Merge**  | Slide the tiles and merge equal numbers – reach 256, 2048 or 4096 on 3×3, 4×4 or 5×5 and keep going for a high score. |
+| **Snake**  | Steer the snake, eat and grow without biting yourself – Classic, Open and Maze, three speeds and a calm mode that moves step by step. |
 | **Blocks** | Place three pieces at a time on an 8×8 board and clear full rows and columns – combos and a cleared board earn bonus points. |
 | **Arrows** | Tap the arrows in the right order – an arrow only slides out if its way is free. 6×6 to 12×12, always solvable, 3 lives, hints. |
 | **Mines**  | Reveal every cell without a mine – numbers count the mines around a cell. Every board is solvable by logic alone, no guessing. 8×10 to 12×18, hints that explain the next step. |
@@ -83,9 +84,20 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest, Playwrig
 - [Deployment](docs/deployment.md) – GitHub Pages, CI workflow, releasing a version, PWA updates
 - [Privacy](docs/privacy.md) – what is stored and where
 - [Security](docs/security.md) – threat model, supply chain, SBOM & provenance, CRA alignment
-- Games: [Sudoku](docs/games/sudoku.md) · [Stars](docs/games/crowns.md) · [Links](docs/games/links.md) · [Nonogram](docs/games/nonogram.md) · [Arrows](docs/games/arrows.md) · [Shapes](docs/games/shapes.md) · [Merge](docs/games/merge.md) · [Blocks](docs/games/blocks.md) · [Mines](docs/games/mines.md) · [Pipes](docs/games/pipes.md) · [Water Sort](docs/games/watersort.md) · [Code Breaker](docs/games/codebreaker.md) · [Card games](docs/games/cards.md): [Solitaire](docs/games/solitaire.md), [Spider](docs/games/spider.md), [FreeCell](docs/games/freecell.md), [TriPeaks](docs/games/tripeaks.md)
+- Games: [Sudoku](docs/games/sudoku.md) · [Stars](docs/games/crowns.md) · [Links](docs/games/links.md) · [Nonogram](docs/games/nonogram.md) · [Arrows](docs/games/arrows.md) · [Shapes](docs/games/shapes.md) · [Merge](docs/games/merge.md) · [Blocks](docs/games/blocks.md) · [Snake](docs/games/snake.md) · [Mines](docs/games/mines.md) · [Pipes](docs/games/pipes.md) · [Water Sort](docs/games/watersort.md) · [Code Breaker](docs/games/codebreaker.md) · [Card games](docs/games/cards.md): [Solitaire](docs/games/solitaire.md), [Spider](docs/games/spider.md), [FreeCell](docs/games/freecell.md), [TriPeaks](docs/games/tripeaks.md)
 - [Implementation plans](plan/README.md) – the original design and decisions
 - [Changelog](CHANGELOG.md)
+
+## Accessibility
+
+Riddles aims at WCAG 2.2 AA: high contrast in both themes, colour never the only cue,
+keyboard play, screen reader labels, reduced motion and two-finger zoom. Details, known
+limitations and how to report a barrier: [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome – see [CONTRIBUTING.md](CONTRIBUTING.md).
+Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Security
 

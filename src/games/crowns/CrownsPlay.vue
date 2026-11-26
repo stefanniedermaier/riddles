@@ -32,11 +32,15 @@ import { blockedCells, countCrowns, findConflicts, isSolved } from './logic/rule
 import { CROWN, EMPTY, MARK, type CellState, type CrownsSave } from './logic/types'
 import { crownsPool } from './pool'
 import { crownsSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
+
+const props = defineProps<PlayRouteProps>()
 
 const session = usePuzzleSession({
   gameId: 'crowns',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty): Promise<CrownsSave> => {
     const next = await crownsPool.take(difficulty)
@@ -236,7 +240,7 @@ session.init()
   <PlayBar
     v-model:rules-open="showRules"
     :title="title"
-    back-to="/crowns"
+    :back-to="{ name: 'crowns' }"
     :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
     :rules-label="t('crowns.play.rules')"
     :rules-title="t('crowns.rules.title')"
@@ -315,6 +319,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('crowns.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'crowns', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
@@ -324,8 +331,6 @@ session.init()
   >
     <template #actions>
       <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('crowns.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

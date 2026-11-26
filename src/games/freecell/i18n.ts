@@ -1,9 +1,11 @@
-import type { Messages } from '@/i18n/types'
-
 /** English texts of FreeCell (namespace `freecell`). */
 export const en = {
   name: 'FreeCell',
   tagline: 'All cards open, four free cells – patience by pure logic.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'FreeCell solitaire: all cards open, 4, 3 or 2 free cells – patience by pure logic, and every deal is solvable.',
+  },
   variants: {
     cells4: '4 free cells',
     cells3: '3 free cells',
@@ -17,24 +19,5 @@ export const en = {
   },
   play: {
     cells: 'Free cells',
-  },
-}
-
-export const de: Messages<typeof en> = {
-  name: 'FreeCell',
-  tagline: 'Alle Karten offen, vier freie Zellen – Patience mit reiner Logik.',
-  variants: {
-    cells4: '4 freie Zellen',
-    cells3: '3 freie Zellen',
-    cells2: '2 freie Zellen',
-  },
-  rules: {
-    goal: 'Lege alle Karten auf die vier Zielstapel, je Farbe vom Ass bis zum König.',
-    tableau: 'In den Spalten wird abwärts mit wechselnden Farben gelegt. Auf ein leeres Feld darf jede Karte.',
-    cells: 'Jede freie Zelle hält eine Karte zwischendurch fest.',
-    groups: 'Eine Kartenfolge zieht als Ganzes, wenn genug freie Zellen und leere Spalten dafür da sind.',
-  },
-  play: {
-    cells: 'Freie Zellen',
   },
 }

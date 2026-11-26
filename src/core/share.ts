@@ -4,8 +4,11 @@
  * Shares via the device's share sheet (Web Share API) or, where that is not available,
  * copies the text and link to the clipboard.
  */
+import { gameSlug } from '@/games/slugs'
 import type { GameId } from '@/games/types'
 import { computed, getCurrentInstance } from 'vue'
+import { locale } from './i18n'
+import { LOCALE_PREFIX } from './site'
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 
 export type ShareOutcome = 'shared' | 'cancelled' | 'copied' | 'failed'
@@ -13,6 +16,11 @@ export type ShareOutcome = 'shared' | 'cancelled' | 'copied' | 'failed'
 /** Public URL of the app (e.g. https://stefanniedermaier.github.io/riddles/). */
 export function appUrl(): string {
   return new URL(import.meta.env.BASE_URL, window.location.origin).href
+}
+
+/** URL of a page of the app in a language (`stars/` → …/riddles/de/stars/ for German). */
+function localizedUrl(path: string): string {
+  return new URL(`${LOCALE_PREFIX[locale.value]}${path}`, appUrl()).href
 }
 
 /**
@@ -78,15 +86,16 @@ export interface Challenge {
 }
 
 /**
- * Link into the game's lobby with the challenge in the query. The lobby highlights the
- * variant – it never starts a game by itself, so a link cannot replace a running game.
+ * Link into the game's lobby with the challenge in the query, in the sharer's language
+ * (the link preview shows that language). The lobby highlights the variant – it never
+ * starts a game by itself, so a link cannot replace a running game.
  * Installed as an app (Android/Chrome), links inside the app's scope open in the app.
  */
 export function challengeUrl(share: ResultShare): string {
   const query = new URLSearchParams({ challenge: share.variant })
   if (share.result) query.set('result', share.result)
   if (share.kind) query.set('kind', share.kind)
-  return `${appUrl()}#/${share.game}?${query.toString()}`
+  return `${localizedUrl(`${gameSlug(share.game)}/`)}?${query.toString()}`
 }
 
 /** A result from a link is shown in the lobby: only short times / numbers are accepted. */

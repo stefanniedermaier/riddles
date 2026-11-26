@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { idOf, isUp, type CardDef } from '@/core/cards/cards'
 import { t } from '@/core/i18n'
+import { createTouchGuard } from '@/core/touchGuard'
 import PlayingCard from './PlayingCard.vue'
 import { CARD_RATIO, cardWidth, gapFor } from './sizing'
 import type { PileView } from './types'
@@ -166,9 +167,17 @@ function setOffset(dx: number, dy: number): void {
   table.value?.style.setProperty('--dx', `${dx}px`)
   table.value?.style.setProperty('--dy', `${dy}px`)
 }
+/** A second finger (pinch to zoom) cancels the gesture: only one finger plays. */
+const touches = createTouchGuard()
+
 let down: { pile: string; index: number; x: number; y: number; id: number } | null = null
 
 function onCardDown(event: PointerEvent, pile: string, index: number): void {
+  if (!touches.down(event)) {
+    // A second finger: drop nothing, the dragged cards go back.
+    onCancel()
+    return
+  }
   if (props.disabled || (event.pointerType === 'mouse' && event.button !== 0)) return
   down = { pile, index, x: event.clientX, y: event.clientY, id: event.pointerId }
   table.value?.setPointerCapture?.(event.pointerId)
@@ -207,6 +216,7 @@ function pileAt(clientX: number, clientY: number): string | null {
 }
 
 function onUp(event: PointerEvent): void {
+  touches.up(event)
   if (!down || event.pointerId !== down.id) return
   const start = down
   down = null
@@ -218,6 +228,11 @@ function onUp(event: PointerEvent): void {
     return
   }
   emit('tap', start.pile, start.index)
+}
+
+function onPointerCancel(event: PointerEvent): void {
+  touches.up(event)
+  onCancel()
 }
 
 function onCancel(): void {
@@ -332,7 +347,7 @@ function onFocus(pile: string, index: number): void {
     :style="{ height: `${layout.height}px`, '--card-w': `${cardW}px` }"
     @pointermove="onMove"
     @pointerup="onUp"
-    @pointercancel="onCancel"
+    @pointercancel="onPointerCancel"
     @keydown="onKeydown"
     @contextmenu.prevent
   >
@@ -386,7 +401,8 @@ function onFocus(pile: string, index: number): void {
   isolation: isolate;
   width: 100%;
   min-height: 100%;
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
 }
 
 .slot,

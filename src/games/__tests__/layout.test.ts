@@ -11,7 +11,7 @@ import {
 } from '../layout'
 import type { GameId } from '../types'
 
-const known: GameId[] = ['sudoku', 'crowns', 'links', 'nonogram', 'arrows', 'shapes', 'merge', 'blocks', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks']
+const known: GameId[] = ['sudoku', 'crowns', 'links', 'nonogram', 'arrows', 'shapes', 'merge', 'blocks', 'snake', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks']
 
 describe('game layout', () => {
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('game layout', () => {
   it('drops unknown/duplicate ids and appends games added in an update (enabled)', () => {
     const stored = { order: ['shapes', 'tetris', 'shapes', 'sudoku'], disabled: ['crowns', 'tetris'] }
     expect(normalizeLayout(stored, known)).toEqual({
-      order: ['shapes', 'sudoku', 'crowns', 'links', 'nonogram', 'arrows', 'merge', 'blocks', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks'],
+      order: ['shapes', 'sudoku', 'crowns', 'links', 'nonogram', 'arrows', 'merge', 'blocks', 'snake', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks'],
       disabled: ['crowns'],
     })
   })
@@ -52,6 +52,7 @@ describe('game layout', () => {
       'arrows',
       'merge',
       'blocks',
+      'snake',
       'mines',
       'pipes',
       'watersort',
@@ -63,7 +64,7 @@ describe('game layout', () => {
       'sudoku',
     ])
     setGameEnabled('links', false)
-    expect(visibleGames.value.map((game) => game.id)).toEqual(['shapes', 'crowns', 'nonogram', 'arrows', 'merge', 'blocks', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks', 'sudoku'])
+    expect(visibleGames.value.map((game) => game.id)).toEqual(['shapes', 'crowns', 'nonogram', 'arrows', 'merge', 'blocks', 'snake', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks', 'sudoku'])
     setGameEnabled('links', true)
     expect(visibleGames.value).toHaveLength(known.length)
   })

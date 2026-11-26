@@ -17,6 +17,7 @@ import { DIFFICULTIES, saveSlot, sizeLabel } from './index'
 import { consistentGuess, generatePuzzle, isConsistent, isValidGuess, possibleCodes, score } from './logic/logic'
 import { PARAMS, type CodePuzzle, type CodeSave } from './logic/types'
 import { codeBreakerSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 const selectedSlot = ref<number | null>(0)
 const rowsEl = ref<HTMLElement | null>(null)
@@ -26,10 +27,13 @@ function fresh(puzzle: CodePuzzle): CodeSave {
   return { puzzle, guesses: [], current: new Array<number | null>(positions).fill(null), elapsedMs: 0, hintsUsed: 0 }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'codebreaker',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: (difficulty) => fresh(generatePuzzle(difficulty, randomSeed())),
   onShow: (save, reason) => {
@@ -359,6 +363,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('codebreaker.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="status === 'won' ? t('common.solved') : t('codebreaker.result.lostTitle')"
     :subtitle="status === 'won' ? t('codebreaker.result.solvedText') : t('codebreaker.result.lostText')"
@@ -371,8 +378,6 @@ session.init()
       <AppButton variant="primary" block @click="session.playAgain">
         {{ status === 'won' ? t('common.newGame') : t('codebreaker.result.newCode') }}
       </AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('codebreaker.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

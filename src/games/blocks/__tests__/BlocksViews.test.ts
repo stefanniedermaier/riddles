@@ -93,6 +93,8 @@ describe('Blocks views', () => {
     await vi.waitFor(() => expect(document.body.textContent).toContain('No more space'))
     expect(localStorage.getItem(`riddles:${SAVE_KEY}`)).toBeNull()
     expect(getVariantStats('blocks', 'classic').bestScore).toBe(51)
+    // No win and no new best, but the score can still be shared.
+    expect(document.querySelector('.result__share')).not.toBeNull()
     wrapper.unmount()
   })
 

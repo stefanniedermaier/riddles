@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import GameBackdrop from '@/components/GameBackdrop.vue'
@@ -24,8 +24,10 @@ import { sudokuSettings } from './settings'
 import SudokuBoard from './SudokuBoard.vue'
 import { useSudokuGame } from './useSudokuGame'
 import SudokuRules from './SudokuRules.vue'
+import type { PlayRouteProps } from '../routes'
 
-const route = useRoute()
+const props = defineProps<PlayRouteProps & { requestedMode?: string }>()
+
 const router = useRouter()
 const sudoku = useSudokuGame()
 const { game, status, mode, geo, notesMode, hint, result, stopwatch, digitCounts, canUndo, checkedWrong } =
@@ -35,8 +37,8 @@ function check(): void {
   showToast(checkMessage(sudoku.check()))
 }
 
-/** Mode requested by the route (`?mode=mini`); classic otherwise. */
-const routeMode = computed<SudokuMode>(() => (isMode(route.query.mode) ? route.query.mode : 'classic'))
+/** Mode requested by the route (`?mode=mini`, the `requestedMode` prop); classic otherwise. */
+const routeMode = computed<SudokuMode>(() => (isMode(props.requestedMode) ? props.requestedMode : 'classic'))
 const playQuery = (playMode: SudokuMode) => (playMode === 'mini' ? { mode: 'mini' } : {})
 
 const menuOpen = ref(false)
@@ -67,14 +69,14 @@ const hintAction = computed(() => {
 async function startNew(level: Difficulty, playMode: SudokuMode = mode.value): Promise<void> {
   // Drop `?new=` right away (not after the await), so that a reload resumes the saved game and
   // a late navigation can never cancel a "back" the player tapped while the puzzle is created.
-  if (route.query.new !== undefined) {
+  if (props.newGame !== undefined) {
     void router.replace({ name: 'sudoku-play', query: playQuery(playMode) })
   }
   await sudoku.startNew(level, playMode)
 }
 
 onMounted(() => {
-  const requested = route.query.new
+  const requested = props.newGame
   if (isDifficulty(requested)) void startNew(requested, routeMode.value)
   else if (!sudoku.resume(routeMode.value)) void router.replace({ name: 'sudoku' })
 })
@@ -279,6 +281,9 @@ const resultRows = computed(() =>
   />
 
   <ResultDialog
+    :on-menu="toLobby"
+    :menu-label="t('sudoku.play.backToLobby')"
+    :on-home="toHome"
     :open="status === 'won' && result !== null"
     :title="t('common.solved')"
     :share="
@@ -300,8 +305,6 @@ const resultRows = computed(() =>
       <AppButton variant="primary" icon="plus" block @click="startNew(difficulty)">
         {{ t('common.newGame') }}
       </AppButton>
-      <AppButton block @click="toLobby">{{ t('sudoku.play.backToLobby') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
   <AppDialog :open="showRules" :title="t('sudoku.rules.title')" @close="showRules = false">

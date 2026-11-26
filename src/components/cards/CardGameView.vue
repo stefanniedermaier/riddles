@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="S, M, V extends string">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import GameBackdrop from '@/components/GameBackdrop.vue'
@@ -29,9 +29,12 @@ import type { CardGameDef } from './types'
  * The play view shared by all card games: dealing, moves (tap, drag, select), automatic
  * moves, undo, hints from the solver, time or points, saving and the result dialogs.
  */
-const props = defineProps<{ game: CardGameDef<S, M, V> }>()
+const props = defineProps<{
+  game: CardGameDef<S, M, V>
+  /** `?new=<variant>` (route prop of the game's play view): deal a new game. */
+  newGame?: string
+}>()
 
-const route = useRoute()
 const router = useRouter()
 
 interface Save {
@@ -499,20 +502,20 @@ function goHome(): void {
 const showRules = ref(false)
 
 watch(
-  () => route.query.new,
+  () => props.newGame,
   (value) => {
-    if (typeof value === 'string' && props.game.rules.variants.includes(value as V)) void startNew(value as V)
+    if (value !== undefined && props.game.rules.variants.includes(value as V)) void startNew(value as V)
   },
   { immediate: true },
 )
 
-if (typeof route.query.new !== 'string' && !resume()) {
+if (props.newGame === undefined && !resume()) {
   void router.replace({ name: props.game.id })
 }
 </script>
 
 <template>
-  <AppBar :title="gameName(game.id)" :back-to="`/${game.id}`">
+  <AppBar :title="gameName(game.id)" :back-to="{ name: game.id }">
     <template #actions>
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="pointsMode ? t('cards.play.score') : t('common.time')">
         <template v-if="pointsMode">
@@ -628,6 +631,9 @@ if (typeof route.query.new !== 'string' && !resume()) {
   />
 
   <ResultDialog
+    :on-menu="goToMenu"
+    :menu-label="t('cards.play.menu')"
+    :on-home="goHome"
     :open="showResult"
     :title="status === 'won' ? t('common.solved') : t('cards.result.lostTitle')"
     :subtitle="status === 'won' ? t('cards.result.solvedText') : t('cards.result.lostText')"
@@ -649,14 +655,12 @@ if (typeof route.query.new !== 'string' && !resume()) {
     <template #actions>
       <template v-if="status === 'won'">
         <AppButton variant="primary" block @click="playAgain">{{ t('common.newGame') }}</AppButton>
-        <AppButton block @click="goToMenu">{{ t('cards.play.menu') }}</AppButton>
       </template>
       <template v-else>
         <AppButton variant="primary" icon="undo" block @click="undoAfterLoss">{{ t('cards.play.undo') }}</AppButton>
         <AppButton block @click="tryAgain">{{ t('cards.result.tryAgain') }}</AppButton>
         <AppButton block @click="playAgain">{{ t('cards.play.newDeal') }}</AppButton>
       </template>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

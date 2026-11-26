@@ -20,6 +20,7 @@ import { arrowAt, hintArrow, tapArrow } from './logic/rules'
 import { LIVES, type ArrowsPuzzle, type ArrowsSave } from './logic/types'
 import { arrowsPool } from './pool'
 import { arrowsSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 /** Duration of the slide-out animation (ms). */
 const LEAVE_MS = 420
@@ -32,10 +33,13 @@ function freshAttempt(next: ArrowsPuzzle): ArrowsSave {
   return { puzzle: next, removed: [], lives: LIVES, actions: 0, elapsedMs: 0, hintsUsed: 0 }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'arrows',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty) => freshAttempt(await arrowsPool.take(difficulty)),
   onShow: () => {
@@ -240,6 +244,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('arrows.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="status === 'won' ? t('common.solved') : t('arrows.result.failedTitle')"
     :subtitle="status === 'won' ? t('arrows.result.solvedText') : t('arrows.result.failedText')"
@@ -251,13 +258,11 @@ session.init()
     <template #actions>
       <template v-if="status === 'won'">
         <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
-        <AppButton block @click="session.goToMenu">{{ t('arrows.play.toMenu') }}</AppButton>
       </template>
       <template v-else>
         <AppButton variant="primary" block @click="tryAgain">{{ t('arrows.result.tryAgain') }}</AppButton>
         <AppButton block @click="session.playAgain">{{ t('arrows.result.newPuzzle') }}</AppButton>
       </template>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

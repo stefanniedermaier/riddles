@@ -31,6 +31,7 @@ import type { LinksSave } from './logic/types'
 import { colorLabel } from './palette'
 import { linksPool } from './pool'
 import { linksSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 /** Upper bound of stored undo steps. */
 const MAX_UNDO = 300
@@ -38,10 +39,13 @@ const MAX_UNDO = 300
 const stroke = shallowRef<Stroke | null>(null)
 const flash = ref<number | null>(null)
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'links',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty): Promise<LinksSave> => {
     const next = await linksPool.take(difficulty)
@@ -276,6 +280,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('links.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'links', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
@@ -285,8 +292,6 @@ session.init()
   >
     <template #actions>
       <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('links.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

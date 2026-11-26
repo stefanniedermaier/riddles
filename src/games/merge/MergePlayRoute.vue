@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-
+import type { PlayRouteProps } from '../routes'
 import type { Variant } from './index'
 import MergePlay from './MergePlay.vue'
 
-// Keyed by variant so switching variants creates a fresh play view.
-const route = useRoute()
-const variant = computed(() => route.params.variant as Variant)
+// The route's values as props (`playProps`). Keyed by variant so switching variants creates
+// a fresh play view (Vue Router would otherwise reuse the component instance).
+defineProps<PlayRouteProps & { variant: Variant }>()
 </script>
 
 <template>
-  <MergePlay :key="variant" :variant="variant" />
+  <MergePlay :key="variant" :variant="variant" :new-game="newGame" />
 </template>
