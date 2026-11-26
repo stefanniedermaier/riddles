@@ -359,6 +359,9 @@ onBeforeUnmount(() => {
   </AppDialog>
 
   <ResultDialog
+    :on-menu="toMenu"
+    :menu-label="t('merge.result.menu')"
+    :on-home="toHome"
     :open="result !== null"
     :title="t('merge.result.gameOver')"
     :share="result ? { game: 'merge', variant, result: formatNumber(result.score), kind: 'score', newBest: result.newBest } : undefined"
@@ -368,8 +371,6 @@ onBeforeUnmount(() => {
   >
     <template #actions>
       <AppButton variant="primary" block @click="startNew">{{ t('merge.result.playAgain') }}</AppButton>
-      <AppButton block @click="toMenu">{{ t('merge.result.menu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
   <AppDialog :open="showRules" :title="t('merge.lobby.howToTitle')" @close="showRules = false">

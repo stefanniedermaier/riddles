@@ -105,7 +105,7 @@ describe('ArrowsPlay', () => {
       await tap(puzzle.arrows[id]!.cells[0]!)
     }
     await vi.waitFor(() => expect(document.body.textContent).toContain('Solved!'))
-    expect(document.body.textContent).toContain('Arrows menu')
+    expect(document.body.querySelector('button[aria-label="Arrows menu"]')).not.toBeNull()
     expect(saved()).toBeNull()
     expect(getVariantStats('arrows', 'easy')).toMatchObject({ started: 1, finished: 1 })
     wrapper.unmount()

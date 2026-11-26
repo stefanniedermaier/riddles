@@ -94,11 +94,10 @@ describe('Shapes views', () => {
     const dialog = document.body.textContent ?? ''
     expect(dialog).toContain('Level complete!')
     expect(dialog).toContain('Next level')
-    expect(dialog).toContain('Home')
     expect(dialog).not.toContain('Play again')
-    expect(dialog).toContain('Share result')
+    expect(document.body.querySelector('button[aria-label="Share result"]')).not.toBeNull()
     expect(levelProgress.value.level).toBe(4)
-    const home = [...document.body.querySelectorAll('button')].find((b) => b.textContent?.includes('Home'))!
+    const home = document.body.querySelector<HTMLButtonElement>('button[aria-label="Home"]')!
     home.click()
     await flushPromises()
     expect(second.router.currentRoute.value.path).toBe('/')

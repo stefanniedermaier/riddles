@@ -13,6 +13,9 @@ project adheres to [Semantic Versioning](https://semver.org/).
   the way it clears; the bomb is now a bundle of dynamite in the fruit's look, with black
   tape, fuse and flame. The kind to match stays visible at a glance, also without colour
   vision.
+- Result dialog: "Share" is an icon button in the top right corner; "Game menu" and "Home"
+  are icon buttons side by side in the same look in every game (named for screen readers),
+  below the game's own actions.
 - The header at the top is fully opaque; nothing scrolling underneath shows through.
 - Installed app on Android: the manifest has dark system-bar colours (`color_scheme_dark`), so
   the navigation bar can turn dark while the phone is in dark mode – where the browser

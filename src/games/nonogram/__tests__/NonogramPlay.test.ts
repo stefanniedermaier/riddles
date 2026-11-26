@@ -69,8 +69,8 @@ describe('NonogramPlay', () => {
       await flushPromises()
     }
     await vi.waitFor(() => expect(document.body.textContent).toContain('Solved!'))
-    expect(document.body.textContent).toContain('Nonogram menu')
-    expect(document.body.textContent).toContain('Home')
+    expect(document.body.querySelector('button[aria-label="Nonogram menu"]')).not.toBeNull()
+    expect(document.body.querySelector('button[aria-label="Home"]')).not.toBeNull()
     expect(saved()).toBeNull()
     expect(getVariantStats('nonogram', 'easy').finished).toBe(1)
     wrapper.unmount()

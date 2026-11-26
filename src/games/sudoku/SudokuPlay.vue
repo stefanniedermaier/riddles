@@ -281,6 +281,9 @@ const resultRows = computed(() =>
   />
 
   <ResultDialog
+    :on-menu="toLobby"
+    :menu-label="t('sudoku.play.backToLobby')"
+    :on-home="toHome"
     :open="status === 'won' && result !== null"
     :title="t('common.solved')"
     :share="
@@ -302,8 +305,6 @@ const resultRows = computed(() =>
       <AppButton variant="primary" icon="plus" block @click="startNew(difficulty)">
         {{ t('common.newGame') }}
       </AppButton>
-      <AppButton block @click="toLobby">{{ t('sudoku.play.backToLobby') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
   <AppDialog :open="showRules" :title="t('sudoku.rules.title')" @close="showRules = false">

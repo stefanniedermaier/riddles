@@ -319,6 +319,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('crowns.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'crowns', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
@@ -328,8 +331,6 @@ session.init()
   >
     <template #actions>
       <AppButton variant="primary" block @click="session.playAgain">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('crowns.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

@@ -462,6 +462,7 @@ session.init()
   />
 
   <ResultDialog
+    :on-home="goHome"
     :open="showHit"
     :title="t('mines.result.hitTitle')"
     :subtitle="t('mines.result.hitText')"
@@ -472,11 +473,13 @@ session.init()
       <AppButton variant="primary" icon="undo" block @click="undoHit">{{ t('mines.result.undoMove') }}</AppButton>
       <AppButton block @click="tryAgain">{{ t('mines.result.tryAgain') }}</AppButton>
       <AppButton block @click="newPuzzle">{{ t('mines.result.newPuzzle') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('mines.play.toMenu')"
+    :on-home="goHome"
     :open="showResult"
     :title="t('common.solved')"
     :share="result && game ? { game: 'mines', variant: game.puzzle.difficulty, result: formatDuration(result.timeMs), kind: 'time', newBest: result.newBest } : undefined"
@@ -486,8 +489,6 @@ session.init()
   >
     <template #actions>
       <AppButton variant="primary" block @click="newPuzzle">{{ t('common.newGame') }}</AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('mines.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

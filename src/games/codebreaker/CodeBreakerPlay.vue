@@ -363,6 +363,9 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="session.goToMenu"
+    :menu-label="t('codebreaker.play.toMenu')"
+    :on-home="session.goHome"
     :open="showResult"
     :title="status === 'won' ? t('common.solved') : t('codebreaker.result.lostTitle')"
     :subtitle="status === 'won' ? t('codebreaker.result.solvedText') : t('codebreaker.result.lostText')"
@@ -375,8 +378,6 @@ session.init()
       <AppButton variant="primary" block @click="session.playAgain">
         {{ status === 'won' ? t('common.newGame') : t('codebreaker.result.newCode') }}
       </AppButton>
-      <AppButton block @click="session.goToMenu">{{ t('codebreaker.play.toMenu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="session.goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>

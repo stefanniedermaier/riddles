@@ -142,8 +142,9 @@ describe('Merge views', () => {
     await press('ArrowRight')
     const text = document.body.textContent ?? ''
     expect(text).toContain('No more moves')
-    expect(text).toContain('Merge menu')
-    expect(text).toContain('Home')
+    // Menu and home are icon buttons, named by their label.
+    expect(document.body.querySelector('button[aria-label="Merge menu"]')).not.toBeNull()
+    expect(document.body.querySelector('button[aria-label="Home"]')).not.toBeNull()
     expect(loadRun('small')).toBeNull()
     expect(getVariantStats('merge', 'small').bestScore).toBe(500)
     expect(records.value.small).toBe(64)

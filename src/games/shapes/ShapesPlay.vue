@@ -513,6 +513,9 @@ onBeforeUnmount(() => {
   </AppDialog>
 
   <ResultDialog
+    :on-menu="toLobby"
+    :menu-label="t('shapes.result.menu')"
+    :on-home="toHome"
     :open="resultOpen"
     :title="resultTitle"
     :subtitle="result?.kind === 'lost' ? t('shapes.result.levelFailedText') : undefined"
@@ -544,7 +547,6 @@ onBeforeUnmount(() => {
         <AppButton variant="primary" block @click="startRun(newRun())">
           {{ t('shapes.result.playAgain') }}
         </AppButton>
-        <AppButton block @click="toLobby">{{ t('shapes.result.menu') }}</AppButton>
       </template>
       <template v-else-if="result?.kind === 'won'">
         <AppButton variant="primary" block @click="playCurrentLevel">
@@ -556,7 +558,6 @@ onBeforeUnmount(() => {
           {{ t('shapes.result.retry') }}
         </AppButton>
       </template>
-      <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
   <AppDialog :open="showRules" :title="t('shapes.lobby.howToTitle')" @close="showRules = false">

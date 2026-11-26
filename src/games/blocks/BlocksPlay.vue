@@ -428,6 +428,9 @@ onBeforeUnmount(() => {
   />
 
   <ResultDialog
+    :on-menu="toMenu"
+    :menu-label="t('blocks.result.menu')"
+    :on-home="toHome"
     :open="result !== null"
     :title="t('blocks.result.gameOver')"
     :share="result ? { game: 'blocks', variant: 'classic', result: formatNumber(result.score), kind: 'score', newBest: result.newBest } : undefined"
@@ -437,8 +440,6 @@ onBeforeUnmount(() => {
   >
     <template #actions>
       <AppButton variant="primary" block @click="startNew">{{ t('blocks.result.playAgain') }}</AppButton>
-      <AppButton block @click="toMenu">{{ t('blocks.result.menu') }}</AppButton>
-      <AppButton variant="ghost" icon="home" block @click="toHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
   <AppDialog :open="showRules" :title="t('blocks.lobby.howToTitle')" @close="showRules = false">

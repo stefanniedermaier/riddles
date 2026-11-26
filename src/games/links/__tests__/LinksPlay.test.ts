@@ -60,7 +60,7 @@ describe('LinksPlay', () => {
       await flushPromises()
     }
     await vi.waitFor(() => expect(document.body.textContent).toContain('Solved!'))
-    expect(document.body.textContent).toContain('Links menu')
+    expect(document.body.querySelector('button[aria-label="Links menu"]')).not.toBeNull()
     expect(saved()).toBeNull()
     expect(getVariantStats('links', 'easy').finished).toBe(1)
     wrapper.unmount()

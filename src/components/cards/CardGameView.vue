@@ -631,6 +631,9 @@ if (props.newGame === undefined && !resume()) {
   />
 
   <ResultDialog
+    :on-menu="goToMenu"
+    :menu-label="t('cards.play.menu')"
+    :on-home="goHome"
     :open="showResult"
     :title="status === 'won' ? t('common.solved') : t('cards.result.lostTitle')"
     :subtitle="status === 'won' ? t('cards.result.solvedText') : t('cards.result.lostText')"
@@ -652,14 +655,12 @@ if (props.newGame === undefined && !resume()) {
     <template #actions>
       <template v-if="status === 'won'">
         <AppButton variant="primary" block @click="playAgain">{{ t('common.newGame') }}</AppButton>
-        <AppButton block @click="goToMenu">{{ t('cards.play.menu') }}</AppButton>
       </template>
       <template v-else>
         <AppButton variant="primary" icon="undo" block @click="undoAfterLoss">{{ t('cards.play.undo') }}</AppButton>
         <AppButton block @click="tryAgain">{{ t('cards.result.tryAgain') }}</AppButton>
         <AppButton block @click="playAgain">{{ t('cards.play.newDeal') }}</AppButton>
       </template>
-      <AppButton variant="ghost" icon="home" block @click="goHome">{{ t('common.home') }}</AppButton>
     </template>
   </ResultDialog>
 </template>
