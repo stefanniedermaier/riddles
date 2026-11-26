@@ -85,6 +85,9 @@ describe('MinesPlay', () => {
     await vi.waitFor(() => expect(document.body.textContent).toContain('Mine hit!'))
     expect(wrapper.find('.cell--hit').exists()).toBe(true)
     expect(saved()?.hit).toBe(12)
+    // Menu and home sit side by side as icon buttons, also after a hit.
+    expect(document.body.querySelector('button[aria-label="Mines menu"]')).not.toBeNull()
+    expect(document.body.querySelector('button[aria-label="Home"]')).not.toBeNull()
 
     button('Undo move').click()
     await flushPromises()

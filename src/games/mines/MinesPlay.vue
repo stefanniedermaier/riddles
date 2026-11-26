@@ -341,6 +341,11 @@ function goHome(): void {
   session.goHome()
 }
 
+function goToMenu(): void {
+  showHit.value = false
+  session.goToMenu()
+}
+
 session.init()
 </script>
 
@@ -462,6 +467,8 @@ session.init()
   />
 
   <ResultDialog
+    :on-menu="goToMenu"
+    :menu-label="t('mines.play.toMenu')"
     :on-home="goHome"
     :open="showHit"
     :title="t('mines.result.hitTitle')"
