@@ -7,7 +7,7 @@ Simple puzzle games for your phone – as an installable, offline-capable
 **Progressive Web App**. No account, no backend, no tracking: everything stays on your device.
 Every puzzle and level is generated on the fly.
 
-**Play:** <https://stefanniedermaier.github.io/riddles/>
+**Play:** <https://stefanniedermaier.github.io/riddles/> · auf Deutsch: <https://stefanniedermaier.github.io/riddles/de/>
 
 | Game       | What it is                                                                                       |
 | ---------- | ------------------------------------------------------------------------------------------------ |

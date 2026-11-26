@@ -28,9 +28,10 @@ The dev server listens on all interfaces (`--host`), so you can open
 | `npm run test:e2e`   | Playwright E2E + axe accessibility tests against `dist/` (run `npm run build-only` and `npx playwright install chromium` first) |
 | `npm run lint`       | ESLint with type information (`npm run lint:fix` to fix)  |
 | `npm run type-check` | `vue-tsc --build` for app, tests and config files         |
-| `npm run build`      | Type-check + production build to `dist/`                  |
+| `npm run build`      | Type-check + production build to `dist/`, including the prerendered search engine pages and the sitemap |
 | `npm run preview`    | Serve `dist/` (with service worker)                       |
 | `npm run icons`      | Regenerate icons from `public/logo.svg`                   |
+| `npm run og-images`  | Render the link preview images to `public/og/` (Playwright; `CHROMIUM_PATH` picks another Chromium) |
 | `npm run check:deps` | Lockfile sources, integrity hashes, runtime licenses      |
 | `npm run audit:ci`   | Registry signatures + vulnerability audit (as in CI)      |
 | `npm run knip`       | Unused files, dependencies and exports (fails CI)         |

@@ -11,7 +11,7 @@ function savedGame(page: Page, game: string): Promise<unknown> {
 }
 
 test('Links: a move is saved, survives a reload, continues from the lobby and the puzzle can be finished', async ({ page }) => {
-  await page.goto('./#/links')
+  await page.goto('./links/')
   await page.getByRole('button', { name: /Easy/ }).click()
   const board = page.locator('.links-board')
   await expect(board).toBeVisible()
@@ -30,7 +30,7 @@ test('Links: a move is saved, survives a reload, continues from the lobby and th
   await expect(lines).toHaveCount(drawn)
 
   // Back to the lobby: "Continue" resumes it as well.
-  await page.goto('./#/links')
+  await page.goto('./links/')
   await page.getByRole('button', { name: 'Continue' }).click()
   await expect(board).toBeVisible()
   await expect(lines).toHaveCount(drawn)
@@ -47,13 +47,13 @@ test('Links: a move is saved, survives a reload, continues from the lobby and th
   expect(await savedGame(page, 'links')).toBeNull()
 
   // The lobby no longer offers "Continue" and the statistics count the win.
-  await page.goto('./#/links')
+  await page.goto('./links/')
   await expect(page.getByRole('button', { name: /Easy/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Continue' })).toHaveCount(0)
 })
 
 test('Stars: keyboard play on the board is saved and restored after a reload', async ({ page }) => {
-  await page.goto('./#/crowns')
+  await page.goto('./stars/')
   await page.getByRole('button', { name: /Easy/ }).click()
   const board = page.locator('.crowns-board')
   await expect(board).toBeVisible()
@@ -73,6 +73,6 @@ test('Stars: keyboard play on the board is saved and restored after a reload', a
 test('page changes move focus to the heading and set the title', async ({ page }) => {
   await page.goto('./')
   await page.locator('.game-card', { hasText: 'Links' }).click()
-  await expect(page).toHaveTitle('Links – Riddles')
+  await expect(page).toHaveTitle('Links – free online and offline · Riddles')
   await expect(page.locator('h1')).toBeFocused()
 })

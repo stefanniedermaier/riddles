@@ -1,6 +1,9 @@
 # 21 – Search engines and link previews (SEO)
 
-**Status:** planned.
+**Status:** done (phases 1–4 and 7; phase 5 and 6 are with the owner, see *Done notes*).
+
+Owner's answers: Search Console via meta tag; no custom domain; German pages now; rename
+`crowns` → `stars` in the URL; no user-site repository for a host-level `robots.txt`.
 
 ## Goal
 
@@ -157,3 +160,25 @@ together in one release (paths without prerendered pages would be worse than tod
 | Q3 | German pages (phase 7) now, later or not at all? |
 | Q4 | Rename the URL `crowns` to `stars`? |
 | Q5 | Is there a user-site repository (`stefanniedermaier.github.io`) where a host-level `robots.txt` with the sitemap URL can live? |
+
+## Done notes
+
+- **Phase 2:** previews are JPEG (≈ 30–60 kB) per language: `public/og/<lang>/<game>.jpg`,
+  rendered by `npm run og-images` (`scripts/og-images.ts` + `scripts/og-images/`).
+- **Phase 3:** `index.html` is the app shell and the only precached page; the service
+  worker serves it for every navigation. Play views have no prerendered file – a reload
+  there gets `404.html` (the shell) from GitHub Pages, which keeps play URLs out of search
+  engines; installed apps get the shell from the service worker.
+- **Phase 4:** `scripts/seo.ts` (shared by the Vite build and `scripts/prerender.ts`) reads
+  the catalogues with Node's type stripping – no new dependency. Per-game texts live in the
+  catalogues (`<game>.seo.about`). App pages (settings, statistics, privacy, imprint) are
+  prerendered as `noindex`, so a reload answers 200.
+- **Phase 7:** one app for both languages: the router runs under `/riddles/de/` there and
+  the page language decides the app language while the setting is *system*. The language
+  switch in the settings changes the app language, not the address (plan item 7.3 dropped:
+  it would need a reload).
+- **Phase 5 (owner):** submit `sitemap.xml` in the Search Console; Bing Webmaster Tools can
+  import the Google property. Phase 6 (repository description and topics) is a GitHub
+  setting.
+- The initial JavaScript grew from 94 to ≈ 97 kB gzip (budget 100 kB), mostly the per-game
+  descriptions in the catalogues.

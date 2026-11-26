@@ -6,6 +6,21 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Search engines and link previews (plan 21)
+
+- **Real addresses:** every game has its own page – `/riddles/sudoku/` instead of
+  `#/sudoku` – and every page exists in German too (`/riddles/de/…`). Old links (`#/…`,
+  shared challenges, bookmarks, installed apps) keep working and are rewritten on start.
+- **Stars** lives at `/stars/`; `/crowns` redirects.
+- Every page is prerendered with its own title, description, canonical address, language
+  alternates, link preview (image and text) and structured data, plus a short readable
+  description and the rules – visible to search engines and link previews without
+  JavaScript. A sitemap lists all pages.
+- Shared challenge links point to the page in the sharer's language and show a preview
+  with the game's logo.
+- New description of the app (16 games instead of "Sudoku, Crowns and Shapes").
+- Google Search Console verification.
+
 ### Added
 
 - Community files: [Code of Conduct](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1),

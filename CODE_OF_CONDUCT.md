@@ -61,7 +61,7 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement by email – the
 address is listed in the app's
-[imprint](https://stefanniedermaier.github.io/riddles/#/imprint) (*Settings → Imprint*).
+[imprint](https://stefanniedermaier.github.io/riddles/imprint/) (*Settings → Imprint*).
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

@@ -75,6 +75,6 @@ Please open an
 Helpful details: the game or page, what you tried, the assistive technology or setting you
 use (screen reader, zoom, font size, reduced motion …), device and browser. Without a
 GitHub account you can write an email – the address is in the app's
-[imprint](https://stefanniedermaier.github.io/riddles/#/imprint).
+[imprint](https://stefanniedermaier.github.io/riddles/imprint/).
 
 Accessibility problems are treated as bugs, not as feature requests.

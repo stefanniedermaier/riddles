@@ -1,7 +1,8 @@
 # Stars
 
-> Internal id `crowns` (code, routes `#/crowns`, storage keys): the game was called *Crowns*
-> until v0.10; the id was kept so that saved games and statistics stay.
+> Internal id `crowns` (code, route names, storage keys): the game was called *Crowns*
+> until v0.10; the id was kept so that saved games and statistics stay. The address follows
+> the name: `/stars/` (`/crowns` redirects, see `src/games/slugs.ts`).
 
 Stars is a logic puzzle on an N×N grid that is divided into N coloured regions.
 The genre is also known as *Star Battle* (with one star per unit).
@@ -134,7 +135,7 @@ background.
 ```
 src/games/crowns/
   index.ts             descriptor for the app shell (variants, stats, settings)
-  routes.ts            #/crowns (lobby) and #/crowns/play
+  routes.ts            /stars (lobby) and /stars/play
   i18n.ts              English and German texts
   CrownsLobby.vue      rules, continue, difficulty list
   CrownsPlay.vue       game screen: timer, board, hints, result dialog
