@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { t } from '@/core/i18n'
 import { resolvedTheme } from '@/core/theme'
+import { createTouchGuard } from '@/core/touchGuard'
 import StarGlyph from './StarGlyph.vue'
 import { CROWN, EMPTY, MARK, type CellState } from './logic/types'
 import { regionColor } from './palette'
@@ -118,7 +119,16 @@ function paintCell(cell: number): void {
   else if (stroke.value === EMPTY && current === MARK) emit('paint', cell, EMPTY)
 }
 
+/** A second finger (pinch to zoom) cancels the gesture: only one finger plays. */
+const touches = createTouchGuard()
+
 function onPointerDown(event: PointerEvent): void {
+  if (!touches.down(event)) {
+    // A second finger: end the stroke of the first one (a tap does not count).
+    if (stroke?.moved) emit('strokeEnd')
+    stroke = null
+    return
+  }
   if (props.disabled || (event.pointerType === 'mouse' && event.button !== 0)) return
   const cell = cellAt(event)
   if (cell < 0) return
@@ -152,6 +162,7 @@ function onPointerMove(event: PointerEvent): void {
 }
 
 function onPointerUp(event: PointerEvent): void {
+  touches.up(event)
   if (!stroke || event.pointerId !== stroke.pointerId) return
   const finished = stroke
   stroke = null
@@ -159,7 +170,8 @@ function onPointerUp(event: PointerEvent): void {
   else emit('tap', finished.startCell)
 }
 
-function onPointerCancel(): void {
+function onPointerCancel(event: PointerEvent): void {
+  touches.up(event)
   if (stroke?.moved) emit('strokeEnd')
   stroke = null
 }
@@ -273,7 +285,8 @@ function onKeydown(event: KeyboardEvent): void {
   box-shadow:
     0 0 0 3px color-mix(in srgb, var(--game-crowns) 55%, transparent),
     0 10px 24px rgb(0 0 0 / 22%);
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
   outline: none;
   cursor: pointer;
 }

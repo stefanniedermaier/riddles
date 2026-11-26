@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { t } from '@/core/i18n'
 import { resolvedTheme } from '@/core/theme'
+import { createTouchGuard } from '@/core/touchGuard'
 import type { Endpoint } from './logic/types'
 import { colorLabel, lineColor } from './palette'
 
@@ -87,7 +88,19 @@ function cellAt(event: PointerEvent): number {
   return Math.floor((y / height) * props.size) * props.size + Math.floor((x / width) * props.size)
 }
 
+/** A second finger (pinch to zoom) cancels the gesture: only one finger plays. */
+const touches = createTouchGuard()
+
 function onPointerDown(event: PointerEvent): void {
+  if (!touches.down(event)) {
+    // A second finger: end the line the first one is drawing.
+    if (pointerId !== null) {
+      pointerId = null
+      lastCell = -1
+      emit('end')
+    }
+    return
+  }
   if (props.disabled || (event.pointerType === 'mouse' && event.button !== 0)) return
   const cell = cellAt(event)
   if (cell < 0) return
@@ -110,6 +123,7 @@ function onPointerMove(event: PointerEvent): void {
 }
 
 function finish(event: PointerEvent): void {
+  touches.up(event)
   if (pointerId === null || event.pointerId !== pointerId) return
   pointerId = null
   lastCell = -1
@@ -269,7 +283,8 @@ function onKeydown(event: KeyboardEvent): void {
   border-radius: var(--radius-md);
   background: var(--links-cell);
   box-shadow: var(--shadow-md);
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
   cursor: pointer;
 }
 

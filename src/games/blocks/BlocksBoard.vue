@@ -103,7 +103,8 @@ const pos = (cell: number) => ({
   box-shadow:
     inset 0 2px 6px rgb(0 0 0 / 18%),
     var(--shadow-sm);
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
   outline: none;
 }
 

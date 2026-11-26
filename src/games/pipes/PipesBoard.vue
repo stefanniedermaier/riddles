@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 
 import { t } from '@/core/i18n'
+import { createTouchGuard } from '@/core/touchGuard'
 import { MIXED, rotate } from './logic/rules'
 import { DIRECTIONS, DOWN, LEFT, RIGHT, UP } from './logic/types'
 
@@ -123,7 +124,17 @@ function cancelPress(): void {
   pressing.value = -1
 }
 
+/** A second finger (pinch to zoom) cancels the gesture: only one finger plays. */
+const touches = createTouchGuard()
+
 function onPointerDown(event: PointerEvent): void {
+  if (!touches.down(event)) {
+    // A second finger: neither the first one's tap nor its long press counts.
+    downId = null
+    downCell = -1
+    cancelPress()
+    return
+  }
   if (props.disabled) return
   const cell = cellAt(event)
   if (cell < 0) return
@@ -155,6 +166,7 @@ function onPointerMove(event: PointerEvent): void {
 }
 
 function onPointerUp(event: PointerEvent): void {
+  touches.up(event)
   if (downId === null || event.pointerId !== downId) return
   const cell = cellAt(event)
   const start = downCell
@@ -164,7 +176,8 @@ function onPointerUp(event: PointerEvent): void {
   if (!consumed && cell === start && cell >= 0) emit('rotate', cell)
 }
 
-function onPointerCancel(): void {
+function onPointerCancel(event: PointerEvent): void {
+  touches.up(event)
   downId = null
   downCell = -1
   cancelPress()

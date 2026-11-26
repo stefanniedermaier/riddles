@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { t } from '@/core/i18n'
 import { resolvedTheme } from '@/core/theme'
+import { createTouchGuard } from '@/core/touchGuard'
 import { headOf, rayCells } from './logic/analysis'
 import { DELTAS, type Arrow, type Direction } from './logic/types'
 import { arrowColor } from './palette'
@@ -178,7 +179,16 @@ function cellAt(event: PointerEvent): number {
   return Math.floor((y / height) * props.size) * props.size + Math.floor((x / width) * props.size)
 }
 
+/** A second finger (pinch to zoom) cancels the gesture: only one finger plays. */
+const touches = createTouchGuard()
+
 function onPointerDown(event: PointerEvent): void {
+  if (!touches.down(event)) {
+    // A second finger: the first one's tap does not count.
+    downId = null
+    downCell = -1
+    return
+  }
   if (props.disabled || (event.pointerType === 'mouse' && event.button !== 0)) return
   downCell = cellAt(event)
   downId = event.pointerId
@@ -186,6 +196,7 @@ function onPointerDown(event: PointerEvent): void {
 }
 
 function onPointerUp(event: PointerEvent): void {
+  touches.up(event)
   if (downId === null || event.pointerId !== downId) return
   const cell = cellAt(event)
   const start = downCell
@@ -197,7 +208,8 @@ function onPointerUp(event: PointerEvent): void {
   }
 }
 
-function onPointerCancel(): void {
+function onPointerCancel(event: PointerEvent): void {
+  touches.up(event)
   downId = null
   downCell = -1
 }

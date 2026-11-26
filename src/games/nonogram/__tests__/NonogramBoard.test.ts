@@ -40,6 +40,18 @@ describe('NonogramBoard', () => {
     expect(wrapper.find('[data-cell="2"]').classes()).toContain('cell--wrong')
   })
 
+  it('a second finger (pinch to zoom) ends the stroke and starts no new one', async () => {
+    const wrapper = mountBoard(new Array<CellMark>(9).fill(UNKNOWN))
+    const board = wrapper.find('.board')
+    await board.trigger('pointerdown', { clientX: 50, clientY: 50, pointerId: 1, isPrimary: true }) // cell 0
+    await board.trigger('pointerdown', { clientX: 250, clientY: 250, pointerId: 2, isPrimary: false })
+    await board.trigger('pointermove', { clientX: 150, clientY: 50, pointerId: 1, isPrimary: true })
+    await board.trigger('pointermove', { clientX: 250, clientY: 150, pointerId: 2, isPrimary: false })
+    expect(wrapper.emitted('start')).toEqual([[0]])
+    expect(wrapper.emitted('move')).toBeUndefined()
+    expect(wrapper.emitted('end')).toHaveLength(1)
+  })
+
   it('uses hit testing and falls back to geometry without the border', async () => {
     const wrapper = mountBoard(new Array<CellMark>(9).fill(UNKNOWN))
     const board = wrapper.find('.board')

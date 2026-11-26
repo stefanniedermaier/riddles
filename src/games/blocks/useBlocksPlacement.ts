@@ -5,6 +5,7 @@
  */
 import { computed, ref, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 
+import { createTouchGuard } from '@/core/touchGuard'
 import type { Ghost } from './boardTypes'
 import { SIZE, cellsOf, fitsAnywhere, footprint, fullLines, type BlocksRun } from './logic/engine'
 import { shapeSize } from './logic/pieces'
@@ -97,7 +98,14 @@ export function useBlocksPlacement(options: {
     (run.value?.tray ?? []).map((piece) => (piece && run.value ? fitsAnywhere(run.value.board, piece) : false)),
   )
 
+  /** A second finger (pinch to zoom) cancels the drag: the piece goes back to the tray. */
+  const touches = createTouchGuard()
+
   function onTrayPointerDown(slot: number, event: PointerEvent): void {
+    if (!touches.down(event)) {
+      drag.value = null
+      return
+    }
     if (locked.value || !run.value?.tray[slot] || !event.isPrimary) return
     measure()
     try {
@@ -126,6 +134,7 @@ export function useBlocksPlacement(options: {
   }
 
   function onTrayPointerUp(event: PointerEvent): void {
+    touches.up(event)
     const d = drag.value
     if (!d || d.pointerId !== event.pointerId) return
     const target = preview.value
@@ -139,7 +148,8 @@ export function useBlocksPlacement(options: {
     if (target && valid) commit(target.slot, target.anchor)
   }
 
-  function onTrayPointerCancel(): void {
+  function onTrayPointerCancel(event: PointerEvent): void {
+    touches.up(event)
     drag.value = null
   }
 

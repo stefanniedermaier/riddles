@@ -3,6 +3,7 @@ import { onBeforeUnmount } from 'vue'
 
 import { t } from '@/core/i18n'
 import { resolvedTheme } from '@/core/theme'
+import { createTouchGuard } from '@/core/touchGuard'
 import type { Direction } from './logic/engine'
 import { tileColors } from './palette'
 import type { DisplayTile } from './boardTypes'
@@ -40,9 +41,16 @@ function digitsClass(value: number): string {
 
 // --- Swipe -----------------------------------------------------------------------
 
+/** A second finger (pinch to zoom) cancels the gesture: only one finger plays. */
+const touches = createTouchGuard()
+
 let start: { id: number; x: number; y: number } | null = null
 
 function onPointerDown(event: PointerEvent): void {
+  if (!touches.down(event)) {
+    stopTracking()
+    return
+  }
   if (event.pointerType === 'mouse' && event.button !== 0) return
   start = { id: event.pointerId, x: event.clientX, y: event.clientY }
   window.addEventListener('pointerup', onPointerUp)
@@ -56,6 +64,7 @@ function stopTracking(): void {
 }
 
 function onPointerUp(event: PointerEvent): void {
+  touches.up(event)
   if (!start || event.pointerId !== start.id) return
   const dx = event.clientX - start.x
   const dy = event.clientY - start.y
@@ -65,7 +74,8 @@ function onPointerUp(event: PointerEvent): void {
   else emit('move', dy > 0 ? 'down' : 'up')
 }
 
-function onPointerCancel(): void {
+function onPointerCancel(event: PointerEvent): void {
+  touches.up(event)
   stopTracking()
 }
 
@@ -108,7 +118,8 @@ onBeforeUnmount(stopTracking)
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--game-merge) 16%, var(--color-surface-2));
   box-shadow: var(--shadow-sm);
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
   cursor: grab;
 }
 

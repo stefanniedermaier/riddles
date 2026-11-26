@@ -571,7 +571,8 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-md);
   background: transparent;
   cursor: grab;
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
   transition:
     transform var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast);

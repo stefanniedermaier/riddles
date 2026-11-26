@@ -29,9 +29,10 @@ project adheres to [Semantic Versioning](https://semver.org/).
 - Shapes with reduced motion (e.g. Android's "Remove animations"): a move is shown step by
   step – the swap, the matched pieces fading, the refill – instead of jumping straight to
   the final board, which made one swap look as if half the board changed by itself.
-- Shapes: a second finger on the board (e.g. a pinch to zoom in) no longer swaps pieces –
-  the first finger's movement used to count as a swipe. Two-finger zoom now works on the
-  board too.
+- All games: a second finger on the board (e.g. a pinch to zoom in) no longer plays – no
+  swap in Shapes, no move in Merge, no tap or long press in Mines, Pipes and Arrows, no
+  stroke in Links, Nonogram and Stars, no drag in Blocks and the card games. Two-finger zoom
+  now works on the boards too.
 - "Share result" after a Blocks or Merge game (and Shapes Zen / Time) also without a new
   personal best: these games simply end with a score.
 - Statistics no longer scroll sideways on narrow phones (e.g. Galaxy S21 FE); a wide table
