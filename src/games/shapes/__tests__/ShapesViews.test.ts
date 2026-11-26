@@ -24,6 +24,12 @@ async function mountAt(path: string) {
   return { wrapper, router }
 }
 
+/** Lets a move play out: its steps take time also with reduced motion (fake timers). */
+async function settle() {
+  await vi.advanceTimersByTimeAsync(10_000)
+  await flushPromises()
+}
+
 /** Tries neighbouring swaps until one is valid (invalid swaps don't count as moves). */
 async function playAnyMove(wrapper: Awaited<ReturnType<typeof mountAt>>['wrapper'], mode: 'zen' | 'time' | 'levels') {
   const before = loadRun(mode)?.movesMade ?? 0
@@ -31,7 +37,7 @@ async function playAnyMove(wrapper: Awaited<ReturnType<typeof mountAt>>['wrapper
     for (const other of [cell + 1, cell + 8]) {
       if (other >= 64 || (other === cell + 1 && cell % 8 === 7)) continue
       wrapper.findComponent(ShapesBoard).vm.$emit('swap', cell, other)
-      await flushPromises()
+      await settle()
       if ((loadRun(mode)?.movesMade ?? 0) > before) return
     }
   }
@@ -74,6 +80,7 @@ describe('Shapes views', () => {
   })
 
   it('starts the current level and offers Home and the next level after a win', async () => {
+    vi.useFakeTimers()
     levelProgress.value = { level: 3 }
     const { wrapper, router } = await mountAt('/shapes/play/levels?new=1')
     expect(wrapper.text()).toContain('Level 3')
@@ -90,7 +97,7 @@ describe('Shapes views', () => {
     const second = await mountAt('/shapes/play/levels')
     const move = listMoves(loadRun('levels')!.board, loadRun('levels')!.level!.field)[0]!
     second.wrapper.findComponent(ShapesBoard).vm.$emit('swap', move.a, move.b)
-    await flushPromises()
+    await settle()
     const dialog = document.body.textContent ?? ''
     expect(dialog).toContain('Level complete!')
     expect(dialog).toContain('Next level')
@@ -106,6 +113,7 @@ describe('Shapes views', () => {
   })
 
   it('starts a zen run, plays a move and saves it', async () => {
+    vi.useFakeTimers()
     const { wrapper, router } = await mountAt('/shapes/play/zen?new=1')
     expect(wrapper.findAll('.piece')).toHaveLength(64)
     expect(router.currentRoute.value.query.new).toBeUndefined()
@@ -119,6 +127,38 @@ describe('Shapes views', () => {
     expect(after.score).toBeGreaterThan(0)
     expect(wrapper.findAll('.piece')).toHaveLength(64)
     expect(wrapper.text()).toContain(new Intl.NumberFormat('en').format(after.score))
+    wrapper.unmount()
+  })
+
+  it('with reduced motion still shows a move step by step, not only the final board', async () => {
+    vi.useFakeTimers()
+    const { wrapper } = await mountAt('/shapes/play/zen?new=1')
+    const kindAt = (cell: number) => {
+      const el = wrapper
+        .findAll('.piece:not(.piece--clearing)')
+        .find((p) => (p.attributes('style') ?? '').includes(`translate3d(${(cell % 8) * 100}%, ${Math.floor(cell / 8) * 100}%`))
+      return el?.find('svg').classes().find((c) => /^shape-piece--k/.test(c))
+    }
+    const move = listMoves(
+      // The board as shown: kinds by cell (the run is not saved before the first move).
+      Array.from({ length: 64 }, (_, cell) => {
+        const k = kindAt(cell)
+        return k ? { id: cell, kind: Number(k.slice('shape-piece--k'.length)), special: 'none' as const } : null
+      }),
+    )[0]!
+    const [kindA, kindB] = [kindAt(move.a), kindAt(move.b)]
+    wrapper.findComponent(ShapesBoard).vm.$emit('swap', move.a, move.b)
+    await flushPromises()
+    // 1. The two pieces have swapped – nothing else has happened yet.
+    expect([kindAt(move.a), kindAt(move.b)]).toEqual([kindB, kindA])
+    expect(wrapper.findAll('.piece--clearing')).toHaveLength(0)
+    // 2. Then the match is marked …
+    await vi.advanceTimersByTimeAsync(300)
+    expect(wrapper.findAll('.piece--clearing').length).toBeGreaterThanOrEqual(3)
+    // 3. … and in the end the board is full again.
+    await settle()
+    expect(wrapper.findAll('.piece--clearing')).toHaveLength(0)
+    expect(wrapper.findAll('.piece')).toHaveLength(64)
     wrapper.unmount()
   })
 
@@ -178,6 +218,7 @@ describe('Shapes views', () => {
   })
 
   it('ends a Zen run from the pause menu, records the score and removes the save', async () => {
+    vi.useFakeTimers()
     const { wrapper } = await mountAt('/shapes/play/zen?new=1')
     await playAnyMove(wrapper, 'zen')
     const score = loadRun('zen')!.score

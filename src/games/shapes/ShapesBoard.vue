@@ -661,6 +661,12 @@ function isSelected(piece: DisplayPiece): boolean {
   animation: none;
 }
 
+/* Reduced motion: matched pieces fade (no pop) before they are removed. */
+:root[data-motion='reduced'] .piece--clearing .piece__inner {
+  animation: none;
+  opacity: 0.3;
+}
+
 :root[data-motion='reduced'] .fx {
   display: none;
 }

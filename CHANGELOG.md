@@ -26,6 +26,9 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Shapes with reduced motion (e.g. Android's "Remove animations"): a move is shown step by
+  step – the swap, the matched pieces fading, the refill – instead of jumping straight to
+  the final board, which made one swap look as if half the board changed by itself.
 - Shapes: a second finger on the board (e.g. a pinch to zoom in) no longer swaps pieces –
   the first finger's movement used to count as a swipe. Two-finger zoom now works on the
   board too.
