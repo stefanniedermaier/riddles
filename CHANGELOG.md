@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.14.0] – 2026-11-26
+
+Snake as the 17th game, real addresses and German pages for search engines and link
+previews, a faster start and fixes for players with zoom and reduced motion.
+
 ### Search engines and link previews (plan 21)
 
 - **Real addresses:** every game has its own page – `/riddles/sudoku/` instead of
@@ -18,7 +23,7 @@ project adheres to [Semantic Versioning](https://semver.org/).
   JavaScript. A sitemap lists all pages.
 - Shared challenge links point to the page in the sharer's language and show a preview
   with the game's logo.
-- New description of the app (16 games instead of "Sudoku, Crowns and Shapes").
+- New description of the app (17 games instead of "Sudoku, Crowns and Shapes").
 - Google Search Console verification.
 
 ### Added

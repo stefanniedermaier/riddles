@@ -1,6 +1,6 @@
 {
   "name": "riddles",
-  "version": "0.13.2",
+  "version": "0.14.0",
   "private": true,
   "description": "Free puzzle games as an installable, offline Progressive Web App: Sudoku, Nonograms, Solitaire, Minesweeper and 13 more – no ads, no account, no tracking.",
   "license": "MIT",
