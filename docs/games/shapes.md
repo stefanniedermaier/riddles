@@ -37,12 +37,16 @@ After 8 seconds without input a possible move pulses gently (can be switched off
 | -------------------------------- | ------- | --------------- | ----------------------------------------------------- |
 | 4 in a line (horizontal)         | Line    | rocket (→)      | clears its whole **row**                              |
 | 4 in a line (vertical)           | Line    | rocket (↑)      | clears its whole **column**                           |
-| L or T shape (crossing lines)    | Burst   | bomb            | clears the surrounding 3×3 area                        |
+| L or T shape (crossing lines)    | Burst   | dynamite        | clears the surrounding 3×3 area                        |
 | 5 or more in a line              | Prism   | rainbow ball    | see below – never part of a regular match              |
 
 The special appears where the moved piece landed (or, for cascades, at the crossing point of
 an L/T or the middle of the line). It keeps the kind of the match, so line and burst pieces
 can be matched like normal pieces – which fires them.
+
+Rockets and dynamite are drawn in the colour and texture of their kind (seeds, pores, the
+lemon tip, veins, petals, berries) in their own shape, so the kind to match stays visible;
+the rocket points the way it clears.
 
 **Chain reactions:** any special that is cleared – by a match or by another special's
 effect – fires its own effect. A prism hit this way clears all pieces of the most common
@@ -183,7 +187,7 @@ created specials, triggered specials, score, cascade depth, obstacles afterwards
 with CSS transform transitions. Piece ids are used as Vue keys and the rendered list is
 sorted by id, so DOM elements are never re-ordered and transitions are not interrupted.
 Clears additionally show short board effects (juice splashes in the colour of the kind, a
-beam for rockets, a shockwave for bombs, a rainbow ring for the prism), and the points of
+beam for rockets, a shockwave for dynamite, a rainbow ring for the prism), and the points of
 every clear fly from the cleared cells to the score, which bumps when they land.
 With reduced motion the final board is shown immediately, without effects or flying points.
 

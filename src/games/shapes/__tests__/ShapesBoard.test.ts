@@ -35,7 +35,7 @@ describe('ShapesBoard keyboard', () => {
     expect(board.attributes('tabindex')).toBe('0')
     // The cursor starts at row 4, column 4 (cell 27).
     await board.trigger('keydown', { key: 'ArrowRight' })
-    expect(wrapper.find('[aria-live]').text()).toBe('Row 4, column 5: flowers, bomb')
+    expect(wrapper.find('[aria-live]').text()).toBe('Row 4, column 5: flowers, dynamite')
     await board.trigger('keydown', { key: 'Enter' })
     expect(wrapper.props('selected')).toBe(28)
     await board.trigger('keydown', { key: 'ArrowDown' })

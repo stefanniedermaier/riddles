@@ -8,6 +8,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Shapes: rockets and the bomb no longer cover their fruit. A rocket is drawn in the colour
+  and texture of its fruit (seeds, pores, the lemon tip, veins, petals, berries) and points
+  the way it clears; the bomb is now a bundle of dynamite in the fruit's look, with black
+  tape, fuse and flame. The kind to match stays visible at a glance, also without colour
+  vision.
 - The header at the top is fully opaque; nothing scrolling underneath shows through.
 - Play views get their route values (`?new=`, variant / mode) as props instead of reading the
   route themselves.

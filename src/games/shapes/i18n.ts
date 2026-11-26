@@ -15,7 +15,7 @@ export const en = {
     levels: 'Reach the goals before you run out of moves. Each level unlocks the next.',
   },
   lobby: {
-    howTo: 'Swipe a piece – or tap two neighbours – to swap them. Line up three or more of the same kind. Bigger matches build rockets, bombs and rainbow balls.',
+    howTo: 'Swipe a piece – or tap two neighbours – to swap them. Line up three or more of the same kind. Bigger matches build rockets, dynamite and rainbow balls.',
     howToTitle: 'How to play',
     howToLevels:
       'Levels add obstacles: break chains and crates, clear the marked tiles and bring the drop items down to the bottom row – an item can always be swapped one row down.',
@@ -55,7 +55,7 @@ export const en = {
   specials: {
     lineH: 'row rocket',
     lineV: 'column rocket',
-    burst: 'bomb',
+    burst: 'dynamite',
     prism: 'rainbow ball',
   },
   rules: {
@@ -122,7 +122,7 @@ export const de: Messages<typeof en> = {
   },
   lobby: {
     howTo:
-      'Wische über einen Stein – oder tippe zwei Nachbarn an – um sie zu tauschen. Bilde Reihen aus drei oder mehr gleichen. Größere Reihen ergeben Raketen, Bomben und Regenbogenkugeln.',
+      'Wische über einen Stein – oder tippe zwei Nachbarn an – um sie zu tauschen. Bilde Reihen aus drei oder mehr gleichen. Größere Reihen ergeben Raketen, Dynamit und Regenbogenkugeln.',
     howToTitle: 'So geht’s',
     howToLevels:
       'In den Leveln gibt es Hindernisse: Sprenge Ketten und Kisten, räume die markierten Felder ab und bringe die Fallgegenstände in die unterste Reihe – ein Gegenstand lässt sich jederzeit eine Reihe nach unten tauschen.',
@@ -162,7 +162,7 @@ export const de: Messages<typeof en> = {
   specials: {
     lineH: 'Reihen-Rakete',
     lineV: 'Spalten-Rakete',
-    burst: 'Bombe',
+    burst: 'Dynamit',
     prism: 'Regenbogenkugel',
   },
   rules: {
