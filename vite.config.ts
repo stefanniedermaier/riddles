@@ -104,6 +104,16 @@ function thirdPartyLicenses(): Plugin {
 }
 
 // https://vite.dev/config/
+/**
+ * Dark variant of the manifest colours (Web App Manifest draft, `color_scheme_dark`): Android
+ * can colour the installed app's system bars – including the navigation bar – dark while the
+ * phone is in dark mode. It follows the phone's setting, not the in-app theme; browsers
+ * without support ignore it. Spread in, as vite-plugin-pwa's types do not know it yet.
+ */
+const darkManifestColors = {
+  color_scheme_dark: { theme_color: '#15141b', background_color: '#15141b' },
+}
+
 export default defineConfig({
   // The app is served from https://<user>.github.io/riddles/
   base: '/riddles/',
@@ -135,6 +145,7 @@ export default defineConfig({
         // games' landscape layout. Portrait is requested at runtime (src/core/orientation.ts).
         theme_color: '#f6f5f2',
         background_color: '#f6f5f2',
+        ...darkManifestColors,
         categories: ['games', 'puzzle'],
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },

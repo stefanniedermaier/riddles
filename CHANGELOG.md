@@ -14,6 +14,9 @@ project adheres to [Semantic Versioning](https://semver.org/).
   tape, fuse and flame. The kind to match stays visible at a glance, also without colour
   vision.
 - The header at the top is fully opaque; nothing scrolling underneath shows through.
+- Installed app on Android: the manifest has dark system-bar colours (`color_scheme_dark`), so
+  the navigation bar can turn dark while the phone is in dark mode – where the browser
+  supports it, after Chrome updates the installed app (or after reinstalling it).
 - Play views get their route values (`?new=`, variant / mode) as props instead of reading the
   route themselves.
 
