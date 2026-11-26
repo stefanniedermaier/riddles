@@ -240,7 +240,7 @@ session.init()
   <PlayBar
     v-model:rules-open="showRules"
     :title="title"
-    back-to="/crowns"
+    :back-to="{ name: 'crowns' }"
     :elapsed-ms="status === 'loading' ? null : stopwatch.elapsedMs.value"
     :rules-label="t('crowns.play.rules')"
     :rules-title="t('crowns.rules.title')"

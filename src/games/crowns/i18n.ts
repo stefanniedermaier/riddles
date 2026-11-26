@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Stars',
   tagline: 'One star per row, column and region.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Star Battle logic puzzle: one star per row, column and region, and stars never touch. 6×6 to 10×10, solvable by logic alone.',
+  },
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {
@@ -67,6 +71,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Stars',
   tagline: 'Ein Stern pro Zeile, Spalte und Region.',
+  seo: {
+    about: 'Logikrätsel nach Art von Star Battle: ein Stern pro Zeile, Spalte und Region, Sterne berühren sich nie. 6×6 bis 10×10, rein logisch lösbar.',
+  },
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {

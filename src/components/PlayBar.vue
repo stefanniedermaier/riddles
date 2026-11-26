@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RouteLocationRaw } from 'vue-router'
 import AppBar from '@/components/AppBar.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -11,7 +12,7 @@ import { t } from '@/core/i18n'
  */
 defineProps<{
   title: string
-  backTo: string
+  backTo: RouteLocationRaw
   /** Shown time; hidden while a puzzle is being generated. */
   elapsedMs: number | null
   rulesLabel: string

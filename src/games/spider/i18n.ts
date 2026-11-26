@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Spider',
   tagline: 'Two decks, ten columns: build runs from king to ace.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Spider solitaire with two decks and ten columns: build runs from king to ace with 1, 2 or 4 suits. With undo and hints.',
+  },
   variants: {
     suits1: '1 suit',
     suits2: '2 suits',
@@ -27,6 +31,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Spider',
   tagline: 'Zwei Kartenspiele, zehn Spalten: Baue Reihen vom König bis zum Ass.',
+  seo: {
+    about: 'Spider-Solitär mit zwei Kartenspielen und zehn Spalten: Baue Folgen vom König bis zum Ass mit 1, 2 oder 4 Farben. Mit Rückgängig und Hinweisen.',
+  },
   variants: {
     suits1: '1 Farbe',
     suits2: '2 Farben',

@@ -1,5 +1,7 @@
 import type { RouteComponent, RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 
+import { gameSlug } from './slugs'
+
 /** The part of a route the props are made of. */
 export type RouteValues = Pick<RouteLocationNormalized, 'params' | 'query'>
 
@@ -23,9 +25,10 @@ export function playProps(route: RouteValues): Record<string, unknown> & PlayRou
 }
 
 /**
- * The two routes of most games: the lobby `/<id>` (`<id>`) and the play view `/<id>/play`
- * (`<id>-play`; `?new=<variant>` starts a new game, without it the saved one is resumed).
- * The play view gets the route values as props (`playProps`).
+ * The two routes of most games: the lobby `/<slug>` (named `<id>`) and the play view
+ * `/<slug>/play` (`<id>-play`; `?new=<variant>` starts a new game, without it the saved one
+ * is resumed). The play view gets the route values as props (`playProps`). The slug is the
+ * id unless the game was renamed (`slugs.ts`); the old addresses then redirect.
  *
  * The loaders stay literal `() => import('./…')` calls in each game's `routes.ts`, so every
  * view gets its own chunk.
@@ -36,8 +39,17 @@ export function standardRoutes(
   play: Lazy,
   props: (route: RouteValues) => Record<string, unknown> = playProps,
 ): RouteRecordRaw[] {
-  return [
-    { path: `/${id}`, name: id, component: lobby },
-    { path: `/${id}/play`, name: `${id}-play`, component: play, props },
+  const slug = gameSlug(id)
+  const routes: RouteRecordRaw[] = [
+    { path: `/${slug}`, name: id, component: lobby },
+    { path: `/${slug}/play`, name: `${id}-play`, component: play, props },
   ]
+  if (slug !== id) {
+    // Links of older versions (e.g. shared challenges) keep working.
+    routes.push(
+      { path: `/${id}`, redirect: (to) => ({ name: id, query: to.query }) },
+      { path: `/${id}/play`, redirect: (to) => ({ name: `${id}-play`, query: to.query }) },
+    )
+  }
+  return routes
 }

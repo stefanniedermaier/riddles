@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Code Breaker',
   tagline: 'Crack the hidden colour code – every guess tells you a little more.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Code breaking logic game: crack the hidden colour code – the pegs tell you how close you are. 4 to 6 pegs, 6 to 8 colours with shapes.',
+  },
   sizeLabel: '{positions} pegs · {colors} colours',
   variantLabel: '{difficulty} · {size}',
   rules: {
@@ -63,6 +67,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Code Breaker',
   tagline: 'Knacke den versteckten Farbcode – jeder Versuch verrät ein bisschen mehr.',
+  seo: {
+    about: 'Codeknacker-Logikspiel: Knacke den geheimen Farbcode – die Stifte zeigen, wie nah du bist. 4 bis 6 Stellen, 6 bis 8 Farben mit Formen.',
+  },
   sizeLabel: '{positions} Stecker · {colors} Farben',
   variantLabel: '{difficulty} · {size}',
   rules: {

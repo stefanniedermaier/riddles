@@ -1,0 +1,73 @@
+body {
+  margin: 0;
+  background: #fff;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  box-sizing: border-box;
+  width: 1200px;
+  height: 630px;
+  padding: 72px 88px;
+  background:
+    radial-gradient(circle at 18% 30%, color-mix(in srgb, var(--card-accent) 22%, #fff) 0, transparent 60%),
+    linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 10%, #fffdf8), #fffdf8);
+  border-bottom: 18px solid var(--card-accent);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  color: #1d1b26;
+}
+
+.card__art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 400px;
+  height: 400px;
+  border-radius: 48px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgb(40 30 60 / 18%);
+}
+
+
+.card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 104px);
+  gap: 18px;
+}
+
+
+.card__text {
+  min-width: 0;
+}
+
+.card__brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 12px;
+  font-size: 40px;
+  font-weight: 700;
+  color: #5c5870;
+}
+
+.card__app-logo {
+  width: 56px;
+  height: 56px;
+}
+
+.card__name {
+  margin: 0;
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.card__claim {
+  margin: 28px 0 0;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--card-accent);
+}

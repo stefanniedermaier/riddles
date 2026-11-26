@@ -3,8 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Title, description, canonical, link previews and structured data per page:
+         filled in by the build (scripts/seo.ts) for every prerendered page. -->
+    <!-- seo:start -->
     <title>Riddles</title>
-    <meta name="description" content="Sudoku, Crowns and Shapes – puzzle games that work offline." />
+    <!-- seo:end -->
+    <meta name="google-site-verification" content="rOvTWtIeh_Q-EoulQzNl0TZCS7Uw2LMebLXU8i--sto" />
     <!-- Browser / status bar colour per system theme (a fixed theme from the settings
          overrides both at runtime, src/core/theme.ts). -->
     <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)" />
@@ -26,11 +30,14 @@
           (s.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
       } catch (e) {}
+      // The app replaces the static page content (for crawlers and link previews) once it
+      // mounts; hide it until then, so it never flashes (see .prerender in base.css).
+      document.documentElement.classList.add('js')
     </script>
   </head>
   <body>
-    <div id="app"></div>
-    <noscript>Riddles needs JavaScript to run.</noscript>
+    <div id="app"><!-- content:start --><!-- content:end --></div>
+    <noscript><p class="prerender">Riddles needs JavaScript to run. / Riddles braucht JavaScript.</p></noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

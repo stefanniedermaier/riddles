@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Nonogram',
   tagline: 'Fill the grid using the number clues.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Nonograms, also called Hanjie or paint by numbers: fill the grid by the number clues. 5×5 to 15×20, unique and solvable by logic.',
+  },
   sizeLabel: '{width}×{height}',
   variantLabel: '{difficulty} · {size}',
   rules: {
@@ -57,6 +61,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Nonogram',
   tagline: 'Fülle das Raster anhand der Zahlenhinweise.',
+  seo: {
+    about: 'Nonogramme, auch Hanjie oder Malen nach Zahlen: Fülle das Gitter nach den Zahlenhinweisen. 5×5 bis 15×20, eindeutig und logisch lösbar.',
+  },
   sizeLabel: '{width}×{height}',
   variantLabel: '{difficulty} · {size}',
   rules: {

@@ -7,6 +7,8 @@ import vue from '@vitejs/plugin-vue'
 import { defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+import { loadGames, pagesFor, renderPage } from './scripts/seo.ts'
+
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
   version: string
 }
@@ -27,7 +29,9 @@ function contentSecurityPolicy(): Plugin {
         // Inline scripts only (external ones with src= are covered by 'self'); tag names are
         // case-insensitive and browsers also accept end tags with trailing content.
         const scriptHashes = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)]
-          .filter((match) => !/\bsrc\s*=/i.test(match[1] ?? ''))
+          // Not external scripts (covered by 'self') nor JSON-LD data blocks (never executed;
+          // they differ per prerendered page).
+          .filter((match) => !/\bsrc\s*=|application\/ld\+json/i.test(match[1] ?? ''))
           .map((match) => `'sha256-${createHash('sha256').update(match[2] ?? '').digest('base64')}'`)
         const policy = [
           "default-src 'self'",
@@ -47,6 +51,26 @@ function contentSecurityPolicy(): Plugin {
           /<meta charset="UTF-8" \/>/,
           `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`,
         )
+      },
+    },
+  }
+}
+
+/**
+ * Fills the English home page – which is also the app shell the service worker serves for
+ * every page – with its search engine head and static content (scripts/seo.ts). All other
+ * pages are written from the built file by scripts/prerender.ts.
+ */
+function homePage(): Plugin {
+  return {
+    name: 'riddles:home-page',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'pre',
+      async handler(html) {
+        const games = await loadGames()
+        const home = pagesFor(games).find((page) => page.kind === 'home' && page.locale === 'en')!
+        return renderPage(html, home, games)
       },
     },
   }
@@ -103,7 +127,6 @@ function thirdPartyLicenses(): Plugin {
   }
 }
 
-// https://vite.dev/config/
 /**
  * Dark variant of the manifest colours (Web App Manifest draft, `color_scheme_dark`): Android
  * can colour the installed app's system bars – including the navigation bar – dark while the
@@ -114,6 +137,7 @@ const darkManifestColors = {
   color_scheme_dark: { theme_color: '#15141b', background_color: '#15141b' },
 }
 
+// https://vite.dev/config/
 export default defineConfig({
   // The app is served from https://<user>.github.io/riddles/
   base: '/riddles/',
@@ -122,6 +146,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
+    homePage(),
     contentSecurityPolicy(),
     thirdPartyLicenses(),
     VitePWA({
@@ -132,7 +157,8 @@ export default defineConfig({
         id: '/riddles/',
         name: 'Riddles',
         short_name: 'Riddles',
-        description: 'Sudoku, Crowns and Shapes – puzzle games that work offline.',
+        description:
+          'Free puzzle games that work offline: Sudoku, Nonograms, Solitaire, Minesweeper and 12 more – no ads, no account, no tracking.',
         lang: 'en',
         start_url: './',
         scope: './',
@@ -160,7 +186,12 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,txt}'],
+        // Only the app shell (index.html) of all HTML: every page is the same app. The
+        // prerendered pages, 404.html and sitemap.xml are written after this step and are
+        // for crawlers; so are the link preview images (og/).
+        globPatterns: ['**/*.{js,css,svg,png,ico,webmanifest,txt}', 'index.html'],
+        globIgnores: ['og/**'],
+        navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
       },
     }),

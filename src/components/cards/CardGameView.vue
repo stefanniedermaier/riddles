@@ -515,7 +515,7 @@ if (props.newGame === undefined && !resume()) {
 </script>
 
 <template>
-  <AppBar :title="gameName(game.id)" :back-to="`/${game.id}`">
+  <AppBar :title="gameName(game.id)" :back-to="{ name: game.id }">
     <template #actions>
       <span v-if="status !== 'loading'" class="timer tabular" :aria-label="pointsMode ? t('cards.play.score') : t('common.time')">
         <template v-if="pointsMode">

@@ -9,6 +9,7 @@ import { computed, ref, watchEffect } from 'vue'
 import type { GameId } from '@/games/types'
 import { getMessages, type MessageKey } from '@/i18n'
 import { settings } from './settings'
+import { pageLocaleOf } from './site'
 
 export type Locale = 'en' | 'de'
 export type { MessageKey }
@@ -25,8 +26,17 @@ export function detectLocale(language: string): Locale {
   return language.toLowerCase().startsWith('de') ? 'de' : 'en'
 }
 
+/** Language of the page (`/riddles/de/…` is German), `null` on the default pages. */
+const pageLocale = typeof window !== 'undefined' ? pageLocaleOf(window.location.pathname) : null
+
+/**
+ * The app language: the setting; with "system" the language of the page (so a German page
+ * shows German – also to search engines), otherwise the device language.
+ */
 export const locale = computed<Locale>(() =>
-  settings.value.locale === 'system' ? detectLocale(deviceLanguage.value) : settings.value.locale,
+  settings.value.locale === 'system'
+    ? (pageLocale ?? detectLocale(deviceLanguage.value))
+    : settings.value.locale,
 )
 
 function lookup(source: unknown, key: string): string | undefined {

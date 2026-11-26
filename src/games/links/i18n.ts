@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Links',
   tagline: 'Connect matching dots and fill every cell.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Numberlink puzzle: connect each pair of coloured dots – lines never cross and every cell gets filled. 5×5 to 11×11 with hints and undo.',
+  },
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {
@@ -44,6 +48,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Links',
   tagline: 'Verbinde gleiche Punkte und fülle jedes Feld.',
+  seo: {
+    about: 'Numberlink-Rätsel: Verbinde gleichfarbige Punkte – Linien kreuzen sich nie und jedes Feld wird gefüllt. 5×5 bis 11×11 mit Hinweisen.',
+  },
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {

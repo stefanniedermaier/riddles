@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Mines',
   tagline: 'Find the hidden mines by logic – never by luck.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Minesweeper without guessing: every board can be solved by logic alone. 8×10 to 12×18, with hints that explain the next safe step.',
+  },
   sizeLabel: '{width}×{height} · {mines} mines',
   boardLabel: '{width}×{height}',
   variantLabel: '{difficulty} · {size}',
@@ -75,6 +79,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Mines',
   tagline: 'Finde die versteckten Minen mit Logik – nie mit Glück.',
+  seo: {
+    about: 'Minesweeper ohne Raten: Jedes Feld ist rein logisch lösbar. 8×10 bis 12×18, mit Hinweisen, die den nächsten sicheren Schritt erklären.',
+  },
   sizeLabel: '{width}×{height} · {mines} Minen',
   boardLabel: '{width}×{height}',
   variantLabel: '{difficulty} · {size}',

@@ -44,7 +44,7 @@ async function share(): Promise<void> {
     <ul class="games">
       <li v-for="game in visibleGames" :key="game.id">
         <RouterLink
-          :to="`/${game.id}`"
+          :to="{ name: game.id }"
           class="game-card"
           :style="{ '--card-accent': `var(--game-${game.id})` }"
         >

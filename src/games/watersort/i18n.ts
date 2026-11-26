@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Water Sort',
   tagline: 'Pour the water from tube to tube until every tube holds one colour.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Water sort puzzle: pour coloured water from tube to tube until each holds one colour. 4 to 12 colours, always solvable, unlimited undo.',
+  },
   sizeLabel: '{colors} colours',
   variantLabel: '{difficulty} · {size}',
   rules: {
@@ -57,6 +61,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Water Sort',
   tagline: 'Gieße das Wasser von Glas zu Glas, bis jedes Glas nur eine Farbe enthält.',
+  seo: {
+    about: 'Wasser-Sortier-Rätsel: Gieße farbiges Wasser um, bis jedes Röhrchen nur eine Farbe enthält. 4 bis 12 Farben, immer lösbar, unbegrenzt zurück.',
+  },
   sizeLabel: '{colors} Farben',
   variantLabel: '{difficulty} · {size}',
   rules: {

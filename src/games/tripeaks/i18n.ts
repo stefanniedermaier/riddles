@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'TriPeaks',
   tagline: 'Clear three peaks with cards one higher or one lower.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'TriPeaks solitaire: clear three peaks with cards one higher or one lower. Streaks and peak bonuses in points mode.',
+  },
   variants: {
     easy: 'Easy · ace and king connect',
     medium: 'Medium · no K–A',
@@ -25,6 +29,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'TriPeaks',
   tagline: 'Räume drei Gipfel mit Karten, die eins höher oder niedriger sind.',
+  seo: {
+    about: 'TriPeaks-Solitär: Räume drei Gipfel mit Karten, die eins höher oder niedriger sind. Serien und Gipfelboni im Punktemodus.',
+  },
   variants: {
     easy: 'Leicht · Ass und König passen',
     medium: 'Mittel · ohne K–A',

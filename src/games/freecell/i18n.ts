@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'FreeCell',
   tagline: 'All cards open, four free cells – patience by pure logic.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'FreeCell solitaire: all cards open, 4, 3 or 2 free cells – patience by pure logic, and every deal is solvable.',
+  },
   variants: {
     cells4: '4 free cells',
     cells3: '3 free cells',
@@ -23,6 +27,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'FreeCell',
   tagline: 'Alle Karten offen, vier freie Zellen – Patience mit reiner Logik.',
+  seo: {
+    about: 'FreeCell-Patience: Alle Karten offen, 4, 3 oder 2 freie Zellen – reine Logik, und jedes Spiel ist lösbar.',
+  },
   variants: {
     cells4: '4 freie Zellen',
     cells3: '3 freie Zellen',

@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Shapes',
   tagline: 'Swap fruit and match three or more.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Match-3 with fruit and garden pieces: swap neighbours to line up three or more. Zen, Time and Levels modes with rockets and dynamite.',
+  },
   modes: {
     zen: 'Zen',
     time: 'Time',
@@ -110,6 +114,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Shapes',
   tagline: 'Tausche Früchte und bilde Reihen aus drei oder mehr.',
+  seo: {
+    about: 'Match-3 mit Obst- und Gartenmotiven: Tausche Nachbarn und bilde Reihen aus drei oder mehr. Zen, Zeit und Level mit Raketen und Dynamit.',
+  },
   modes: {
     zen: 'Zen',
     time: 'Zeit',

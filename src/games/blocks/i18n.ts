@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Blocks',
   tagline: 'Place blocks and clear full rows and columns.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Block puzzle: place three pieces at a time on an 8×8 board and clear full rows and columns. Combos and a cleared board earn bonus points.',
+  },
   variants: {
     classic: 'Classic',
   },
@@ -48,6 +52,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Blocks',
   tagline: 'Lege Blöcke und räume volle Reihen und Spalten ab.',
+  seo: {
+    about: 'Block-Puzzle: Lege je drei Teile auf ein 8×8-Feld und räume volle Reihen und Spalten ab. Kombos und ein leeres Feld bringen Bonuspunkte.',
+  },
   variants: {
     classic: 'Klassisch',
   },

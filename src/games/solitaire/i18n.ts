@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Solitaire',
   tagline: 'The classic patience: sort all cards onto four foundations.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Klondike solitaire: draw 1 or 3, limited or unlimited passes, time or points – with solvable deals and hints.',
+  },
   variants: {
     draw1: 'Draw 1',
     'draw1-1pass': 'Draw 1 · one pass',
@@ -22,6 +26,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Solitaire',
   tagline: 'Die klassische Patience: Lege alle Karten auf vier Zielstapel.',
+  seo: {
+    about: 'Klondike-Solitär (Patience): 1 oder 3 Karten ziehen, begrenzte oder freie Durchgänge, Zeit oder Punkte – mit lösbaren Spielen und Hinweisen.',
+  },
   variants: {
     draw1: '1 ziehen',
     'draw1-1pass': '1 ziehen · ein Durchgang',

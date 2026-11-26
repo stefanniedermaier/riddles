@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Merge',
   tagline: 'Slide the tiles and merge equal numbers.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Sliding number puzzle: merge equal tiles to reach 256, 2048 or 4096 on 3×3, 4×4 or 5×5 boards – then keep going for a high score.',
+  },
   variants: {
     small: 'Small · 3×3',
     classic: 'Classic · 4×4',
@@ -50,6 +54,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Merge',
   tagline: 'Schiebe die Kacheln und verschmelze gleiche Zahlen.',
+  seo: {
+    about: 'Schiebe-Zahlenrätsel: Verschmelze gleiche Kacheln bis 256, 2048 oder 4096 auf 3×3, 4×4 oder 5×5 – und spiel weiter für den Highscore.',
+  },
   variants: {
     small: 'Klein · 3×3',
     classic: 'Klassisch · 4×4',

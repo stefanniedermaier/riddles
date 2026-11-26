@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Pipes',
   tagline: 'Turn the tiles until the water reaches every pipe.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Pipe puzzle: turn the tiles until the water from the source reaches every pipe with no open ends. Expert mode with three sources.',
+  },
   sizeLabel: '{width}×{height}',
   variantLabel: '{difficulty} · {size}',
   sources: '{n} sources',
@@ -50,6 +54,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Pipes',
   tagline: 'Drehe die Kacheln, bis das Wasser jedes Rohr erreicht.',
+  seo: {
+    about: 'Rohr-Rätsel: Drehe die Teile, bis das Wasser aus der Quelle jede Leitung ohne offene Enden erreicht. Expert-Modus mit drei Quellen.',
+  },
   sizeLabel: '{width}×{height}',
   variantLabel: '{difficulty} · {size}',
   sources: '{n} Quellen',

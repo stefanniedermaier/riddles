@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { settings } from '@/core/settings'
+
 import { appUrl, challengeUrl, isApplePlatform, parseChallenge } from '../share'
 
 const nav = (platform: string, userAgent: string) => ({ platform, userAgent })
@@ -20,7 +22,13 @@ describe('isApplePlatform', () => {
 describe('challenge links', () => {
   it('link into the lobby with variant, result and kind', () => {
     const url = challengeUrl({ game: 'sudoku', variant: 'mini-hard', result: '3:09', kind: 'time' })
-    expect(url).toBe(`${appUrl()}#/sudoku?challenge=mini-hard&result=3%3A09&kind=time`)
+    expect(url).toBe(`${appUrl()}sudoku/?challenge=mini-hard&result=3%3A09&kind=time`)
+  })
+
+  it("use the game's address and the sharer's language", () => {
+    settings.value.locale = 'de'
+    expect(challengeUrl({ game: 'crowns', variant: 'easy' })).toBe(`${appUrl()}de/stars/?challenge=easy`)
+    settings.value.locale = 'en'
   })
 
   it('reads a valid challenge and rejects unknown variants and odd results', () => {

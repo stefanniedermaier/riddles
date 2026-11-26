@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Sudoku',
   tagline: 'Classic number puzzle with notes and hints.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Sudoku in four difficulties plus Mini 6×6 – every puzzle has a unique solution, and hints explain the next logical step.',
+  },
   modes: {
     label: 'Grid',
     classic: 'Classic 9×9',
@@ -98,6 +102,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Sudoku',
   tagline: 'Klassisches Zahlenrätsel mit Notizen und Hinweisen.',
+  seo: {
+    about: 'Sudoku in vier Schwierigkeitsstufen plus Mini 6×6 – jedes Rätsel ist eindeutig lösbar, Hinweise erklären den nächsten logischen Schritt.',
+  },
   modes: {
     label: 'Raster',
     classic: 'Klassisch 9×9',

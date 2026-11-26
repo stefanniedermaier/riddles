@@ -2,7 +2,7 @@
   "name": "riddles",
   "version": "0.13.2",
   "private": true,
-  "description": "Installable offline puzzle games as a Progressive Web App.",
+  "description": "Free puzzle games as an installable, offline Progressive Web App: Sudoku, Nonograms, Solitaire, Minesweeper and 12 more – no ads, no account, no tracking.",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -15,7 +15,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
-    "build-only": "vite build",
+    "build-only": "vite build && node scripts/prerender.ts",
     "preview": "vite preview --host",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,6 +25,7 @@
     "lint:fix": "eslint . --cache --fix",
     "knip": "knip",
     "icons": "pwa-assets-generator",
+    "og-images": "node scripts/og-images.ts",
     "check:deps": "node scripts/check-dependencies.mjs",
     "check:dist": "node scripts/check-dist.mjs",
     "audit:ci": "npm audit signatures && npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=high",

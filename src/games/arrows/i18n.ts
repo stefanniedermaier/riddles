@@ -4,6 +4,10 @@ import type { Messages } from '@/i18n/types'
 export const en = {
   name: 'Arrows',
   tagline: 'Tap the arrows in the right order to clear the board.',
+  /** Search engines and link previews: what the game is, in one or two sentences. */
+  seo: {
+    about: 'Arrow puzzle: tap the arrows in the right order – each one slides out only if its way is free. 6×6 to 12×12, always solvable, with hints.',
+  },
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {
@@ -56,6 +60,9 @@ export const en = {
 export const de: Messages<typeof en> = {
   name: 'Arrows',
   tagline: 'Tippe die Pfeile in der richtigen Reihenfolge an und räume das Feld.',
+  seo: {
+    about: 'Pfeil-Rätsel: Tippe die Pfeile in der richtigen Reihenfolge – jeder gleitet nur hinaus, wenn sein Weg frei ist. 6×6 bis 12×12, mit Hinweisen.',
+  },
   sizeLabel: '{size}×{size}',
   variantLabel: '{difficulty} · {size}',
   rules: {
