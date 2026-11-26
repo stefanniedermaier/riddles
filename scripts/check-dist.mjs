@@ -121,6 +121,14 @@ for (const required of ['sw.js', 'manifest.webmanifest', 'pwa-192x192.png', 'pwa
   if (!files.includes(join(dist, required))) fail(`${required} missing`)
 }
 
+// Installed app: full screen on Android (status and navigation bars hidden), standalone
+// elsewhere.
+if (files.includes(join(dist, 'manifest.webmanifest'))) {
+  const manifest = JSON.parse(text(join(dist, 'manifest.webmanifest')))
+  if (manifest.display !== 'standalone') fail('manifest: display must be "standalone" (the fallback)')
+  if (manifest.display_override?.[0] !== 'fullscreen') fail('manifest: display_override must start with "fullscreen"')
+}
+
 // --- third-party licences ----------------------------------------------------------------
 const licensesFile = join(dist, 'licenses.txt')
 if (!files.includes(licensesFile)) fail('licenses.txt missing (third-party licence notices)')

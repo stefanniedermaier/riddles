@@ -188,6 +188,10 @@ export default defineConfig({
         start_url: './',
         scope: './',
         display: 'standalone',
+        // Android hides the status and navigation bars in the installed app (a swipe from the
+        // edge shows them for a moment); browsers without fullscreen support – iOS – fall back
+        // to `display`. Safe areas (notch, rounded corners) are handled with env(safe-area-*).
+        display_override: ['fullscreen'],
         // Shared links (challenges) open in the installed app where the browser supports it
         // (Chromium: link capturing; Android opens in-scope links in the app anyway).
         handle_links: 'preferred',

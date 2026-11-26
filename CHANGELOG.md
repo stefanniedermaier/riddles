@@ -6,6 +6,13 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Installed app on Android: full screen – the status and navigation bars are hidden (a swipe
+  from the top or bottom edge shows them for a moment). Takes effect once Chrome has updated
+  the installed app (usually within a day) or after reinstalling it. iPhone and iPad keep the
+  normal view: Safari has no full screen for web apps.
+
 ## [0.14.1] – 2026-11-26
 
 Hotfix: the sitemap and other files open directly again in a browser that has the app.
