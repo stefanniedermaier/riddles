@@ -40,6 +40,19 @@ interface Gesture {
 }
 let gesture: Gesture | null = null
 
+/**
+ * Fingers on the board. A second finger (e.g. a pinch to zoom in – common with low vision)
+ * cancels the gesture: the first finger's movement must not count as a swipe. Input
+ * resumes once every finger is lifted.
+ */
+const activePointers = new Set<number>()
+let multiTouch = false
+
+function release(event: PointerEvent): void {
+  activePointers.delete(event.pointerId)
+  if (activePointers.size === 0) multiTouch = false
+}
+
 function cellFromPoint(x: number, y: number): number | null {
   const rect = boardEl.value?.getBoundingClientRect()
   if (!rect || rect.width === 0) return null
@@ -51,7 +64,18 @@ function cellFromPoint(x: number, y: number): number | null {
 
 function onPointerDown(event: PointerEvent): void {
   emit('interact')
-  if (props.locked || !event.isPrimary) return
+  // A primary pointer starts a new touch: no other finger is down (also if one was lifted
+  // outside the board, where its pointerup never reached us).
+  if (event.isPrimary) {
+    activePointers.clear()
+    multiTouch = false
+  }
+  activePointers.add(event.pointerId)
+  if (activePointers.size > 1) {
+    multiTouch = true
+    gesture = null
+  }
+  if (multiTouch || props.locked || !event.isPrimary) return
   const cell = cellFromPoint(event.clientX, event.clientY)
   if (cell === null) return
   gesture = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, cell }
@@ -59,7 +83,7 @@ function onPointerDown(event: PointerEvent): void {
 }
 
 function onPointerMove(event: PointerEvent): void {
-  if (!gesture || gesture.pointerId !== event.pointerId || props.locked) return
+  if (!gesture || multiTouch || gesture.pointerId !== event.pointerId || props.locked) return
   const rect = boardEl.value?.getBoundingClientRect()
   const threshold = Math.max(12, ((rect?.width ?? 320) / SIZE) * 0.35)
   const dx = event.clientX - gesture.x
@@ -83,6 +107,7 @@ function onPointerMove(event: PointerEvent): void {
 }
 
 function onPointerUp(event: PointerEvent): void {
+  release(event)
   if (!gesture || gesture.pointerId !== event.pointerId) return
   const cell = gesture.cell
   gesture = null
@@ -101,7 +126,8 @@ function tap(cell: number): void {
   } else emit('select', cell)
 }
 
-function onPointerCancel(): void {
+function onPointerCancel(event: PointerEvent): void {
+  release(event)
   gesture = null
 }
 
@@ -313,7 +339,8 @@ function isSelected(piece: DisplayPiece): boolean {
   box-shadow:
     inset 0 4px 10px rgb(60 30 0 / 30%),
     inset 0 0 0 1px rgb(90 53 21 / 35%);
-  touch-action: none;
+  /* Two-finger zoom stays possible (low vision); one finger never scrolls the page. */
+  touch-action: pinch-zoom;
   cursor: pointer;
 }
 

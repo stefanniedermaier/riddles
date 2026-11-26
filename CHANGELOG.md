@@ -26,6 +26,9 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Shapes: a second finger on the board (e.g. a pinch to zoom in) no longer swaps pieces –
+  the first finger's movement used to count as a swipe. Two-finger zoom now works on the
+  board too.
 - "Share result" after a Blocks or Merge game (and Shapes Zen / Time) also without a new
   personal best: these games simply end with a score.
 - Statistics no longer scroll sideways on narrow phones (e.g. Galaxy S21 FE); a wide table
