@@ -141,6 +141,7 @@ incompatible format change instead of crashing the app.
 | `arrows:current:v1`          | Running Arrows game (pool: `arrows:pool:v1`, settings: `arrows:settings`) |
 | `merge:current:<variant>:v1` | Running Merge game per variant; `merge:records:v1` = highest tiles |
 | `blocks:current:v1`          | Running Blocks game                         |
+| `snake:current:<mode>:v1`    | Running Snake game per mode; `snake:records:v1` = speed of the best score, settings: `snake:settings` |
 | `mines:current:v1`           | Running Mines game (pool: `mines:pool:v1`, settings: `mines:settings`) |
 | `pipes:current:v1`           | Running Pipes game                          |
 | `watersort:current:v1`       | Running Water Sort game (settings: `watersort:settings`) |

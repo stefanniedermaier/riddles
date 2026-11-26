@@ -1,6 +1,6 @@
 # 22 – Snake
 
-**Status:** planned, not started. Open questions decided (see the end).
+**Status:** done. Open questions decided (see the end); notes on the implementation at the end.
 
 The classic arcade genre: steer a snake around a grid, eat food to grow, and do not bite
 yourself (or hit a wall). Name of the genre only; rules details, artwork, colours and sounds
@@ -99,7 +99,7 @@ stepInterval(run) → number       // ms for the current length and speed
 - **SVG** board (as in the other games; theme tokens, crisp at any zoom). The snake is one
   `<path>` through the segment centres with round joins and caps; a separate head with eyes
   that look in the moving direction; the tail tapers. Food as an original fruit/berry motif
-  in the game's accent colour (shape, not only colour). Obstacles as stones.
+  (shape, not only colour). Obstacles as stones.
 - Smooth movement: between two steps the head and tail ends are interpolated along the path
   (normal motion). Under **reduced motion** the snake jumps cell by cell (no interpolation,
   no eating "gulp", no particles) – the game stays fully playable.
@@ -198,3 +198,14 @@ stepInterval(run) → number       // ms for the current length and speed
    countless games and apps; the one game mark found in a search (Nokia's US mark "SNAKES",
    2008) has been cancelled. No logo, artwork, sound or look of an existing Snake game is
    used. Not a legal check – a look into TMview / DPMA before the release is advised.
+
+## Notes on the implementation
+
+- Colour: `--game-snake` is a plum/fuchsia (green is taken by Mines, teal by Links).
+- The tail does not taper; a lighter back stripe keeps the body readable where it touches
+  itself.
+- The snake is drawn one step behind the engine and glides towards the current state
+  (`progress`), so the drawing never shows a cell the engine has not reached.
+- The speed of the best score is shown in the lobby and the result dialog; the statistics
+  view stays generic.
+- Docs: [docs/games/snake.md](../docs/games/snake.md).

@@ -13,6 +13,7 @@ import { de as mines } from '@/games/mines/i18n.de'
 import { de as nonogram } from '@/games/nonogram/i18n.de'
 import { de as pipes } from '@/games/pipes/i18n.de'
 import { de as shapes } from '@/games/shapes/i18n.de'
+import { de as snake } from '@/games/snake/i18n.de'
 import { de as solitaire } from '@/games/solitaire/i18n.de'
 import { de as spider } from '@/games/spider/i18n.de'
 import { de as sudoku } from '@/games/sudoku/i18n.de'
@@ -32,6 +33,7 @@ const de: Messages<typeof en> = {
   nonogram,
   pipes,
   shapes,
+  snake,
   solitaire,
   spider,
   sudoku,

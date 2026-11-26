@@ -34,7 +34,7 @@ describe('HomeView', () => {
     await router.push('/')
     const wrapper = mount(HomeView, { global: { plugins: [router] } })
     const titles = wrapper.findAll('.game-card__name').map((el) => el.text())
-    expect(titles).toEqual(['Shapes', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Merge', 'Blocks', 'Mines', 'Pipes', 'Water Sort', 'Code Breaker', 'Solitaire', 'Spider', 'FreeCell', 'TriPeaks'])
+    expect(titles).toEqual(['Shapes', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Merge', 'Blocks', 'Snake', 'Mines', 'Pipes', 'Water Sort', 'Code Breaker', 'Solitaire', 'Spider', 'FreeCell', 'TriPeaks'])
     gameLayout.value = normalizeLayout(null)
   })
 })

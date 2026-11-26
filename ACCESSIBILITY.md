@@ -13,7 +13,8 @@ tested, the known limitations and how to report a barrier.
   light **and** the dark theme.
 - **Colour is never the only cue:** every Shapes piece has its own silhouette and texture
   (rockets and dynamite too), Water Sort layers carry symbols, Code Breaker pegs have
-  shapes, hint cells in Mines show "✓" / "!".
+  shapes, hint cells in Mines show "✓" / "!"; in Snake head, body, fruit and stones differ
+  in shape and brightness.
 - **Dark mode:** follows the system or can be set in *Settings*.
 - **Zoom:** the page can be zoomed with two fingers – also on the game boards; a
   two-finger gesture never counts as a move.
@@ -32,8 +33,11 @@ tested, the known limitations and how to report a barrier.
   (arrow keys, Enter / Space), Ctrl / ⌘ + Z to undo where the game has undo. Focus is
   always visible.
 - **Touch targets** are at least 44 × 44 px.
-- **No time pressure** except in modes that are about time (Shapes *Time*); all puzzles
-  can be paused and resumed later, also after closing the app.
+- **No time pressure** except in modes that are about time (Shapes *Time*, Snake's
+  real-time speeds); all puzzles can be paused and resumed later, also after closing the app.
+- **Snake** pauses by itself (app in the background, a dialog, a second finger) and only
+  moves on after a tap or a key. Its *Calm* speed has no time pressure at all: the snake
+  moves one step per input. Direction buttons are on by default on touch screens.
 - **Mines:** the long-press action can be switched off (*Settings → Mines*).
 
 ### Screen readers
@@ -65,6 +69,9 @@ Automated tools find only part of all barriers – reports from real use are ver
 - The puzzles are visual by nature. Boards can be played with a screen reader and a
   keyboard, but larger puzzles (e.g. Nonogram 15×20 or Spider) are tedious that way.
 - Shapes *Time* mode has a time limit by design; *Zen* and *Levels* have none.
+- Snake in real time cannot be played with a screen reader – it moves faster than a reader
+  can announce. The *Calm* speed announces the length and where the fruit is after every
+  step.
 - Drag and drop (cards, Blocks) has alternatives: tap to select and tap the target, or the
   keyboard.
 

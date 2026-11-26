@@ -83,6 +83,13 @@ const theme = computed(() => (CARD_GAMES.has(props.game) ? 'cards' : props.game)
     linear-gradient(90deg, transparent 44%, var(--ink) 44% 56%, transparent 56%) 30px 30px / 60px 60px;
 }
 
+/* Snake: a winding track of scales. */
+.game-backdrop[data-theme-game='snake']::after {
+  background:
+    radial-gradient(circle at 50% 100%, transparent 9px, var(--ink) 9.5px 11px, transparent 11.5px) 0 0 / 24px 12px,
+    radial-gradient(circle at 50% 100%, transparent 9px, var(--ink) 9.5px 11px, transparent 11.5px) 12px 6px / 24px 12px;
+}
+
 /* Water Sort: rising bubbles. */
 .game-backdrop[data-theme-game='watersort']::after {
   background:

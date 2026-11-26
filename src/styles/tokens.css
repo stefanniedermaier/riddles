@@ -58,6 +58,7 @@
   --game-spider: #4338ca;
   --game-freecell: #3d5a80;
   --game-tripeaks: #a15c07;
+  --game-snake: #a21caf;
 
   /* Typography */
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -164,6 +165,7 @@
   --game-spider: #a5b4fc;
   --game-freecell: #9db4d0;
   --game-tripeaks: #fbbf24;
+  --game-snake: #e48af0;
 
   --elevation-1: 0 1px 2px rgb(0 0 0 / 50%), 0 1px 3px 1px rgb(0 0 0 / 30%);
   --elevation-2: 0 1px 2px rgb(0 0 0 / 50%), 0 2px 6px 2px rgb(0 0 0 / 30%);

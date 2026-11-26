@@ -8,10 +8,12 @@ import './card.css'
 
 import { createApp } from 'vue'
 
+import { loadLocale } from '@/core/i18n'
 import Card from './Card.vue'
 
 const query = new URLSearchParams(window.location.search)
 const game = query.get('game') ?? 'app'
 const locale = query.get('lang') === 'de' ? 'de' : 'en'
 document.documentElement.lang = locale
-createApp(Card, { game, locale }).mount('#app')
+// The texts of a language are a chunk of their own (src/i18n/locales): load them first.
+void loadLocale(locale).then(() => createApp(Card, { game, locale }).mount('#app'))

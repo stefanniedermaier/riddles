@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from './fixtures'
+import { expect, expectAccessible, test } from './fixtures'
 
 /** The stored game of a puzzle (`riddles:<game>:current:v1`), or null. */
 function savedGame(page: Page, game: string): Promise<unknown> {
@@ -75,4 +75,53 @@ test('page changes move focus to the heading and set the title', async ({ page }
   await page.locator('.game-card', { hasText: 'Links' }).click()
   await expect(page).toHaveTitle('Links – free online and offline · Riddles')
   await expect(page.locator('h1')).toBeFocused()
+})
+
+test('Snake: the calm speed moves one step per key, saves, resumes and ends at the wall', async ({ page }) => {
+  await page.goto('./snake/')
+  await page.getByRole('radio', { name: 'Calm' }).click()
+  await page.getByRole('button', { name: /^Classic/ }).click()
+  await expect(page.locator('.snake-board')).toBeVisible()
+  await expectAccessible(page)
+
+  // Every key is one step; the screen reader summary follows.
+  await page.keyboard.press('ArrowUp')
+  await page.keyboard.press('ArrowRight')
+  const summary = page.locator('main [aria-live="polite"]')
+  await expect(summary).toContainText('Length')
+  const saved = () => page.evaluate(() => localStorage.getItem('riddles:snake:current:classic:v1'))
+
+  // Leaving saves the run; the lobby offers to continue it with its speed.
+  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  await expect(page.getByRole('button', { name: /^Classic/ })).toContainText('Continue')
+  expect(await saved()).not.toBeNull()
+  await page.getByRole('button', { name: /^Classic/ }).click()
+
+  // Straight on to the right wall: the run ends, the result shows the speed.
+  for (let i = 0; i < 20; i++) {
+    if (await page.getByRole('dialog').isVisible()) break
+    await page.keyboard.press('ArrowRight')
+  }
+  const result = page.getByRole('dialog')
+  await expect(result).toContainText('Game over')
+  await expect(result).toContainText('Calm')
+  expect(await saved()).toBeNull()
+})
+
+test('Snake: the real-time game starts on input and pauses when the page is hidden', async ({ page }) => {
+  await page.goto('./snake/play/open?new=1')
+  await expect(page.getByText('Swipe, tap or press an arrow key to start')).toBeVisible()
+  await page.keyboard.press('ArrowUp')
+  await expect(page.getByText('Swipe, tap or press an arrow key to start')).toBeHidden()
+  await page.waitForTimeout(600)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await expect(page.getByText('Paused – tap to continue')).toBeVisible()
+  const length = await page.locator('.hud__value').nth(1).textContent()
+  const head = await page.locator('.snake__head').getAttribute('cx')
+  await page.waitForTimeout(600)
+  expect(await page.locator('.snake__head').getAttribute('cx')).toBe(head)
+  expect(await page.locator('.hud__value').nth(1).textContent()).toBe(length)
 })

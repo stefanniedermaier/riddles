@@ -15,6 +15,7 @@ import { en as mines } from '@/games/mines/i18n'
 import { en as nonogram } from '@/games/nonogram/i18n'
 import { en as pipes } from '@/games/pipes/i18n'
 import { en as shapes } from '@/games/shapes/i18n'
+import { en as snake } from '@/games/snake/i18n'
 import { en as solitaire } from '@/games/solitaire/i18n'
 import { en as spider } from '@/games/spider/i18n'
 import { en as sudoku } from '@/games/sudoku/i18n'
@@ -34,6 +35,7 @@ export default {
   nonogram,
   pipes,
   shapes,
+  snake,
   solitaire,
   spider,
   sudoku,

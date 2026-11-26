@@ -23,6 +23,13 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Snake** – the 17th game and the first in real time: steer the snake, eat and grow
+  without biting yourself. Three modes (Classic, Open with walls that lead to the other
+  side, Maze with stones), three speeds that pay more points the faster they are, and a
+  *Calm* speed that moves one step per input – no time pressure, with screen reader
+  announcements. Swipe, direction buttons (on by default on touch screens) or keys; the game
+  pauses by itself and never moves on without you. Reduced motion moves the snake cell by
+  cell.
 - Community files: [Code of Conduct](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1),
   [Contributing guide](CONTRIBUTING.md), [Accessibility statement](ACCESSIBILITY.md) and an
   issue template for accessibility barriers; the bug report lists every game.

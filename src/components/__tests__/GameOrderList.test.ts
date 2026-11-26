@@ -17,7 +17,7 @@ describe('GameOrderList', () => {
   it('lists all games in the stored order', () => {
     gameLayout.value = normalizeLayout({ order: ['shapes', 'sudoku'] })
     const wrapper = mount(GameOrderList)
-    expect(names(wrapper)).toEqual(['Shapes', 'Sudoku', 'Stars', 'Links', 'Nonogram', 'Arrows', 'Merge', 'Blocks', 'Mines', 'Pipes', 'Water Sort', 'Code Breaker', 'Solitaire', 'Spider', 'FreeCell', 'TriPeaks'])
+    expect(names(wrapper)).toEqual(['Shapes', 'Sudoku', 'Stars', 'Links', 'Nonogram', 'Arrows', 'Merge', 'Blocks', 'Snake', 'Mines', 'Pipes', 'Water Sort', 'Code Breaker', 'Solitaire', 'Spider', 'FreeCell', 'TriPeaks'])
   })
 
   it('moves a game with the arrow keys on its handle and announces it', async () => {
@@ -44,7 +44,7 @@ describe('GameOrderList', () => {
     window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 160 })) // near slot 2
     window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientY: 160 }))
     await flushPromises()
-    expect(names(wrapper)).toEqual(['Stars', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Shapes', 'Merge', 'Blocks', 'Mines', 'Pipes', 'Water Sort', 'Code Breaker', 'Solitaire', 'Spider', 'FreeCell', 'TriPeaks'])
+    expect(names(wrapper)).toEqual(['Stars', 'Links', 'Sudoku', 'Nonogram', 'Arrows', 'Shapes', 'Merge', 'Blocks', 'Snake', 'Mines', 'Pipes', 'Water Sort', 'Code Breaker', 'Solitaire', 'Spider', 'FreeCell', 'TriPeaks'])
     wrapper.unmount()
   })
 
@@ -63,7 +63,7 @@ describe('GameOrderList', () => {
     const wrapper = mount(GameOrderList)
     const sortable = wrapper.find('.order__list:not(.order__list--hidden)')
     expect(sortable.findAll('.order__name').map((el) => el.text())).not.toContain('Stars')
-    expect(sortable.findAll('.order__handle')).toHaveLength(14)
+    expect(sortable.findAll('.order__handle')).toHaveLength(15)
     const hidden = wrapper.find('details.order__hidden')
     expect(hidden.attributes('open')).toBeUndefined()
     expect(hidden.find('summary').text()).toContain('Hidden games (2)')

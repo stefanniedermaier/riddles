@@ -8,7 +8,7 @@ const de: Messages<typeof en> = {
   },
   seo: {
     title: 'Riddles – kostenlose Rätselspiele, offline und ohne Werbung',
-    description: 'Sudoku, Nonogramme, Solitär, Minesweeper und 12 weitere Rätselspiele – kostenlos, offline als App, ohne Werbung, Konto oder Tracking.',
+    description: 'Sudoku, Nonogramme, Solitär, Minesweeper und 13 weitere Rätselspiele – kostenlos, offline als App, ohne Werbung, Konto oder Tracking.',
     intro: 'Kostenlose Rätselspiele für Handy und Browser. Als App installieren und offline spielen – ohne Werbung, ohne Konto, ohne Tracking. Jedes Rätsel entsteht auf deinem Gerät.',
     gameTitle: '{game} – kostenlos online und offline · Riddles',
     games: 'Alle Spiele',
@@ -16,7 +16,7 @@ const de: Messages<typeof en> = {
     play: '{game} spielen',
     moreGames: 'Weitere Rätselspiele',
     otherLanguage: 'English',
-    cardTitle: '16 Rätselspiele',
+    cardTitle: '17 Rätselspiele',
     cardClaim: 'gratis · offline · werbefrei',
   },
   common: {
