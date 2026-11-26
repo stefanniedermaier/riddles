@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import { SAVE_KEY } from '../index'
 import LinksPlay from '../LinksPlay.vue'
 import { generatePuzzle } from '../logic/generator'
@@ -43,7 +44,7 @@ describe('LinksPlay', () => {
     vi.spyOn(linksPool, 'take').mockResolvedValue(generatePuzzle('easy', 1))
     const router = makeRouter()
     await router.push('/links/play?new=easy')
-    const wrapper = mount(LinksPlay, { global: { plugins: [router] }, attachTo: document.body })
+    const wrapper = mount(LinksPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
     await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(25))
     expect(router.currentRoute.value.query.new).toBeUndefined()
     // Merely opening a puzzle neither saves it nor counts it as started.
@@ -70,7 +71,7 @@ describe('LinksPlay', () => {
     vi.spyOn(linksPool, 'take').mockResolvedValue(puzzle)
     const router = makeRouter()
     await router.push('/links/play?new=easy')
-    const wrapper = mount(LinksPlay, { global: { plugins: [router] }, attachTo: document.body })
+    const wrapper = mount(LinksPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
     await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(25))
 
     const board = wrapper.findComponent({ name: 'LinksBoard' })
@@ -105,7 +106,7 @@ describe('LinksPlay', () => {
     const router = makeRouter()
     await router.push('/links')
     await router.push('/links/play?new=expert')
-    const wrapper = mount(LinksPlay, { global: { plugins: [router] } })
+    const wrapper = mount(LinksPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await vi.waitFor(() => expect(router.currentRoute.value.query.new).toBeUndefined())
     router.back()
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('links'))
@@ -122,7 +123,7 @@ describe('LinksPlay', () => {
   it('redirects to the menu without a saved game', async () => {
     const router = makeRouter()
     await router.push('/links/play')
-    mount(LinksPlay, { global: { plugins: [router] } })
+    mount(LinksPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('links')
   })

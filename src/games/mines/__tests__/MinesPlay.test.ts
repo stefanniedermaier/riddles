@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import MinesBoard from '../MinesBoard.vue'
 import MinesPlay from '../MinesPlay.vue'
 import { SAVE_KEY } from '../index'
@@ -39,7 +40,7 @@ async function start(puzzle: MinesPuzzle) {
   vi.spyOn(minesPool, 'take').mockResolvedValue(puzzle)
   const router = makeRouter()
   await router.push('/mines/play?new=easy')
-  const wrapper = mount(MinesPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(MinesPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await vi.waitFor(() => expect(wrapper.find('.mines-board').exists()).toBe(true))
   const board = () => wrapper.findComponent(MinesBoard)
   const emit = async (event: 'tap' | 'alt' | 'flag', cell: number) => {
@@ -125,7 +126,7 @@ describe('MinesPlay', () => {
   it('redirects to the lobby without a saved game', async () => {
     const router = makeRouter()
     await router.push('/mines/play')
-    mount(MinesPlay, { global: { plugins: [router] } })
+    mount(MinesPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('mines')
   })

@@ -6,6 +6,19 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- The header at the top is fully opaque; nothing scrolling underneath shows through.
+- Play views get their route values (`?new=`, variant / mode) as props instead of reading the
+  route themselves.
+
+### Fixed
+
+- "Share result" after a Blocks or Merge game (and Shapes Zen / Time) also without a new
+  personal best: these games simply end with a score.
+- Statistics no longer scroll sideways on narrow phones (e.g. Galaxy S21 FE); a wide table
+  scrolls on its own.
+
 ## [0.13.2] – 2026-11-25
 
 Hotfix release with the app-wide QA and cleanup (plan 20): accessibility, lifecycle fixes,

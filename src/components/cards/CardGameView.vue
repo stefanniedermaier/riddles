@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="S, M, V extends string">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import GameBackdrop from '@/components/GameBackdrop.vue'
@@ -29,9 +29,12 @@ import type { CardGameDef } from './types'
  * The play view shared by all card games: dealing, moves (tap, drag, select), automatic
  * moves, undo, hints from the solver, time or points, saving and the result dialogs.
  */
-const props = defineProps<{ game: CardGameDef<S, M, V> }>()
+const props = defineProps<{
+  game: CardGameDef<S, M, V>
+  /** `?new=<variant>` (route prop of the game's play view): deal a new game. */
+  newGame?: string
+}>()
 
-const route = useRoute()
 const router = useRouter()
 
 interface Save {
@@ -499,14 +502,14 @@ function goHome(): void {
 const showRules = ref(false)
 
 watch(
-  () => route.query.new,
+  () => props.newGame,
   (value) => {
-    if (typeof value === 'string' && props.game.rules.variants.includes(value as V)) void startNew(value as V)
+    if (value !== undefined && props.game.rules.variants.includes(value as V)) void startNew(value as V)
   },
   { immediate: true },
 )
 
-if (typeof route.query.new !== 'string' && !resume()) {
+if (props.newGame === undefined && !resume()) {
   void router.replace({ name: props.game.id })
 }
 </script>

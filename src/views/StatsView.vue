@@ -173,30 +173,33 @@ function confirmReset(): void {
             <dd class="tabular">{{ kpi.value }}</dd>
           </div>
         </dl>
-        <table class="tabular">
-          <thead>
-            <tr>
-              <th scope="col"></th>
-              <th scope="col">{{ t('stats.started') }}</th>
-              <th scope="col">{{ t('stats.finished') }}</th>
-              <th scope="col">
-                {{ game.statKind === 'score' ? t('stats.bestScore') : t('stats.bestTime') }}
-              </th>
-              <th v-if="game.statKind === 'both'" scope="col">{{ t('stats.bestScore') }}</th>
-              <th scope="col">{{ game.statKind === 'score' ? t('stats.avgScore') : t('stats.avgTime') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in rows" :key="row.variant">
-              <th scope="row">{{ row.label }}</th>
-              <td>{{ row.started }}</td>
-              <td>{{ row.finished }}</td>
-              <td>{{ row.best }}</td>
-              <td v-if="game.statKind === 'both'">{{ row.bestScore }}</td>
-              <td>{{ row.average ?? '–' }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- Scrolls on its own if it is wider than a narrow phone, never the whole page. -->
+        <div class="table-scroll">
+          <table class="tabular">
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">{{ t('stats.started') }}</th>
+                <th scope="col">{{ t('stats.finished') }}</th>
+                <th scope="col">
+                  {{ game.statKind === 'score' ? t('stats.bestScore') : t('stats.bestTime') }}
+                </th>
+                <th v-if="game.statKind === 'both'" scope="col">{{ t('stats.bestScore') }}</th>
+                <th scope="col">{{ game.statKind === 'score' ? t('stats.avgScore') : t('stats.avgTime') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in rows" :key="row.variant">
+                <th scope="row">{{ row.label }}</th>
+                <td>{{ row.started }}</td>
+                <td>{{ row.finished }}</td>
+                <td>{{ row.best }}</td>
+                <td v-if="game.statKind === 'both'">{{ row.bestScore }}</td>
+                <td>{{ row.average ?? '–' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <AppButton variant="ghost" icon="trash" @click="resetTarget = game.id">
           {{ t('stats.reset') }}
         </AppButton>
@@ -300,6 +303,7 @@ function confirmReset(): void {
 
 .stats {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
@@ -329,6 +333,12 @@ function confirmReset(): void {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: 800;
+}
+
+.table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 table {

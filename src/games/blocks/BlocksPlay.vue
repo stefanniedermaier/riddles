@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import GameBackdrop from '@/components/GameBackdrop.vue'
@@ -15,6 +15,7 @@ import { returnTo } from '@/core/navigation'
 import { randomSeed } from '@/core/rng'
 import { getVariantStats, recordFinish, recordStart } from '@/core/stats'
 import { motionEnabled } from '@/core/theme'
+import type { PlayRouteProps } from '../routes'
 import BlockPiece from './BlockPiece.vue'
 import BlocksBoard from './BlocksBoard.vue'
 import type { ClearingBlock } from './boardTypes'
@@ -31,13 +32,14 @@ import { clearRun, loadRun, saveRun } from './store'
 import BlocksRules from './BlocksRules.vue'
 import { useBlocksPlacement } from './useBlocksPlacement'
 
-const route = useRoute()
+const props = defineProps<PlayRouteProps>()
+
 const router = useRouter()
 
 // ---------------------------------------------------------------------------
 // Run: a new one (`?new=1`) or the saved one.
 
-const isNew = route.query.new === '1'
+const isNew = props.newGame === '1'
 const run = shallowRef<BlocksRun | null>(isNew ? newRun(randomSeed()) : loadRun())
 if (isNew) void router.replace({ name: 'blocks-play' })
 

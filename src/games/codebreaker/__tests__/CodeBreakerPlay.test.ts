@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import CodeBreakerPlay from '../CodeBreakerPlay.vue'
 import { SAVE_KEY } from '../index'
 import { generatePuzzle } from '../logic/logic'
@@ -34,7 +35,7 @@ const saved = () => load(SAVE_KEY, null, (raw) => (isCodeSave(raw) ? raw : undef
 async function start(difficulty = 'easy') {
   const router = makeRouter()
   await router.push(`/codebreaker/play?new=${difficulty}`)
-  const wrapper = mount(CodeBreakerPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(CodeBreakerPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await flushPromises()
   const color = async (n: number) => {
     await wrapper.findAll('.palette__btn')[n]!.trigger('click')

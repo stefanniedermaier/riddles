@@ -17,6 +17,7 @@ import { DIFFICULTIES, saveSlot, sizeLabel } from './index'
 import { consistentGuess, generatePuzzle, isConsistent, isValidGuess, possibleCodes, score } from './logic/logic'
 import { PARAMS, type CodePuzzle, type CodeSave } from './logic/types'
 import { codeBreakerSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 const selectedSlot = ref<number | null>(0)
 const rowsEl = ref<HTMLElement | null>(null)
@@ -26,10 +27,13 @@ function fresh(puzzle: CodePuzzle): CodeSave {
   return { puzzle, guesses: [], current: new Array<number | null>(positions).fill(null), elapsedMs: 0, hintsUsed: 0 }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'codebreaker',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: (difficulty) => fresh(generatePuzzle(difficulty, randomSeed())),
   onShow: (save, reason) => {

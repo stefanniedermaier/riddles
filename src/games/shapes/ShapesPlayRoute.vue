@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-
+import type { PlayRouteProps } from '../routes'
 import type { Mode } from './logic/types'
 import ShapesPlay from './ShapesPlay.vue'
 
-// Keyed by mode: switching e.g. from Zen to Time creates a fresh play view
-// (Vue Router would otherwise reuse the component instance).
-const route = useRoute()
-const mode = computed(() => route.params.mode as Mode)
+// The route's values as props (`playProps`). Keyed by mode: switching e.g. from Zen to Time
+// creates a fresh play view (Vue Router would otherwise reuse the component instance).
+defineProps<PlayRouteProps & { mode: Mode }>()
 </script>
 
 <template>
-  <ShapesPlay :key="mode" :mode="mode" />
+  <ShapesPlay :key="mode" :mode="mode" :new-game="newGame" />
 </template>

@@ -20,6 +20,7 @@ import WaterSortBoard from './WaterSortBoard.vue'
 import type { Pour } from './boardTypes'
 import WaterSortRules from './WaterSortRules.vue'
 import { waterSortSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 const selected = ref<number | null>(null)
 const hint = ref<{ from: number; to: number } | null>(null)
@@ -36,10 +37,13 @@ function fresh(puzzle: WaterSortPuzzle): WaterSortSave {
   return { puzzle, tubes: puzzle.tubes.map((tube) => [...tube]), history: [], moves: 0, elapsedMs: 0, hintsUsed: 0 }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'watersort',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: (difficulty) => fresh(generatePuzzle(difficulty, randomSeed())),
   onShow: () => {

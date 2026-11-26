@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import CrownsPlay from '../CrownsPlay.vue'
 import { SAVE_KEY } from '../index'
 import { generatePuzzle } from '../logic/generator'
@@ -41,7 +42,7 @@ describe('CrownsPlay', () => {
     const router = makeRouter()
     vi.spyOn(crownsPool, 'take').mockResolvedValue(PUZZLE)
     await router.push('/crowns/play?new=easy')
-    const wrapper = mount(CrownsPlay, { global: { plugins: [router] }, attachTo: document.body })
+    const wrapper = mount(CrownsPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
 
     await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(36))
     expect(router.currentRoute.value.query.new).toBeUndefined()
@@ -77,7 +78,7 @@ describe('CrownsPlay', () => {
     const router = makeRouter()
     vi.spyOn(crownsPool, 'take').mockResolvedValue(PUZZLE)
     await router.push('/crowns/play?new=easy')
-    const wrapper = mount(CrownsPlay, { global: { plugins: [router] }, attachTo: document.body })
+    const wrapper = mount(CrownsPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
     await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(36))
 
     const board = wrapper.find('.crowns-board')
@@ -109,7 +110,7 @@ describe('CrownsPlay', () => {
     const router = makeRouter()
     await router.push('/crowns')
     await router.push('/crowns/play?new=expert')
-    const wrapper = mount(CrownsPlay, { global: { plugins: [router] } })
+    const wrapper = mount(CrownsPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await vi.waitFor(() => expect(router.currentRoute.value.query.new).toBeUndefined())
 
     router.back()
@@ -130,7 +131,7 @@ describe('CrownsPlay', () => {
   it('redirects to the lobby without a saved game', async () => {
     const router = makeRouter()
     await router.push('/crowns/play')
-    mount(CrownsPlay, { global: { plugins: [router] } })
+    mount(CrownsPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('crowns')
   })

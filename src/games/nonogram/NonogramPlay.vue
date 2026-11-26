@@ -35,6 +35,7 @@ import NonogramBoard from './NonogramBoard.vue'
 import NonogramRules from './NonogramRules.vue'
 import { nonogramPool } from './pool'
 import { nonogramSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 const tool = ref<Tool>('fill')
 const toolOptions = computed(() => [
@@ -45,10 +46,13 @@ const stroke = shallowRef<Stroke | null>(null)
 const focusCell = ref<number | null>(null)
 const hint = shallowRef<Hint | null>(null)
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'nonogram',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty): Promise<NonogramSave> => {
     const next = await nonogramPool.take(difficulty)

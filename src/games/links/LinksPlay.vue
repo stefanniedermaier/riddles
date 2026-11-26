@@ -31,6 +31,7 @@ import type { LinksSave } from './logic/types'
 import { colorLabel } from './palette'
 import { linksPool } from './pool'
 import { linksSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 /** Upper bound of stored undo steps. */
 const MAX_UNDO = 300
@@ -38,10 +39,13 @@ const MAX_UNDO = 300
 const stroke = shallowRef<Stroke | null>(null)
 const flash = ref<number | null>(null)
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'links',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty): Promise<LinksSave> => {
     const next = await linksPool.take(difficulty)

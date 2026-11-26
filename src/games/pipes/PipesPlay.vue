@@ -18,6 +18,7 @@ import { colors, getHint, isSolved } from './logic/rules'
 import { sourcesOf, type PipesPuzzle, type PipesSave } from './logic/types'
 import PipesBoard from './PipesBoard.vue'
 import PipesRules from './PipesRules.vue'
+import type { PlayRouteProps } from '../routes'
 
 const highlight = ref<number | null>(null)
 
@@ -25,10 +26,13 @@ function fresh(puzzle: PipesPuzzle): PipesSave {
   return { puzzle, turns: [...puzzle.scramble], locked: [], moves: 0, elapsedMs: 0, hintsUsed: 0, undo: [] }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'pipes',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: (difficulty) => fresh(generatePuzzle(difficulty, randomSeed())),
   onShow: () => (highlight.value = null),

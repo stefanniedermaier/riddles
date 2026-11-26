@@ -21,7 +21,8 @@ import type { IconName } from './icons'
  * one and rows that slide in. By default every dialog with the trophy icon celebrates;
  * pass `celebrate` to decide explicitly (e.g. a "game over" only with a new best).
  *
- * With `share`, a "Share result" button sends a challenge link (game lobby + difficulty +
+ * With `share`, a "Share result" button – also on a "game over" without celebration (score
+ * games like Blocks or Merge simply end with a score worth sharing) – sends a challenge link (game lobby + difficulty +
  * result) to the share sheet, or copies it. An image of the result (trophy, game logo,
  * difficulty, result, "personal best" badge) is prepared when the dialog opens and shared
  * along where the device can share files; it is not shown in the dialog (no scrolling).
@@ -133,7 +134,7 @@ async function prepareImage(): Promise<void> {
 }
 
 watch(
-  () => (props.open && festive.value && shareInfo.value?.ready ? shareInfo.value.text : null),
+  () => (props.open && shareInfo.value?.ready ? shareInfo.value.text : null),
   (key) => {
     // The image is a bonus: if drawing fails, sharing still works with text and link.
     if (key) prepareImage().catch(() => dropImage())
@@ -204,7 +205,7 @@ async function shareResult(): Promise<void> {
           </dd>
         </div>
       </dl>
-      <template v-if="share && festive">
+      <template v-if="share">
         <!-- Source of the game logo for the image (drawn from the rendered SVG). -->
         <div ref="artSource" class="result__art-source theme-light" aria-hidden="true">
           <GameArt :game="share.game" />
@@ -215,7 +216,7 @@ async function shareResult(): Promise<void> {
       <!-- Main action across the full width, the others side by side: no scrolling on phones. -->
       <div class="result__actions">
         <slot name="actions" />
-        <AppButton v-if="share && festive" class="result__share" :icon="shareIcon" block @click="shareResult">
+        <AppButton v-if="share" class="result__share" :icon="shareIcon" block @click="shareResult">
           {{ t('share.result') }}
         </AppButton>
       </div>

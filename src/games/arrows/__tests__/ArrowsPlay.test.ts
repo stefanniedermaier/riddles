@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import ArrowsBoard from '../ArrowsBoard.vue'
 import ArrowsPlay from '../ArrowsPlay.vue'
 import { SAVE_KEY } from '../index'
@@ -32,7 +33,7 @@ async function start(puzzle: ArrowsPuzzle) {
   vi.spyOn(arrowsPool, 'take').mockResolvedValue(puzzle)
   const router = makeRouter()
   await router.push('/arrows/play?new=easy')
-  const wrapper = mount(ArrowsPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(ArrowsPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await vi.waitFor(() => expect(wrapper.find('.arrows-board').exists()).toBe(true))
   const tap = async (cell: number) => {
     wrapper.findComponent(ArrowsBoard).vm.$emit('tap', cell)
@@ -113,7 +114,7 @@ describe('ArrowsPlay', () => {
   it('redirects to the lobby without a saved game', async () => {
     const router = makeRouter()
     await router.push('/arrows/play')
-    mount(ArrowsPlay, { global: { plugins: [router] } })
+    mount(ArrowsPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('arrows')
   })

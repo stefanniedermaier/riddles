@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import AppBar from '@/components/AppBar.vue'
 import GameBackdrop from '@/components/GameBackdrop.vue'
@@ -15,6 +15,7 @@ import { returnTo } from '@/core/navigation'
 import { randomSeed } from '@/core/rng'
 import { getVariantStats, recordFinish, recordStart } from '@/core/stats'
 import { motionEnabled } from '@/core/theme'
+import type { PlayRouteProps } from '../routes'
 import type { Variant } from './index'
 import {
   highestTile,
@@ -29,9 +30,8 @@ import type { DisplayTile } from './boardTypes'
 import { clearRun, loadRun, recordHighestTile, saveRun } from './store'
 import MergeRules from './MergeRules.vue'
 
-const props = defineProps<{ variant: Variant }>()
+const props = defineProps<PlayRouteProps & { variant: Variant }>()
 
-const route = useRoute()
 const router = useRouter()
 
 /** Duration of the slide phase; matches `--dur-fast` used by the board's transition. */
@@ -40,7 +40,7 @@ const SLIDE_MS = 120
 // ---------------------------------------------------------------------------
 // Run setup: a new run (`?new=1`) or the saved one of this variant.
 
-const isNew = route.query.new === '1'
+const isNew = props.newGame === '1'
 const initial: MergeRun | null = isNew ? newRun(props.variant, randomSeed()) : loadRun(props.variant)
 const run = shallowRef<MergeRun | null>(initial)
 

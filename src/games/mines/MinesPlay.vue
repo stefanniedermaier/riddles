@@ -34,6 +34,7 @@ import MinesBoard from './MinesBoard.vue'
 import MinesRules from './MinesRules.vue'
 import { minesPool } from './pool'
 import { minesSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 type Tool = 'reveal' | 'flag'
 
@@ -49,10 +50,13 @@ function freshAttempt(next: MinesPuzzle): MinesSave {
   return { puzzle: next, cells: initialCells(next), actions: 0, elapsedMs: 0, hintsUsed: 0, mistakes: 0 }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'mines',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty) => freshAttempt(await minesPool.take(difficulty)),
   onShow: (save, reason) => {

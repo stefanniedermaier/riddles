@@ -6,6 +6,7 @@ import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
 import { toasts } from '@/core/toast'
+import { playProps } from '@/games/routes'
 import { SAVE_KEY } from '../index'
 import { generatePuzzle } from '../logic/generator'
 import { isNonogramSave, type NonogramPuzzle } from '../logic/types'
@@ -33,7 +34,7 @@ async function start(puzzle: NonogramPuzzle = generatePuzzle('easy', 1)) {
   vi.spyOn(nonogramPool, 'take').mockResolvedValue(puzzle)
   const router = makeRouter()
   await router.push('/nonogram/play?new=easy')
-  const wrapper = mount(NonogramPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(NonogramPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await vi.waitFor(() => expect(wrapper.findAll('.cell')).toHaveLength(25))
   return { router, wrapper }
 }
@@ -145,7 +146,7 @@ describe('NonogramPlay', () => {
     const router = makeRouter()
     await router.push('/nonogram')
     await router.push('/nonogram/play?new=hard')
-    const wrapper = mount(NonogramPlay, { global: { plugins: [router] } })
+    const wrapper = mount(NonogramPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await vi.waitFor(() => expect(router.currentRoute.value.query.new).toBeUndefined())
     router.back()
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('nonogram'))
@@ -162,7 +163,7 @@ describe('NonogramPlay', () => {
   it('redirects to the menu without a saved game', async () => {
     const router = makeRouter()
     await router.push('/nonogram/play')
-    mount(NonogramPlay, { global: { plugins: [router] } })
+    mount(NonogramPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] } })
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('nonogram')
   })

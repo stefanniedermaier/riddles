@@ -20,6 +20,7 @@ import { arrowAt, hintArrow, tapArrow } from './logic/rules'
 import { LIVES, type ArrowsPuzzle, type ArrowsSave } from './logic/types'
 import { arrowsPool } from './pool'
 import { arrowsSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
 
 /** Duration of the slide-out animation (ms). */
 const LEAVE_MS = 420
@@ -32,10 +33,13 @@ function freshAttempt(next: ArrowsPuzzle): ArrowsSave {
   return { puzzle: next, removed: [], lives: LIVES, actions: 0, elapsedMs: 0, hintsUsed: 0 }
 }
 
+const props = defineProps<PlayRouteProps>()
+
 const session = usePuzzleSession({
   gameId: 'arrows',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty) => freshAttempt(await arrowsPool.take(difficulty)),
   onShow: () => {

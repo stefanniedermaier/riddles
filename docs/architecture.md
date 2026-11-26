@@ -66,6 +66,10 @@ messages })`, built from three files:
 | `routes.ts`  | `routes: RouteRecordRaw[]` – usually a lobby (`/<id>`) and a play view (`/<id>/play`)          |
 | `i18n.ts`    | `en` and `de` message objects; merged under the namespace `<id>`                               |
 
+Play views never read the route themselves: their route record passes the path params and
+`?new=<variant>` as props (`playProps` in `src/games/routes.ts`; `newGame`, plus e.g. `variant`
+or `mode`). Tests can mount a play view with `props: playProps(route)`.
+
 `src/games/modules.ts` is the **only list of games**. Everything else is derived from it:
 
 ```

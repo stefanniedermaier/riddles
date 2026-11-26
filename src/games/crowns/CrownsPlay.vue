@@ -32,11 +32,15 @@ import { blockedCells, countCrowns, findConflicts, isSolved } from './logic/rule
 import { CROWN, EMPTY, MARK, type CellState, type CrownsSave } from './logic/types'
 import { crownsPool } from './pool'
 import { crownsSettings } from './settings'
+import type { PlayRouteProps } from '../routes'
+
+const props = defineProps<PlayRouteProps>()
 
 const session = usePuzzleSession({
   gameId: 'crowns',
   slot: saveSlot,
   variants: DIFFICULTIES,
+  newGame: () => props.newGame,
   variantOf: (save) => save.puzzle.difficulty,
   create: async (difficulty): Promise<CrownsSave> => {
     const next = await crownsPool.take(difficulty)

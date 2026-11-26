@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { settings } from '@/core/settings'
 import { getVariantStats, resetStats } from '@/core/stats'
 import { load } from '@/core/storage'
+import { playProps } from '@/games/routes'
 import WaterSortBoard from '../WaterSortBoard.vue'
 import WaterSortPlay from '../WaterSortPlay.vue'
 import { SAVE_KEY } from '../index'
@@ -29,7 +30,7 @@ const saved = () => load(SAVE_KEY, null, (raw) => (isWaterSortSave(raw) ? raw : 
 async function start() {
   const router = makeRouter()
   await router.push('/watersort/play?new=easy')
-  const wrapper = mount(WaterSortPlay, { global: { plugins: [router] }, attachTo: document.body })
+  const wrapper = mount(WaterSortPlay, { props: playProps(router.currentRoute.value), global: { plugins: [router] }, attachTo: document.body })
   await flushPromises()
   const tap = async (tube: number) => {
     await wrapper.find(`[data-tube="${tube}"]`).trigger('click')

@@ -50,9 +50,9 @@ function goBack(): void {
   top: 0;
   z-index: var(--z-appbar);
   padding-top: env(safe-area-inset-top);
-  /* Nearly opaque instead of a backdrop blur: a blur behind a sticky bar costs a repaint of
-    everything scrolling under it on every frame (low-end phones). */
-  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  /* Fully opaque: nothing scrolling underneath shows through (and no backdrop blur, which
+    costs a repaint of everything under a sticky bar on every frame on low-end phones). */
+  background: var(--color-bg);
 }
 
 .app-bar__inner {
