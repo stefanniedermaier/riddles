@@ -32,7 +32,7 @@ A setting (lobby and *Settings → Snake*); a run keeps the speed it was started
 
 | Input                    | Effect                                                         |
 | ------------------------ | -------------------------------------------------------------- |
-| Swipe on the board       | turns as soon as the swipe is 24 px long; a long swipe can turn twice |
+| Swipe on the board       | turns as soon as the swipe is 18 px long and clearly in one direction (a quick flick counts on release); a long swipe can turn twice |
 | Tap on the board         | start / continue (calm: one step straight on)                  |
 | Direction buttons        | turn (calm: one step); on by default on touch screens          |
 | Arrow keys / WASD        | turn (calm: one step)                                          |
@@ -73,7 +73,7 @@ The run is saved after the first step on every fruit, every pause and when leavi
 
 SVG (`SnakeBoard.vue`): checkered field, stones, a red fruit with a leaf, the snake as one
 round path with a lighter back stripe and a head with eyes looking the way it moves. In the
-open mode the path is split where it passes through the border.
+open mode the line continues beyond the edge and is drawn once more on the other side (clipped), so head and tail glide through the border.
 
 - Reduced motion: the snake moves cell by cell, no fruit animation, no death blink.
 - Death (with motion): the snake blinks twice (well below three flashes per second), then the

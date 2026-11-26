@@ -4,7 +4,6 @@ import { computed, onBeforeUnmount, useId } from 'vue'
 import { createTouchGuard } from '@/core/touchGuard'
 import { t } from '@/core/i18n'
 import { motionEnabled } from '@/core/theme'
-import { adjacent } from './logic/engine'
 import type { Direction } from './logic/types'
 
 /**
@@ -36,61 +35,109 @@ const emit = defineEmits<{ turn: [direction: Direction]; tap: []; multitouch: []
 const patternId = `snake-grid-${useId()}`
 
 /** Minimum swipe distance in px (on the dominant axis). */
-const SWIPE_THRESHOLD = 24
+const SWIPE_THRESHOLD = 18
+/** While the finger moves, one axis must clearly dominate (a curved thumb starts diagonally). */
+const DOMINANCE = 1.4
 
 type Point = [number, number]
 
 const centre = (cell: number): Point => [(cell % props.size) + 0.5, Math.floor(cell / props.size) + 0.5]
-const lerp = (a: Point, b: Point, f: number): Point => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]
-/** Neighbours on the board itself (not across the border). */
-const touching = (a: number, b: number) => adjacent(a, b, props.size, false)
+
+/** One step from cell `a` to its neighbour `b` as a vector – across the border too (open mode). */
+function stepVector(a: number, b: number): Point {
+  const size = props.size
+  let dx = (b % size) - (a % size)
+  let dy = Math.floor(b / size) - Math.floor(a / size)
+  if (dx > 1) dx -= size
+  if (dx < -1) dx += size
+  if (dy > 1) dy -= size
+  if (dy < -1) dy += size
+  return [dx, dy]
+}
 
 const shownProgress = computed(() => (motionEnabled.value ? props.progress : 1))
 
-/** The snake as point runs (a new run where it passes through the border). */
-const runs = computed<Point[][]>(() => {
+/**
+ * The snake as one continuous line, head first, in "unrolled" board coordinates: a snake
+ * passing through the border (open mode) simply continues beyond the edge. The head and the
+ * tail end glide between two cells by `progress` (the drawing is one step behind the engine).
+ */
+const line = computed<Point[]>(() => {
   const body = props.body
   const f = shownProgress.value
-  const result: Point[][] = []
-  let current: Point[] = []
-  const head = body[0]!
-  const neck = body[1]
-  current.push(neck !== undefined && touching(neck, head) ? lerp(centre(neck), centre(head), f) : centre(head))
+  const head = centre(body[0]!)
+  const points: Point[] = []
+  if (body.length > 1) {
+    const [dx, dy] = stepVector(body[1]!, body[0]!)
+    points.push([head[0] - dx * (1 - f), head[1] - dy * (1 - f)])
+  } else {
+    points.push(head)
+  }
+  let [x, y] = head
   for (let i = 1; i < body.length; i++) {
-    if (!touching(body[i - 1]!, body[i]!)) {
-      result.push(current)
-      current = []
+    const [dx, dy] = stepVector(body[i]!, body[i - 1]!)
+    x -= dx
+    y -= dy
+    points.push([x, y])
+  }
+  if (props.leftTail !== null && f < 1) {
+    const [dx, dy] = stepVector(props.leftTail, body[body.length - 1]!)
+    points.push([x - dx * (1 - f), y - dy * (1 - f)])
+  }
+  return points
+})
+
+/**
+ * Where the line is drawn: on the board, and – where it runs over an edge – once more shifted
+ * by the board size, so the part beyond the edge appears on the other side (the SVG clips the
+ * rest).
+ */
+const copies = computed<Point[]>(() => {
+  const size = props.size
+  const xs = line.value.map((point) => point[0])
+  const ys = line.value.map((point) => point[1])
+  const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]
+  const result: Point[] = []
+  for (const ox of [-size, 0, size]) {
+    for (const oy of [-size, 0, size]) {
+      // The line is 0.8 wide: a copy within half a cell of the board can show.
+      const margin = 0.5
+      if (maxX + ox > -margin && minX + ox < size + margin && maxY + oy > -margin && minY + oy < size + margin) {
+        result.push([ox, oy])
+      }
     }
-    current.push(centre(body[i]!))
   }
-  const tail = body[body.length - 1]!
-  if (props.leftTail !== null && touching(props.leftTail, tail) && f < 1) {
-    current.push(lerp(centre(props.leftTail), centre(tail), f))
-  }
-  result.push(current)
   return result
 })
 
 const path = computed(() =>
-  runs.value
-    .map((run) => run.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(3)} ${y.toFixed(3)}`).join(''))
+  copies.value
+    .map(([ox, oy]) =>
+      line.value.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${(x + ox).toFixed(3)} ${(y + oy).toFixed(3)}`).join(''),
+    )
     .join(''),
 )
 
-const headPoint = computed(() => runs.value[0]![0]!)
-
-/** Eyes look the way the snake moves. */
-const eyes = computed(() => {
-  const [x, y] = headPoint.value
+/** Heads that are (partly) on the board – two while the head passes through the border. */
+const heads = computed(() => {
+  const [hx, hy] = line.value[0]!
   const forward: Record<Direction, Point> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
   const [fx, fy] = forward[props.direction]
   const side: Point = [-fy, fx]
-  return [1, -1].map((s) => ({
-    x: x + fx * 0.12 + side[0] * 0.2 * s,
-    y: y + fy * 0.12 + side[1] * 0.2 * s,
-    px: x + fx * 0.18 + side[0] * 0.2 * s,
-    py: y + fy * 0.18 + side[1] * 0.2 * s,
-  }))
+  return copies.value
+    .map(([ox, oy]): Point => [hx + ox, hy + oy])
+    .filter(([x, y]) => x > -0.5 && x < props.size + 0.5 && y > -0.5 && y < props.size + 0.5)
+    .map(([x, y]) => ({
+      x,
+      y,
+      // Eyes look the way the snake moves.
+      eyes: [1, -1].map((s) => ({
+        x: x + fx * 0.12 + side[0] * 0.2 * s,
+        y: y + fy * 0.12 + side[1] * 0.2 * s,
+        px: x + fx * 0.18 + side[0] * 0.2 * s,
+        py: y + fy * 0.18 + side[1] * 0.2 * s,
+      })),
+    }))
 })
 
 const foodPoint = computed(() => (props.food >= 0 ? centre(props.food) : null))
@@ -116,12 +163,20 @@ function onPointerDown(event: PointerEvent): void {
   window.addEventListener('pointercancel', onPointerCancel)
 }
 
+/** The direction of a movement, or `null` when it is too short or (with `ratio`) too diagonal. */
+function directionOf(dx: number, dy: number, ratio = 1): Direction | null {
+  const [ax, ay] = [Math.abs(dx), Math.abs(dy)]
+  if (Math.max(ax, ay) < SWIPE_THRESHOLD) return null
+  if (ax >= ay * ratio) return dx > 0 ? 'right' : 'left'
+  if (ay >= ax * ratio) return dy > 0 ? 'down' : 'up'
+  return null
+}
+
 function onPointerMove(event: PointerEvent): void {
   if (!start || event.pointerId !== start.id || touches.multi) return
-  const dx = event.clientX - start.x
-  const dy = event.clientY - start.y
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD) return
-  emit('turn', Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up')
+  const direction = directionOf(event.clientX - start.x, event.clientY - start.y, DOMINANCE)
+  if (!direction) return
+  emit('turn', direction)
   // Measure the next turn from here: one long swipe can turn twice ("up, then left").
   start = { ...start, x: event.clientX, y: event.clientY, turned: true }
 }
@@ -136,9 +191,14 @@ function stopTracking(): void {
 function onPointerUp(event: PointerEvent): void {
   touches.up(event)
   if (!start || event.pointerId !== start.id) return
-  const tapped = !start.turned && !touches.multi
+  const { x, y, turned } = start
+  const multi = touches.multi
   stopTracking()
-  if (tapped) emit('tap')
+  if (multi) return
+  // A quick flick may end before a move event crossed the threshold: judge it on release.
+  const direction = directionOf(event.clientX - x, event.clientY - y)
+  if (direction) emit('turn', direction)
+  else if (!turned) emit('tap')
 }
 
 function onPointerCancel(event: PointerEvent): void {
@@ -188,10 +248,12 @@ onBeforeUnmount(stopTracking)
       <g class="snake">
         <path class="snake__body" :d="path" />
         <path class="snake__stripe" :d="path" />
-        <circle class="snake__head" :cx="headPoint[0]" :cy="headPoint[1]" r="0.47" />
-        <g v-for="(eye, i) in eyes" :key="i">
-          <circle class="snake__eye" :cx="eye.x" :cy="eye.y" r="0.13" />
-          <circle class="snake__pupil" :cx="eye.px" :cy="eye.py" r="0.065" />
+        <g v-for="(head, h) in heads" :key="h">
+          <circle class="snake__head" :cx="head.x" :cy="head.y" r="0.47" />
+          <g v-for="(eye, i) in head.eyes" :key="i">
+            <circle class="snake__eye" :cx="eye.x" :cy="eye.y" r="0.13" />
+            <circle class="snake__pupil" :cx="eye.px" :cy="eye.py" r="0.065" />
+          </g>
         </g>
       </g>
 
@@ -221,6 +283,8 @@ onBeforeUnmount(stopTracking)
 
 svg {
   display: block;
+  /* The snake passing through the border is drawn beyond the edge: cut it off there. */
+  overflow: hidden;
   width: 100%;
   height: 100%;
 }

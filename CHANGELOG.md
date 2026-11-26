@@ -13,6 +13,14 @@ project adheres to [Semantic Versioning](https://semver.org/).
   the installed app (usually within a day) or after reinstalling it. iPhone and iPad keep the
   normal view: Safari has no full screen for web apps.
 
+### Fixed
+
+- Snake, open mode: the snake no longer seems to freeze for a moment when it comes out on
+  the other side – head and tail now glide through the border.
+- Snake: swipes are recognised more reliably – a quick flick counts even when it ends
+  before the finger "moved" far enough, a swipe that starts diagonally waits for its clear
+  direction instead of taking the wrong one, and a shorter swipe (18 px) is enough.
+
 ## [0.14.1] – 2026-11-26
 
 Hotfix: the sitemap and other files open directly again in a browser that has the app.

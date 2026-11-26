@@ -144,9 +144,44 @@ describe('SnakeBoard input', () => {
     wrapper.unmount()
   })
 
-  it('draws the snake through the border as separate pieces in the open mode', () => {
+  it('draws the snake through the border as two pieces in the open mode', () => {
     const wrapper = mount(SnakeBoard, { props: { ...props, body: [0, 14, 13], wrap: true } })
     expect(wrapper.find('.snake__body').attributes('d')?.match(/M/g)).toHaveLength(2)
+    wrapper.unmount()
+  })
+
+  it('lets the head glide through the border instead of jumping (open mode)', async () => {
+    settings.value.motion = 'full'
+    // The head just came out on the left (cell 0), coming from the right edge (cell 14).
+    const wrapper = mount(SnakeBoard, { props: { ...props, body: [0, 14, 13], wrap: true, progress: 0.5 } })
+    const heads = wrapper.findAll('.snake__head').map((head) => Number(head.attributes('cx')))
+    // Half way: half of the head on each side of the border.
+    expect(heads.sort((a, b) => a - b)).toEqual([0, 15])
+    await wrapper.setProps({ progress: 1 })
+    expect(wrapper.findAll('.snake__head').map((head) => Number(head.attributes('cx')))).toEqual([0.5])
+    wrapper.unmount()
+    settings.value.motion = 'reduced'
+  })
+
+  it('a quick flick that ends before a move event still turns', () => {
+    const wrapper = mount(SnakeBoard, { props, attachTo: document.body })
+    wrapper.element.dispatchEvent(pointer('pointerdown', 100, 100))
+    window.dispatchEvent(pointer('pointermove', 100, 92))
+    window.dispatchEvent(pointer('pointerup', 100, 60))
+    expect(wrapper.emitted('turn')).toEqual([['up']])
+    expect(wrapper.emitted('tap')).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('waits while a swipe starts diagonally, then takes the dominant direction', () => {
+    const wrapper = mount(SnakeBoard, { props, attachTo: document.body })
+    wrapper.element.dispatchEvent(pointer('pointerdown', 100, 100))
+    window.dispatchEvent(pointer('pointermove', 126, 78)) // diagonal: no decision yet
+    expect(wrapper.emitted('turn')).toBeUndefined()
+    window.dispatchEvent(pointer('pointermove', 130, 50))
+    expect(wrapper.emitted('turn')).toEqual([['up']])
+    window.dispatchEvent(pointer('pointerup', 130, 48))
+    expect(wrapper.emitted('turn')).toEqual([['up']])
     wrapper.unmount()
   })
 })

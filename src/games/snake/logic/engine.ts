@@ -183,7 +183,7 @@ export function stepInterval(run: Pick<SnakeRun, 'speed' | 'eaten'>): number {
 }
 
 /** Whether two cells are next to each other (across the border when `wrap`). */
-export function adjacent(a: number, b: number, size: number, wrap: boolean): boolean {
+function adjacent(a: number, b: number, size: number, wrap: boolean): boolean {
   return DIRECTIONS.some((direction) => neighbour(a, direction, size, wrap) === b)
 }
 
