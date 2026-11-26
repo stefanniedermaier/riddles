@@ -83,6 +83,21 @@ test.describe('addresses (plan 21)', () => {
     await expect(page).toHaveURL(/\/riddles\/de\/sudoku$/)
   })
 
+  test('only the texts of the shown language are loaded; switching loads the other one', async ({ page }) => {
+    const texts: string[] = []
+    page.on('request', (request) => {
+      const match = /\/messages\.(\w+)-[\w-]+\.js$/.exec(request.url())
+      if (match?.[1]) texts.push(match[1])
+    })
+    await page.goto('./settings')
+    await expect(page.locator('h1')).toHaveText('Settings')
+    expect(texts).toEqual(['en'])
+    await page.getByRole('radio', { name: 'Deutsch' }).click()
+    await expect(page.locator('h1')).toHaveText('Einstellungen')
+    await expect(page.locator('html')).toHaveAttribute('lang', 'de')
+    expect(texts).toEqual(['en', 'de'])
+  })
+
   test('pages carry search engine data, and the static content stays hidden while the app runs', async ({ page }) => {
     await page.goto('./stars/')
     await expect(page.locator('h1')).toHaveText('Stars')

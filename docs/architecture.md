@@ -46,7 +46,7 @@ Pages, and all state lives in the browser's `localStorage`.
 | `rng.ts`          | Seeded PRNG (mulberry32). `createRng(seed)`, serialisable state, `hashSeed(...)` to derive seeds.    |
 | `storage.ts`      | Prefixed JSON storage, `usePersistentRef`, export/import of all data, persistent-storage request.   |
 | `settings.ts`     | Global settings (language, theme, motion) and `useGameSettings()` for per-game options.             |
-| `i18n.ts`         | Typed `t(key, params)`; locale from settings or device language; keeps `<html lang>` in sync.        |
+| `i18n.ts`         | Typed `t(key, params)`; locale from settings, page or device language; loads only that language's texts; keeps `<html lang>` in sync. |
 | `theme.ts`        | Resolves light/dark and reduced motion; sets `data-theme` / `data-motion` and the theme-color meta. |
 | `stats.ts`        | Started/finished counters, best and total times, best scores per game and variant.                  |
 | `timer.ts`        | `useStopwatch` / `useCountdown`, automatically paused while the app is hidden.                      |
@@ -58,14 +58,23 @@ Pages, and all state lives in the browser's `localStorage`.
 ## How a game plugs in
 
 A game lives entirely in `src/games/<id>/`. Its `module.ts` is the **game API**: a
-`GameModule` (`src/games/module.ts`) created with `defineGame({ id, descriptor, routes,
-messages })`, built from three files:
+`GameModule` (`src/games/module.ts`) created with `defineGame({ id, descriptor, routes })`,
+built from two files; the texts sit next to them:
 
 | File         | Exports                                                                                       |
 | ------------ | --------------------------------------------------------------------------------------------- |
 | `index.ts`   | `descriptor: GameDescriptor` – variants, stat kind, `hasSavedGame()`, optional settings panel  |
 | `routes.ts`  | `routes: RouteRecordRaw[]` – usually a lobby (`/<id>`) and a play view (`/<id>/play`)          |
-| `i18n.ts`    | `en` and `de` message objects; merged under the namespace `<id>`                               |
+| `i18n.ts`    | `en` message object (namespace `<id>`); German in `i18n.de.ts` (`de`, same keys)             |
+
+Texts are bundled **per language**, not per game: `src/i18n/locales/messages.<lang>.ts`
+collects the shell texts and every game's texts of one language into a chunk of its own.
+The app loads only the active language before it mounts (`loadLocale` in `core/i18n.ts`; the
+pages preload the file), and the other one when the language changes – until it is there,
+the previous language stays on screen. The service worker precaches both.
+
+The start page's code is one chunk (`codeSplitting` group `$initial` in `vite.config.ts`);
+without it the bundler splits off every module that lazy chunks share into a tiny file.
 
 Play views never read the route themselves: their route record passes the path params and
 `?new=<variant>` as props (`playProps` in `src/games/routes.ts`; `newGame`, plus e.g. `variant`

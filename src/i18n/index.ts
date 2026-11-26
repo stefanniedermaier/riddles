@@ -1,43 +1,16 @@
-import { gameModules } from '@/games/modules'
-
-import de from './de'
-import en from './en'
+import type en from './locales/messages.en'
 import type { MessageKeys, Messages } from './types'
 
-type GameModuleList = typeof gameModules
-
-/** Texts of every game under its id, e.g. `sudoku.name` (derived from the module list). */
-type GameMessages = {
-  [M in GameModuleList[number] as M['id']]: M['messages']['en']
-}
-
-type MessageSchema = typeof en & GameMessages
+/** All texts: the app shell plus every game under its id, e.g. `sudoku.name`. */
+type MessageSchema = typeof en
 export type MessageKey = MessageKeys<MessageSchema>
-
-export interface MessageCatalogue {
-  en: MessageSchema
-  de: Messages<MessageSchema>
-}
-
-let catalogue: MessageCatalogue | undefined
-
-/** Shell texts plus the texts of every game under its id (shape known per module only). */
-function withGames<T>(shell: object, games: Record<string, unknown>): T {
-  return Object.assign({}, shell, games) as T
-}
+export type Catalogue = Messages<MessageSchema>
 
 /**
- * Shell texts merged with the texts of all games. Built on first use: game modules import
- * `t`, so building it while the modules load would run into an import cycle.
+ * Loaders of the per-language catalogues. Separate chunks, so the start bundle holds only
+ * the active language; the service worker precaches both, so switching works offline.
  */
-export function getMessages(): MessageCatalogue {
-  if (!catalogue) {
-    const of = (locale: 'en' | 'de') =>
-      Object.fromEntries(gameModules.map((module) => [module.id, module.messages[locale]]))
-    catalogue = {
-      en: withGames<MessageSchema>(en, of('en')),
-      de: withGames<Messages<MessageSchema>>(de, of('de')),
-    }
-  }
-  return catalogue
-}
+export const catalogueLoaders = {
+  en: () => import('./locales/messages.en'),
+  de: () => import('./locales/messages.de'),
+} satisfies Record<string, () => Promise<{ default: Catalogue }>>

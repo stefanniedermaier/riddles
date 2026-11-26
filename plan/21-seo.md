@@ -181,4 +181,5 @@ together in one release (paths without prerendered pages would be worse than tod
   import the Google property. Phase 6 (repository description and topics) is a GitHub
   setting.
 - The initial JavaScript grew from 94 to ≈ 97 kB gzip (budget 100 kB), mostly the per-game
-  descriptions in the catalogues.
+  descriptions in the catalogues. Since then the app loads only one language and the start
+  code is one chunk: ≈ 80 kB gzip.

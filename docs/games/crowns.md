@@ -136,7 +136,7 @@ background.
 src/games/crowns/
   index.ts             descriptor for the app shell (variants, stats, settings)
   routes.ts            /stars (lobby) and /stars/play
-  i18n.ts              English and German texts
+  i18n.ts, i18n.de.ts  English and German texts
   CrownsLobby.vue      rules, continue, difficulty list
   CrownsPlay.vue       game screen: timer, board, hints, result dialog
   CrownsBoard.vue      grid rendering, tap / drag / keyboard input

@@ -29,6 +29,9 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Faster start: the app loads only the texts of the language it shows (the other language
+  follows when you switch, also offline), and the start page's code is one file instead of
+  thirty small ones – 80 instead of 97 kB to load on the first visit.
 - Shapes: rockets and the bomb no longer cover their fruit. A rocket is drawn in the colour
   and texture of its fruit (seeds, pores, the lemon tip, veins, petals, berries) and points
   the way it clears; the bomb is now a bundle of dynamite in the fruit's look, with black

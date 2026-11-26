@@ -77,6 +77,30 @@ function homePage(): Plugin {
 }
 
 /**
+ * Preloads the English texts (a chunk of their own, `src/i18n/locales/`) with the start
+ * bundle, so they do not wait for main.js to ask for them. The German pages preload the
+ * German texts instead (scripts/prerender.ts swaps the file).
+ */
+function preloadTexts(): Plugin {
+  return {
+    name: 'riddles:preload-texts',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        const chunk = Object.values(ctx.bundle ?? {}).find(
+          (file) => file.type === 'chunk' && file.facadeModuleId?.endsWith('/src/i18n/locales/messages.en.ts'),
+        )
+        if (!chunk) throw new Error('preload-texts: English texts chunk not found')
+        return [
+          { tag: 'link', attrs: { rel: 'modulepreload', crossorigin: true, href: `/riddles/${chunk.fileName}` }, injectTo: 'head' },
+        ]
+      },
+    },
+  }
+}
+
+/**
  * Packages bundled into the service worker by Workbox (built outside the Rollup graph).
  * `scripts/check-dist.mjs` fails if the built service worker contains a Workbox module that is
  * missing here, so the list cannot silently go stale.
@@ -147,6 +171,7 @@ export default defineConfig({
   plugins: [
     vue(),
     homePage(),
+    preloadTexts(),
     contentSecurityPolicy(),
     thirdPartyLicenses(),
     VitePWA({
@@ -199,6 +224,18 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          // Everything the start page needs in one chunk: left alone, the bundler splits off
+          // each module that lazy chunks share (game descriptors, types, …) – 30 tiny files
+          // that compress worse and cost a request each.
+          groups: [{ name: 'app', tags: ['$initial'] }],
+        },
+      },
     },
   },
   worker: {

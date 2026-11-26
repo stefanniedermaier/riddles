@@ -80,13 +80,14 @@ export async function loadGames(): Promise<Game[]> {
   return Promise.all(
     ids.map(async (id) => {
       if (!known.has(id)) throw new Error(`unknown game ${id}`)
-      const url = pathToFileURL(join(ROOT, 'src/games', id, 'i18n.ts')).href
-      const catalogue = (await import(url)) as Record<Locale, Record<string, unknown>>
-      const textsOf = (locale: Locale): GameTexts => {
-        const c = catalogue[locale] as { name: string; tagline: string; seo: { about: string }; rules?: unknown }
+      // English in i18n.ts, German in i18n.de.ts (one file per language, see src/i18n/locales).
+      const textFile = (locale: Locale) => (locale === 'en' ? 'i18n.ts' : `i18n.${locale}.ts`)
+      const textsOf = async (locale: Locale): Promise<GameTexts> => {
+        const url = pathToFileURL(join(ROOT, 'src/games', id, textFile(locale))).href
+        const c = ((await import(url)) as Record<Locale, unknown>)[locale] as { name: string; tagline: string; seo: { about: string }; rules?: unknown }
         return { name: c.name, tagline: c.tagline, about: c.seo.about, rules: ruleTexts(c.rules) }
       }
-      return { id, slug: gameSlug(id), texts: { en: textsOf('en'), de: textsOf('de') } }
+      return { id, slug: gameSlug(id), texts: { en: await textsOf('en'), de: await textsOf('de') } }
     }),
   )
 }

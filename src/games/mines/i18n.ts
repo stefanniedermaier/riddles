@@ -1,5 +1,3 @@
-import type { Messages } from '@/i18n/types'
-
 /** English texts of the Mines game (namespace `mines`). */
 export const en = {
   name: 'Mines',
@@ -73,79 +71,5 @@ export const en = {
     chordDesc: 'If a number has as many flags around it as it shows, a tap reveals its other neighbours.',
     instantMistakes: 'Show wrong flags right away',
     instantMistakesDesc: 'A flag on a cell without a mine is marked at once and counts as a mistake.',
-  },
-}
-
-export const de: Messages<typeof en> = {
-  name: 'Mines',
-  tagline: 'Finde die versteckten Minen mit Logik – nie mit Glück.',
-  seo: {
-    about: 'Minesweeper ohne Raten: Jedes Feld ist rein logisch lösbar. 8×10 bis 12×18, mit Hinweisen, die den nächsten sicheren Schritt erklären.',
-  },
-  sizeLabel: '{width}×{height} · {mines} Minen',
-  boardLabel: '{width}×{height}',
-  variantLabel: '{difficulty} · {size}',
-  rules: {
-    title: 'So wird gespielt',
-    goal: 'Decke jedes Feld auf, unter dem keine Mine liegt.',
-    numbers: 'Eine Zahl sagt, wie viele der bis zu acht umliegenden Felder eine Mine verstecken.',
-    flags: 'Markiere sichere Minen mit einer Flagge. Tippe auf eine Zahl mit genug Flaggen ringsum, um ihre übrigen Nachbarn aufzudecken.',
-    logic: 'Jedes Feld lässt sich allein mit Logik lösen – raten musst du nie.',
-  },
-  play: {
-    minesLeft: 'Minen',
-    minesLeftValue: 'Noch {count} {count|Mine|Minen}',
-    mistakes: 'Fehler',
-    tool: 'Aktion beim Tippen',
-    reveal: 'Aufdecken',
-    flag: 'Flagge',
-    restart: 'Neu starten',
-    restartConfirm: 'Dieses Feld noch einmal von vorn beginnen?',
-    toMenu: 'Mines-Menü',
-    rules: 'Regeln',
-    board: 'Mines-Feld, {width} Spalten mal {height} Zeilen',
-    cell: 'Zeile {row}, Spalte {col}',
-    covered: 'verdeckt',
-    flagged: 'Flagge',
-    wrongFlag: 'falsche Flagge',
-    empty: 'leer',
-    number: '{count} in der Nähe',
-    mine: 'Mine',
-    noHint: 'Kein Tipp verfügbar.',
-    hintSafe: 'Tipp: sicher',
-    hintMine: 'Tipp: Mine',
-  },
-  hint: {
-    title: 'Tipp',
-    wrongTitle: 'Falsche Flagge',
-    wrong: 'Unter den markierten Flaggen liegt keine Mine.',
-    removeWrong: 'Entfernen',
-    safe: 'sicher',
-    mines: 'Minen',
-    both: 'sicher (✓) oder Minen (!)',
-    singleSafe:
-      'Die {number} in Zeile {row}, Spalte {col} berührt schon {number} markierte Minen – ihre übrigen Nachbarn sind sicher.',
-    singleMines:
-      'Die {number} in Zeile {row}, Spalte {col} hat genau so viele verdeckte Nachbarn, wie ihr noch Minen fehlen – das sind alles Minen.',
-    pair: 'Vergleiche die {a} in Zeile {r1}, Spalte {c1} mit der {b} in Zeile {r2}, Spalte {c2}: Die markierten Felder sind {what}.',
-    group: 'Probiere alle möglichen Verteilungen der Minen um die markierten Zahlen: Die hervorgehobenen Felder sind in jeder davon {what}.',
-    count: 'Zähle die Minen: Es sind nur noch {left} übrig, also sind die markierten Felder {what}.',
-  },
-  result: {
-    solvedText: 'Alle sicheren Felder sind aufgedeckt.',
-    hitTitle: 'Mine getroffen!',
-    hitText: 'Nimm den Zug zurück, um weiterzuspielen – das zählt als Fehler.',
-    undoMove: 'Zug zurücknehmen',
-    tryAgain: 'Nochmal versuchen',
-    newPuzzle: 'Neues Feld',
-    mistakes: 'Fehler',
-  },
-  settings: {
-    longPress: 'Lange drücken für die andere Aktion',
-    longPressDesc: 'Halte ein Feld gedrückt, um es beim Aufdecken zu markieren (und umgekehrt).',
-    chord: 'Auf eine Zahl tippen deckt ringsum auf',
-    chordDesc: 'Hat eine Zahl so viele Flaggen ringsum, wie sie zeigt, deckt ein Tipp ihre übrigen Nachbarn auf.',
-    instantMistakes: 'Falsche Flaggen sofort zeigen',
-    instantMistakesDesc: 'Eine Flagge auf einem Feld ohne Mine wird sofort markiert und zählt als Fehler.',
   },
 }

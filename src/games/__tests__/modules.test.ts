@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { t } from '@/core/i18n'
+import de from '@/i18n/locales/messages.de'
+import en from '@/i18n/locales/messages.en'
 import { settings } from '@/core/settings'
 import { gameSlug } from '../slugs'
 import { gameModules } from '../modules'
@@ -29,9 +31,18 @@ describe('game modules', () => {
     for (const locale of ['en', 'de'] as const) {
       settings.value.locale = locale
       for (const module of gameModules) {
-        expect(t(`${module.id}.name`)).toBe(module.messages[locale].name)
+        expect(t(`${module.id}.name`)).toBe({ en, de }[locale][module.id].name)
       }
     }
     settings.value.locale = 'system'
+  })
+
+  it('each have their texts in the catalogues – and nothing else is there', () => {
+    const ids = gameModules.map((module) => module.id)
+    const shellKeys = (catalogue: object) => Object.keys(catalogue).filter((key) => !(ids as string[]).includes(key))
+    for (const catalogue of [en, de]) {
+      for (const id of ids) expect(catalogue[id]).toBeDefined()
+    }
+    expect(shellKeys(de).sort()).toEqual(shellKeys(en).sort())
   })
 })
