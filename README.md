@@ -87,6 +87,17 @@ Tech stack: Vue 3, TypeScript, Vite, vite-plugin-pwa (Workbox), Vitest, Playwrig
 - [Implementation plans](plan/README.md) – the original design and decisions
 - [Changelog](CHANGELOG.md)
 
+## Accessibility
+
+Riddles aims at WCAG 2.2 AA: high contrast in both themes, colour never the only cue,
+keyboard play, screen reader labels, reduced motion and two-finger zoom. Details, known
+limitations and how to report a barrier: [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome – see [CONTRIBUTING.md](CONTRIBUTING.md).
+Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Security
 
 Please report vulnerabilities privately – see [SECURITY.md](SECURITY.md). Every deployment

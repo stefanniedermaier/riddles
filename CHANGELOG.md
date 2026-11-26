@@ -6,6 +6,12 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Community files: [Code of Conduct](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1),
+  [Contributing guide](CONTRIBUTING.md), [Accessibility statement](ACCESSIBILITY.md) and an
+  issue template for accessibility barriers; the bug report lists every game.
+
 ### Changed
 
 - Shapes: rockets and the bomb no longer cover their fruit. A rocket is drawn in the colour

@@ -6,11 +6,29 @@ body:
     attributes:
       value: |
         **Security problem?** Please use [private vulnerability reporting](https://github.com/stefanniedermaier/riddles/security/advisories/new) instead.
+        **Accessibility barrier?** The [accessibility report](https://github.com/stefanniedermaier/riddles/issues/new?template=accessibility.yml) asks for the details that help most.
   - type: dropdown
     id: game
     attributes:
       label: Area
-      options: [Sudoku, Crowns, Shapes, App / settings / installation]
+      options:
+        - Sudoku
+        - Stars
+        - Links
+        - Nonogram
+        - Merge
+        - Blocks
+        - Arrows
+        - Mines
+        - Pipes
+        - Water Sort
+        - Code Breaker
+        - Solitaire
+        - Spider
+        - FreeCell
+        - TriPeaks
+        - Shapes
+        - App / settings / installation
     validations:
       required: true
   - type: textarea

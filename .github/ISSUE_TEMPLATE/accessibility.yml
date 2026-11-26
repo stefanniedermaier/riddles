@@ -1,0 +1,67 @@
+name: ♿ Accessibility barrier
+description: Something is hard or impossible to use with low vision, a screen reader, the keyboard, zoom, reduced motion …
+labels: [accessibility, bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping to make Riddles usable for everyone. Barriers are treated as bugs.
+        See [ACCESSIBILITY.md](https://github.com/stefanniedermaier/riddles/blob/main/ACCESSIBILITY.md) for what the app supports today.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Game or page
+      options:
+        - Sudoku
+        - Stars
+        - Links
+        - Nonogram
+        - Merge
+        - Blocks
+        - Arrows
+        - Mines
+        - Pipes
+        - Water Sort
+        - Code Breaker
+        - Solitaire
+        - Spider
+        - FreeCell
+        - TriPeaks
+        - Shapes
+        - Home, settings, statistics or other pages
+    validations:
+      required: true
+  - type: textarea
+    id: barrier
+    attributes:
+      label: What is hard or impossible, and what did you expect?
+    validations:
+      required: true
+  - type: dropdown
+    id: assistive
+    attributes:
+      label: Assistive technology and settings you use
+      multiple: true
+      options:
+        - Screen reader (TalkBack, VoiceOver, NVDA, JAWS …)
+        - Screen magnifier / zoom
+        - Larger display or font size
+        - Reduced motion / remove animations
+        - High contrast or colour inversion
+        - Keyboard only
+        - Switch access or voice control
+        - Other (please describe below)
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: 1. … 2. … 3. …
+  - type: input
+    id: version
+    attributes:
+      label: App version (Settings → About)
+  - type: input
+    id: device
+    attributes:
+      label: Device, OS and browser
+      placeholder: e.g. Redmi Note 13, Android 15, Chrome, installed to home screen
