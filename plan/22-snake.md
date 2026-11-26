@@ -1,6 +1,6 @@
 # 22 – Snake
 
-**Status:** planned, not started.
+**Status:** planned, not started. Open questions decided (see the end).
 
 The classic arcade genre: steer a snake around a grid, eat food to grow, and do not bite
 yourself (or hit a wall). Name of the genre only; rules details, artwork, colours and sounds
@@ -43,10 +43,9 @@ A per-game setting **Speed** (`snake:settings`, settings panel and the lobby):
 | Fast    | 120 ms            | to at most 75 ms                                    |
 | **Calm** (step by step) | – | the snake moves only when the player gives a direction (one step per input; the same direction again = one step forward) |
 
-Points per food: `1` (slow), `2` (normal), `3` (fast), `1` (calm), so faster play pays off
-and the best score stays comparable within one speed. **Open question:** score per speed
-in one list (simple) or best scores per mode *and* speed (fairer, but 12 lists)? Proposal:
-one list per mode, the speed is shown next to each best score.
+Points per food: `1` (slow), `2` (normal), `3` (fast), `1` (calm), so faster play pays off.
+**One best score per mode**; the speed it was reached with is stored with it and shown next
+to it (lobby, statistics, result dialog).
 
 ## 3. Engine (`logic/`, pure and deterministic)
 
@@ -116,7 +115,7 @@ stepInterval(run) → number       // ms for the current length and speed
   dominant axis) – a swipe turns immediately when the threshold is crossed, not on lift,
   so turns feel direct. `touch-action: none` on the board while running (the board must not
   scroll), `pinch-zoom` while paused.
-- **On-screen D-pad** below the board (setting, on by default on touch devices): four large
+- **On-screen D-pad** below the board (setting, **on by default** on touch devices): four large
   buttons (≥ 56 px), for players who find swiping hard. With the calm mode it is the main
   control.
 - **Keyboard:** arrow keys and WASD; Space / P / Escape pauses.
@@ -189,9 +188,13 @@ stepInterval(run) → number       // ms for the current length and speed
 4. Logo, backdrop, accent colour, OG images, SEO texts.
 5. Accessibility pass (calm mode, contrast, live summary), e2e tests, docs.
 
-## Open questions
+## Decisions
 
-1. Best scores: one list per mode (speed shown next to it) or per mode **and** speed?
-2. Modes: are `classic`, `open` and `maze` the right three, or should `maze` come later?
-3. D-pad: on by default on touch devices, or only as a setting?
-4. Name in the app: just "Snake", or an original name (as "Stars" for Star Battle)?
+1. **Best scores:** one list per mode; the speed is shown next to the best score.
+2. **Modes:** `classic`, `open` and `maze` from the start.
+3. **D-pad:** on by default on touch devices (`pointer: coarse`), can be turned off in the
+   settings.
+4. **Name:** "Snake". It is the common name of the genre (since *Blockade*, 1976), used by
+   countless games and apps; the one game mark found in a search (Nokia's US mark "SNAKES",
+   2008) has been cancelled. No logo, artwork, sound or look of an existing Snake game is
+   used. Not a legal check – a look into TMview / DPMA before the release is advised.
