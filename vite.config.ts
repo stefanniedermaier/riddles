@@ -217,6 +217,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,svg,png,ico,webmanifest,txt}', 'index.html'],
         globIgnores: ['og/**'],
         navigateFallback: 'index.html',
+        // Only page addresses get the app shell. A file opened directly (sitemap.xml,
+        // licenses.txt, a preview image …) must come from the network – otherwise the browser
+        // shows the app's not-found page instead of the file.
+        navigateFallbackDenylist: [/\/[^/?#]+\.[^/?#]+$/],
         cleanupOutdatedCaches: true,
       },
     }),

@@ -6,6 +6,17 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.14.1] – 2026-11-26
+
+Hotfix: the sitemap and other files open directly again in a browser that has the app.
+
+### Fixed
+
+- Files opened directly in a browser that already has the app (the sitemap, the licence
+  notices, a preview image) showed the app's not-found page until the page was reloaded:
+  the service worker answered every address with the app. It now leaves addresses with a
+  file extension to the network.
+
 ## [0.14.0] – 2026-11-26
 
 Snake as the 17th game, real addresses and German pages for search engines and link
