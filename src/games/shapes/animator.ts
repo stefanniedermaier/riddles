@@ -36,6 +36,11 @@ export interface DisplayPiece {
    */
   land: number
   landDelayMs: number
+  /**
+   * Plays the "grow in" animation instead of the landing squash: for new pieces that appear
+   * in place below an obstacle (they cannot fall in from above the board).
+   */
+  appear: boolean
 }
 
 /**
@@ -58,6 +63,8 @@ const CLEAR_MS = 260
 const FALL_BASE_MS = 110
 const FALL_ROW_MS = 55
 const SHUFFLE_MS = 380
+/** Length of the grow-in animation of pieces appearing below an obstacle (CSS: piece-appear). */
+const APPEAR_MS = 300
 /** Lifetime of a board effect. */
 const EFFECT_MS = 650
 /** Pauses between the steps with reduced motion (no movement, but the order stays visible). */
@@ -117,6 +124,7 @@ export function useBoardAnimator(motion: Ref<boolean>) {
         ease: 'move',
         land: landed.get(piece.id)?.land ?? 0,
         landDelayMs: landed.get(piece.id)?.landDelayMs ?? 0,
+        appear: landed.get(piece.id)?.appear ?? false,
       })
     })
     return list.sort((a, b) => a.id - b.id)
@@ -217,9 +225,16 @@ export function useBoardAnimator(motion: Ref<boolean>) {
         for (const move of phase.moves) {
           durations.set(move.id, FALL_BASE_MS + (rowOf(move.to) - rowOf(move.from)) * FALL_ROW_MS)
         }
-        // New pieces start above the board without transition …
+        // New pieces start above the board without transition (pieces below an obstacle
+        // start in their cell and grow in right away) …
+        const appearing = new Set<number>()
         const spawned: DisplayPiece[] = phase.spawned.map(({ cell, piece, fromRow }) => {
-          durations.set(piece.id, FALL_BASE_MS + (rowOf(cell) - fromRow) * FALL_ROW_MS)
+          const inPlace = fromRow === rowOf(cell)
+          if (inPlace) appearing.add(piece.id)
+          durations.set(
+            piece.id,
+            inPlace ? APPEAR_MS : FALL_BASE_MS + (rowOf(cell) - fromRow) * FALL_ROW_MS,
+          )
           return {
             id: piece.id,
             kind: piece.kind,
@@ -230,8 +245,9 @@ export function useBoardAnimator(motion: Ref<boolean>) {
             firing: false,
             durationMs: 0,
             ease: 'fall' as const,
-            land: 0,
+            land: inPlace ? landId++ : 0,
             landDelayMs: 0,
+            appear: inPlace,
           }
         })
         pieces.value = [...pieces.value, ...spawned].sort((a, b) => a.id - b.id)
@@ -239,9 +255,10 @@ export function useBoardAnimator(motion: Ref<boolean>) {
         // … and then everything falls into place.
         pieces.value = display(phase.board, (id) => durations.get(id) ?? 0).map((p) => {
           const duration = durations.get(p.id)
-          return duration === undefined
-            ? p
-            : { ...p, ease: 'fall' as const, land: landId++, landDelayMs: duration }
+          if (duration === undefined) return p
+          // Keeps the `land` key of the spawn, so the running grow-in is not restarted.
+          if (appearing.has(p.id)) return { ...p, durationMs: 0 }
+          return { ...p, ease: 'fall' as const, land: landId++, landDelayMs: duration, appear: false }
         })
         await wait(Math.max(0, ...durations.values()))
         return

@@ -17,6 +17,7 @@ const pieces: DisplayPiece[] = Array.from({ length: SIZE * SIZE }, (_, cell) => 
   ease: 'move',
   land: 0,
   landDelayMs: 0,
+  appear: false,
 }))
 
 describe('ShapesBoard keyboard', () => {

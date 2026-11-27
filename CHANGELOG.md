@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Shapes: new pieces below a crate or chain (where nothing can fall in from above) popped
+  up without animation. They now grow in their cell.
+
 ## [0.14.1] – 2026-11-26
 
 Hotfix: the sitemap and other files open directly again in a browser that has the app.
