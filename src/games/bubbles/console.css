@@ -1,0 +1,40 @@
+/*
+ * Console panels of Bubbles (HUD, goal, hint): dark glass with a neon edge and a short
+ * accent bar on top – the same in light and dark theme, like the holo field.
+ */
+.bx-panel {
+  position: relative;
+  color: #e9fbff;
+  background: linear-gradient(180deg, rgb(16 24 64 / 94%), rgb(7 11 34 / 94%));
+  border: 1px solid rgb(79 243 255 / 55%);
+  box-shadow:
+    0 0 12px rgb(79 243 255 / 22%),
+    inset 0 0 14px rgb(79 243 255 / 10%),
+    0 6px 16px rgb(0 0 0 / 35%);
+}
+
+.bx-panel::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 12px;
+  width: 34%;
+  height: 3px;
+  background: #4ff3ff;
+  box-shadow: 0 0 8px #4ff3ff;
+}
+
+.bx-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7ff6ff;
+}
+
+.bx-value {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 8px rgb(79 243 255 / 70%);
+}
