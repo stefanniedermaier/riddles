@@ -35,6 +35,10 @@ Shapes.
 - Shapes: gaps below a crate or chain are now filled by pieces sliding in diagonally from
   the neighbouring columns, instead of new pieces appearing there. Only cells no piece can
   reach still get new pieces in place.
+- Shapes: an acorn can no longer be swapped with the piece below it without making a
+  match. Like every other piece, it moves only through a swap that creates a match, and it
+  falls when the pieces below it are cleared. Levels with acorns give a few more moves
+  (about 4 to 5) to make up for it.
 
 ### Fixed
 

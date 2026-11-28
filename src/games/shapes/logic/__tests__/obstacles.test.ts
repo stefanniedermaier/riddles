@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { createRng } from '@/core/rng'
-import { createBoard, findAnyMove, isItemDrop, isValidSwap, listMoves, shuffleBoard } from '../board'
+import { createBoard, findAnyMove, isValidSwap, listMoves, shuffleBoard } from '../board'
 import { findMatches } from '../match'
 import { createLevelField, getLevel } from '../levels'
 import { createRun, playMove } from '../modes'
@@ -221,26 +221,23 @@ describe('target tiles', () => {
 })
 
 describe('drop items', () => {
-  it('can always be moved one row down, even without a match', () => {
+  it('cannot be swapped without a match', () => {
     const board = patternBoard()
     board[at(5, 3)] = item(500)
     const f = field({})
-    expect(isItemDrop(board, at(5, 3), at(6, 3))).toBe(true)
-    expect(isItemDrop(board, at(6, 3), at(5, 3))).toBe(true)
-    expect(isItemDrop(board, at(5, 3), at(4, 3))).toBe(false) // not upwards
-    expect(isItemDrop(board, at(5, 3), at(5, 4))).toBe(false) // not sideways
-    const result = resolveMove(board, at(5, 3), at(6, 3), context(), f)
-    expect(result.valid).toBe(true)
-    expect(result.board[at(6, 3)]!.kind).toBe(ITEM_KIND)
-    // Without a field (Zen / Time) there are no items and no free moves.
-    expect(resolveMove(board, at(5, 3), at(6, 3), context()).valid).toBe(false)
+    for (const other of [at(6, 3), at(4, 3), at(5, 4), at(5, 2)]) {
+      expect(isValidSwap(board, at(5, 3), other, f)).toBe(false)
+      expect(resolveMove(board, at(5, 3), other, context(), f).valid).toBe(false)
+      expect(resolveMove(board, other, at(5, 3), context(), f).valid).toBe(false)
+    }
   })
 
   it('are collected at the bottom row and the board is refilled', () => {
-    const board = patternBoard()
+    // Bottom row: R R _ R – swapping (7,4) into (7,3) clears the piece below the item.
+    const board = set(patternBoard(), [[7, 1, 'R'], [7, 2, 'R'], [7, 4, 'R']])
     board[at(6, 3)] = item(500)
     const f = field({})
-    const result = resolveMove(board, at(6, 3), at(7, 3), context(), f)
+    const result = resolveMove(board, at(7, 4), at(7, 3), context(), f)
     expect(result.valid).toBe(true)
     expect(result.summary.itemsCollected).toBe(1)
     expect(result.phases.some((p) => p.type === 'collect')).toBe(true)

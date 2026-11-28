@@ -1,4 +1,4 @@
-import { cloneBoard, findAnyMove, isItemDrop, newItem, newPiece, shuffleBoard } from './board'
+import { cloneBoard, findAnyMove, newItem, newPiece, shuffleBoard } from './board'
 import { findMatches, specialForGroup, type MatchGroup } from './match'
 import { CELL_SCORE, SPECIAL_BONUS, groupScore } from './scoring'
 import { comboFor, effectCells, type ComboSeeds } from './specials'
@@ -154,8 +154,7 @@ export function resolveMove(
 
   const combo = comboFor(work, a, b, ctx)
   let groups = findMatches(work)
-  const itemDrop = field !== undefined && isItemDrop(board, a, b)
-  if (!combo && groups.length === 0 && !itemDrop) return invalid()
+  if (!combo && groups.length === 0) return invalid()
 
   const summary = emptySummary()
   const phases: Phase[] = [{ type: 'swap', a, b, valid: true }]
@@ -167,12 +166,6 @@ export function resolveMove(
       phases.push(collected)
       phases.push(...fallStep(work, field, ctx))
     }
-  }
-
-  // A plain item drop (no match): the item may have reached the bottom.
-  if (!combo && groups.length === 0) {
-    collectAll()
-    groups = findMatches(work)
   }
 
   let seeds: ComboSeeds | null = combo
