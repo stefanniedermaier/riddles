@@ -23,7 +23,7 @@ export const de: Messages<typeof en> = {
       'Wische über einen Stein – oder tippe zwei Nachbarn an – um sie zu tauschen. Bilde Reihen aus drei oder mehr gleichen. Größere Reihen ergeben Raketen, Dynamit und Regenbogenkugeln.',
     howToTitle: 'So geht’s',
     howToLevels:
-      'In den Leveln gibt es Hindernisse: Sprenge Ketten und Kisten, räume die markierten Felder ab und bringe die Fallgegenstände in die unterste Reihe – ein Gegenstand lässt sich jederzeit eine Reihe nach unten tauschen.',
+      'In den Leveln gibt es Hindernisse: Sprenge Ketten und Kisten, räume die markierten Felder ab und bringe die Fallgegenstände in die unterste Reihe – sie fallen nach unten, wenn die Steine darunter abgeräumt werden.',
     continue: 'Fortsetzen · {score} Punkte',
     continueLevel: 'Level {level} fortsetzen',
     level: 'Level {level}',

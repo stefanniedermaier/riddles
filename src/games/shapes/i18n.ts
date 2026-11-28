@@ -20,7 +20,7 @@ export const en = {
     howTo: 'Swipe a piece – or tap two neighbours – to swap them. Line up three or more of the same kind. Bigger matches build rockets, dynamite and rainbow balls.',
     howToTitle: 'How to play',
     howToLevels:
-      'Levels add obstacles: break chains and crates, clear the marked tiles and bring the drop items down to the bottom row – an item can always be swapped one row down.',
+      'Levels add obstacles: break chains and crates, clear the marked tiles and bring the drop items down to the bottom row – items fall when the pieces below them are cleared.',
     continue: 'Continue · {score} points',
     continueLevel: 'Continue level {level}',
     level: 'Level {level}',

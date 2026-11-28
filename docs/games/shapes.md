@@ -109,7 +109,7 @@ above it (icon, `current/target`, progress bar, check mark when done).
 | **Target tile** | garden-bed tile (soil with grass tufts) under a piece | Cleared when the piece on it is cleared (match or special).                              | clear all tiles |
 | **Chain**       | crossed steel chains with a padlock over a piece | The piece cannot be swapped and does not fall. Part of a match or hit by a special → the chain breaks, the piece stays. | free all chained pieces |
 | **Crate**       | wooden crate (reinforced = metal corners, 2 hits) | Occupies the cell (no piece). Pieces stop above it. Each match next to it (orthogonally) and each special hitting it removes one hit point (max. one per clear). | break all crates |
-| **Drop item**   | round token with a down arrow      | Cannot be matched and is immune to specials. Falls like a piece; collected when it reaches the bottom row. It can **always** be swapped one row down, even without a match (costs a move). | bring N items down |
+| **Drop item**   | round token with a down arrow      | Cannot be matched and is immune to specials. Falls like a piece; collected when it reaches the bottom row. Like any piece it can only be swapped when the swap creates a match. | bring N items down |
 
 **Gravity with obstacles:** each column is split into segments by crates and chained pieces.
 Pieces fall to the bottom of their segment; the top segment is refilled from above the
@@ -144,7 +144,7 @@ limit and goals on every device. Pieces that drop in later depend on the run's R
   | target | 3    | 1.9            |
   | chain  | 5    | 3.1            |
   | crate  | 6    | 0.9 per hit    |
-  | item   | 2    | 4.8            |
+  | item   | 3    | 5.5            |
 - **Classic levels:** move limit 30, decreasing by one every three levels down to 18;
   difficulty ramp `min(0.9, 0.5 + 0.012·n) ± 0.03`; score goal
   `moves × pointsPerMove × ramp`; a collect goal from level 2; every third level from
