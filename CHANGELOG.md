@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.15.0] – 2026-11-28
+
+Bubbles as the 18th game, full screen for the installed app on Android, smoother Snake and
+Shapes.
+
 ### Added
 
 - **Bubbles** – the 18th game, a bubble shooter: drag to aim, let go to shoot, bounce off the
