@@ -4,6 +4,7 @@ import { computed, useId } from 'vue'
 import { formatNumber } from '@/core/format'
 import { t } from '@/core/i18n'
 import BubbleArt from './BubbleArt.vue'
+import BubbleDefs from './BubbleDefs.vue'
 import { COLOR_KEYS } from './colors'
 import { goalReached, type BubblesRun } from './logic/engine'
 import { EMPTY } from './logic/types'
@@ -11,7 +12,7 @@ import { EMPTY } from './logic/types'
 /** The goal of a level and how far it is: a line above the field. */
 const props = defineProps<{ run: BubblesRun; symbols: boolean }>()
 
-const shine = `bubbles-goal-${useId()}`
+const ids = `bubbles-goal-${useId()}`
 
 const text = computed(() => {
   const goal = props.run.goal
@@ -51,21 +52,18 @@ const done = computed(() => goalReached(props.run))
 </script>
 
 <template>
-  <section class="goal" :class="{ 'goal--done': done }">
-    <svg v-if="run.goal?.type === 'color'" class="goal__bubble" viewBox="-0.5 -0.5 1 1" aria-hidden="true">
-      <defs>
-        <radialGradient :id="shine" cx="0.36" cy="0.3" r="0.7">
-          <stop offset="0" stop-color="#fff" stop-opacity="0.7" />
-          <stop offset="0.7" stop-color="#fff" stop-opacity="0" />
-        </radialGradient>
-      </defs>
-      <BubbleArt :value="run.goal.color" :x="0" :y="0" :symbols="symbols" :shine="shine" />
+  <section class="goal bx-panel" :class="{ 'goal--done': done }">
+    <svg v-if="run.goal?.type === 'color'" class="goal__bubble" viewBox="-0.55 -0.55 1.1 1.1" aria-hidden="true">
+      <BubbleDefs :ids="ids" />
+      <BubbleArt :value="run.goal.color" :x="0" :y="0" :symbols="symbols" :ids="ids" :halo="false" />
     </svg>
-    <span class="goal__label">{{ t('bubbles.play.goal') }}</span>
+    <span class="goal__label bx-label">{{ t('bubbles.play.goal') }}</span>
     <span class="goal__text">{{ text }}</span>
-    <strong class="goal__progress tabular">{{ progress }}</strong>
+    <strong class="goal__progress bx-value tabular">{{ progress }}</strong>
   </section>
 </template>
+
+<style src="./console.css"></style>
 
 <style scoped>
 .goal {
@@ -74,27 +72,20 @@ const done = computed(() => goalReached(props.run))
   gap: var(--space-2);
   width: min(100%, 480px);
   padding: var(--space-2) var(--space-3);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
   font-size: var(--text-sm);
 }
 
 .goal--done {
-  background: color-mix(in srgb, var(--color-success) 16%, var(--color-surface));
+  border-color: #3dffa8;
+  box-shadow:
+    0 0 14px rgb(61 255 168 / 45%),
+    inset 0 0 14px rgb(61 255 168 / 18%);
 }
 
 .goal__bubble {
   flex: none;
-  width: 22px;
-  height: 22px;
-}
-
-.goal__label {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  width: 24px;
+  height: 24px;
 }
 
 .goal__text {
@@ -102,6 +93,6 @@ const done = computed(() => goalReached(props.run))
 }
 
 .goal__progress {
-  font-weight: 800;
+  font-size: var(--text-md);
 }
 </style>

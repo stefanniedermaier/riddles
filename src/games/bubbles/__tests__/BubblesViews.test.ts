@@ -94,10 +94,10 @@ describe('Bubbles views', () => {
     prepare()
     const { wrapper } = await mountAt('/bubbles/play/endless')
     // The keyboard shows the aim line.
-    expect(wrapper.find('.aim__line').exists()).toBe(false)
+    expect(wrapper.find('.aim__beam').exists()).toBe(false)
     await press('ArrowLeft')
     await press('ArrowRight')
-    expect(wrapper.find('.aim__line').exists()).toBe(true)
+    expect(wrapper.find('.aim__beam').exists()).toBe(true)
     await press(' ')
     await settle()
     expect(wrapper.find('[aria-live="polite"]').text()).toMatch(/^3 popped, 0 fell/)
@@ -160,8 +160,8 @@ describe('Bubbles views', () => {
       new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, isPrimary: true, pointerType: 'mouse', button: 0, bubbles: true })
     wrapper.find('.bubbles-board').element.dispatchEvent(pointer('pointerdown', 20, 60))
     await flushPromises()
-    expect(wrapper.find('.aim__line').exists()).toBe(true)
-    expect(wrapper.find('.aim__landing').exists()).toBe(true)
+    expect(wrapper.find('.aim__beam').exists()).toBe(true)
+    expect(wrapper.find('.aim__ghost').exists()).toBe(true)
     window.dispatchEvent(pointer('pointerup', 20, 60))
     expect(wrapper.emitted('shoot')).toHaveLength(1)
     const angle = wrapper.emitted('shoot')![0]![0] as number

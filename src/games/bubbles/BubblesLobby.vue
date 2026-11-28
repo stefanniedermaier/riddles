@@ -13,6 +13,7 @@ import { t } from '@/core/i18n'
 import { useChallengeVariant } from '@/core/share'
 import { getVariantStats } from '@/core/stats'
 import BubblesRules from './BubblesRules.vue'
+import SpaceBackdrop from './SpaceBackdrop.vue'
 import { VARIANTS, type Variant } from './index'
 import { chosenSpeed, speedOptions } from './options'
 import { bestTimeSpeed, levelProgress, loadRun, totalStars } from './store'
@@ -72,13 +73,14 @@ function select(id: string): void {
 </script>
 
 <template>
+  <SpaceBackdrop />
   <AppBar :title="t('bubbles.name')" back-to="/">
     <template #actions>
       <GameSettingsButton game="bubbles" />
     </template>
   </AppBar>
   <main class="page lobby" style="--lobby-accent: var(--game-bubbles)" :class="{ 'lobby--played': hasPlayed }">
-    <LobbyHero game="bubbles" />
+    <LobbyHero game="bubbles" :tint="false" />
     <RulesCard class="intro" :title="t('bubbles.lobby.howToTitle')" accent="var(--game-bubbles)">
       <BubblesRules />
     </RulesCard>

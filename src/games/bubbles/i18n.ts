@@ -56,7 +56,7 @@ export const en = {
     howToModes:
       'Tap the next bubble to swap it. In Endless a new row comes in after a few misses, against the clock the ceiling comes down on its own. Do not let the bubbles cross the line at the bottom.',
     howToSpecials:
-      'Hit after hit earns a bomb, a big drop a rainbow bubble that takes the colour it touches most. Grey stones never pop – bring them down.',
+      'Hit after hit earns a nova mine, a big drop a prism orb that takes the colour it touches most. Asteroids never pop – bring them down.',
     speed: 'Speed against the clock',
     continue: 'Continue · {score} points',
     level: 'Level {level}',
@@ -64,6 +64,12 @@ export const en = {
     stars: '{stars} stars',
     best: 'Best {score}',
     bestSpeed: 'Best {score} · {speed}',
+  },
+  legend: {
+    bomb: 'Nova mine: clears everything around it',
+    rainbow: 'Prism orb: takes the colour it touches most',
+    stone: 'Asteroid: never pops – bring it down',
+    marked: 'Marked: a level target',
   },
   play: {
     board: 'Bubbles field',
@@ -78,6 +84,7 @@ export const en = {
     next: 'Next bubble: {bubble} – tap to swap',
     swap: 'Swap bubbles',
     aim: 'Aim: {angle}°',
+    combo: 'Combo ×{n}',
     hint: 'Drag to aim, let go to shoot',
     keys: 'Arrow keys aim, Space shoots, X swaps',
     resume: 'Paused – tap to continue',
@@ -86,10 +93,17 @@ export const en = {
     missed: 'No pop. {left} bubbles left.',
     danger: 'Careful – the bubbles are close to the line.',
     special: {
-      bomb: 'bomb',
-      rainbow: 'rainbow bubble',
-      stone: 'stone',
+      bomb: 'nova mine',
+      rainbow: 'prism orb',
+      stone: 'asteroid',
     },
+  },
+  praise: {
+    nice: 'Nice!',
+    great: 'Great!',
+    stellar: 'Stellar!',
+    supernova: 'Supernova!',
+    cleared: 'Field clear!',
   },
   pause: {
     title: 'Paused',

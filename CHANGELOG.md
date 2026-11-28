@@ -21,6 +21,10 @@ Shapes.
   Earned bombs and rainbow bubbles, stones that only fall. Colour and symbol on every bubble
   (symbols can be switched off), an aim line in three lengths, full keyboard control and
   reduced motion. Plan 23.
+- **Bubbles look:** a sci-fi scene – space backdrop with planet and neon horizon, the field
+  as a holo panel, energy orbs with glyphs, a turning turret with a laser sight, nova mines,
+  prism orbs and asteroids, particle bursts, shockwaves, rising points, praise words and
+  console panels for score and goals.
 
 ### Changed
 

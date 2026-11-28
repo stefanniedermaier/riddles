@@ -296,7 +296,11 @@ From the wizard:
   clock starts with the first shot and waits while a shot is in flight. No specials in this
   mode.
 - **Swap key:** `X` only (Tab stays the focus key); ↑ also shoots.
-- **Colours** are tokens (`--bubble-0 … 5`, `--bubble-stone`) in `tokens.css`, light and dark;
-  the accent `--game-bubbles` is a deep sky blue.
-- **Size:** the game adds about 13 kB gzip; the total budget in `scripts/check-dist.mjs` was
-  raised from 360 to 375 kB.
+- **Accent:** `--game-bubbles` is a deep sky blue.
+- **Size:** the game adds about 21 kB gzip with its sci-fi look; the total budget in
+  `scripts/check-dist.mjs` was raised from 360 to 385 kB.
+- **Sci-fi look** (after the first version, at the level of the Shapes garden): space
+  backdrop, holo field, energy orbs, turret, laser sight, particles and console panels –
+  see *Look* in the docs. The specials are called *nova mine* (bomb), *prism orb*
+  (rainbow) and *asteroid* (stone) in the texts. The `--bubble-*` tokens were replaced by
+  the orb palette in `colors.ts` (the field is dark in both themes).

@@ -58,7 +58,7 @@ export const de: Messages<typeof en> = {
     howToModes:
       'Tippe auf die nächste Kugel, um zu tauschen. In Endlos kommt nach einigen Fehlschüssen eine neue Reihe, gegen die Uhr sinkt die Decke von selbst. Lass die Kugeln nicht über die Linie unten kommen.',
     howToSpecials:
-      'Treffer in Folge bringen eine Bombe, ein großer Absturz eine Regenbogenkugel, die die Farbe annimmt, die sie am meisten berührt. Graue Steine platzen nie – hol sie herunter.',
+      'Treffer in Folge bringen eine Nova-Mine, ein großer Absturz eine Prisma-Kugel, die die Farbe annimmt, die sie am meisten berührt. Asteroiden platzen nie – hol sie herunter.',
     speed: 'Tempo gegen die Uhr',
     continue: 'Weiterspielen · {score} Punkte',
     level: 'Level {level}',
@@ -66,6 +66,12 @@ export const de: Messages<typeof en> = {
     stars: '{stars} Sterne',
     best: 'Bestwert {score}',
     bestSpeed: 'Bestwert {score} · {speed}',
+  },
+  legend: {
+    bomb: 'Nova-Mine: räumt alles um sich herum ab',
+    rainbow: 'Prisma-Kugel: nimmt die Farbe an, die sie am meisten berührt',
+    stone: 'Asteroid: platzt nie – hol ihn herunter',
+    marked: 'Markiert: ein Level-Ziel',
   },
   play: {
     board: 'Bubbles-Spielfeld',
@@ -80,6 +86,7 @@ export const de: Messages<typeof en> = {
     next: 'Nächste Kugel: {bubble} – tippen zum Tauschen',
     swap: 'Kugeln tauschen',
     aim: 'Ziel: {angle}°',
+    combo: 'Kombo ×{n}',
     hint: 'Ziehen zum Zielen, loslassen zum Schießen',
     keys: 'Pfeiltasten zielen, Leertaste schießt, X tauscht',
     resume: 'Pause – tippen zum Weiterspielen',
@@ -88,10 +95,17 @@ export const de: Messages<typeof en> = {
     missed: 'Nichts geplatzt. Noch {left} Kugeln.',
     danger: 'Vorsicht – die Kugeln sind nah an der Linie.',
     special: {
-      bomb: 'Bombe',
-      rainbow: 'Regenbogenkugel',
-      stone: 'Stein',
+      bomb: 'Nova-Mine',
+      rainbow: 'Prisma-Kugel',
+      stone: 'Asteroid',
     },
+  },
+  praise: {
+    nice: 'Gut!',
+    great: 'Stark!',
+    stellar: 'Stellar!',
+    supernova: 'Supernova!',
+    cleared: 'Feld frei!',
   },
   pause: {
     title: 'Pause',

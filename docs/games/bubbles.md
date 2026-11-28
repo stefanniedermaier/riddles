@@ -87,16 +87,35 @@ A second finger never shoots and pauses the time mode.
 *Short* (first 3 bubbles of the path), *To the target* (default; the whole path with its
 bounces), *With landing spot* (plus a ring where the bubble will snap in).
 
-## Board
+## Look: sci-fi
 
-SVG (`BubblesBoard.vue`, `BubbleArt.vue`): glossy bubbles with an embossed symbol per colour
-(ring, triangle, square, diamond, star, heart – can be switched off), stones, a bomb with a
-spark, a rainbow of six wedges; marked level bubbles have a white dashed ring. Colours are the
-`--bubble-0 … 5` tokens (light and dark).
+A space theme, on the level of the Shapes garden:
 
-- Shots fly at 30 diameters per second; pops shrink, falling bubbles drop, a new row slides in.
-- Reduced motion: shots fly faster, pops and falls only fade, no slide, no spark, no blinking.
-- One row from the danger line, the line turns red and blinks twice (2 Hz).
+- **Scene** (`SpaceBackdrop.vue`, lobby and play view): sky with nebulae, two twinkling star
+  layers, a ringed planet, a moon, a shooting star now and then and a neon grid floor on the
+  horizon – "orbit at dawn" in the light theme, deep space in the dark one.
+- **Field** (`BubblesBoard.vue`): a dark holo panel in both themes – honeycomb, scanlines,
+  vignette, neon frame with corner brackets, glowing wall rails (where shots bounce), a red
+  laser with emitters at the danger line (flares up and pulses twice when the field is one
+  row away; the frame turns red).
+- **Orbs** (`BubbleArt.vue`, gradients in `BubbleDefs.vue`, palette in `colors.ts`): a soft
+  halo, a glowing body with a bright core, rim light, an energy arc and a highlight; each
+  colour has its own glyph (ring, triangle, square, diamond, star, heart – can be switched
+  off). Specials: *nova mine* (bomb, spiked with a blinking light), *prism orb* (rainbow,
+  slowly turning wedges) and *asteroid* (stone). Level targets sit in a turning tractor ring.
+- **Turret:** a dome with lights and a barrel that turns with the aim and recoils on a shot;
+  the current orb sits in a chamber with a turning tick ring, the next one in a pod (a
+  button: tap to swap). Barrel stripes, chamber ring and laser sight take the orb's colour.
+- **Laser sight:** a glow in the orb's colour with marching white dots, flashes at wall
+  bounces and, with *With landing spot*, a hologram of the orb where it will snap in.
+- **Effects:** a comet tail behind a flying orb; popped orbs flare and burst into sparks and a
+  ring (canvas particles, `core/particles.ts`); falling orbs drop; a nova mine sends a
+  shockwave; points rise from the impact (with the combo multiplier), and big drops get a
+  neon word – *Nice!*, *Great!*, *Stellar!*, *Supernova!*, *Field clear!*.
+- **Console** (`console.css`): HUD, goal and hint as dark glass panels with a neon edge;
+  misses until the next row as a row of energy cells; the score bumps on every hit.
+- Reduced motion: no particles, tails, popups, twinkling, drifting or turning; shots fly
+  faster, pops and falls only fade.
 
 ## Accessibility
 
@@ -115,11 +134,14 @@ src/games/bubbles/
   routes.ts            /bubbles (lobby) and /bubbles/play/:variant
   logic/               grid, trace, engine, levels, bot, types
   useCeilingClock.ts   frame clock of the time mode
-  BubblesBoard.vue     SVG field, aiming, flight, pops and falls
-  BubbleArt.vue        one bubble (colour + symbol, stone, bomb, rainbow)
+  BubblesBoard.vue     holo field, turret, aiming, flight, pops, falls, particles
+  BubbleArt.vue        one orb (colour + glyph, asteroid, nova mine, prism orb)
+  BubbleDefs.vue       shared gradients of the orbs
+  SpaceBackdrop.vue    the space scene behind lobby and play view
+  console.css          HUD / goal panels
   BubblesGoal.vue      level goal and progress
   BubblesLobby.vue     rules, modes, level, best scores, speed
   BubblesPlay.vue      HUD, board, keyboard, pause, result
   BubblesSettings.vue  aim line, symbols, speed
-  settings.ts, options.ts, store.ts, colors.ts, i18n.ts, i18n.de.ts, Logo.vue
+  settings.ts, options.ts, store.ts, colors.ts (palette), i18n.ts, i18n.de.ts, Logo.vue
 ```

@@ -60,14 +60,6 @@
   --game-tripeaks: #a15c07;
   --game-snake: #a21caf;
   --game-bubbles: #0369a1;
-  /* Bubbles: the six bubble colours (each also has its own symbol) and stones. */
-  --bubble-0: #e5484d;
-  --bubble-1: #f2780c;
-  --bubble-2: #f0c000;
-  --bubble-3: #2f9e5b;
-  --bubble-4: #3478f6;
-  --bubble-5: #8e4ec6;
-  --bubble-stone: #8b8d98;
 
   /* Typography */
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -176,13 +168,6 @@
   --game-tripeaks: #fbbf24;
   --game-snake: #e48af0;
   --game-bubbles: #6cc5f5;
-  --bubble-0: #ff6369;
-  --bubble-1: #ff8f3e;
-  --bubble-2: #ffd43b;
-  --bubble-3: #3dd68c;
-  --bubble-4: #5b9bff;
-  --bubble-5: #b07ce8;
-  --bubble-stone: #9a9ca8;
 
   --elevation-1: 0 1px 2px rgb(0 0 0 / 50%), 0 1px 3px 1px rgb(0 0 0 / 30%);
   --elevation-2: 0 1px 2px rgb(0 0 0 / 50%), 0 2px 6px 2px rgb(0 0 0 / 30%);

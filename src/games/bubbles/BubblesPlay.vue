@@ -7,7 +7,6 @@ import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import GameBackdrop from '@/components/GameBackdrop.vue'
 import ResultDialog from '@/components/ResultDialog.vue'
 import { dialogOpen } from '@/core/dialogs'
 import { formatNumber } from '@/core/format'
@@ -20,8 +19,10 @@ import type { PlayRouteProps } from '../routes'
 import BubblesBoard, { type Flight, type Ghost } from './BubblesBoard.vue'
 import BubblesGoal from './BubblesGoal.vue'
 import BubblesRules from './BubblesRules.vue'
+import SpaceBackdrop from './SpaceBackdrop.vue'
 import type { Variant } from './index'
 import {
+  comboMultiplier,
   dropInterval,
   levelBonus,
   lowestRow,
@@ -34,9 +35,10 @@ import {
   type BubblesRun,
   type ShotResult,
 } from './logic/engine'
-import { centre, LIMIT, type Parity } from './logic/grid'
+import { BOARD_HEIGHT, centre, COLS, LIMIT, type Parity } from './logic/grid'
 import { getLevel } from './logic/levels'
 import { clampAngle } from './logic/trace'
+import { BOMB } from './logic/types'
 import { chosenAimLine, chosenSpeed } from './options'
 import { bubblesSettings } from './settings'
 import { clearRun, levelProgress, loadRun, recordBestSpeed, recordLevelWin, saveRun } from './store'
@@ -194,11 +196,16 @@ function onLanded(): void {
     ...outcome.popped.map((b, i) => ({ id: ++ids, ...centre(b.cell, parity), value: b.value, kind: 'pop' as const, delay: i * 22 })),
     ...outcome.fallen.map((b, i) => ({ id: ++ids, ...centre(b.cell, parity), value: b.value, kind: 'fall' as const, delay: 80 + (i % 6) * 30 })),
   ]
+  if (outcome.shot === BOMB) {
+    added.unshift({ id: ++ids, ...centre(outcome.cell, parity), value: BOMB, kind: 'blast', delay: 0 })
+  }
   if (added.length > 0 && motionEnabled.value) {
     ghosts.value = [...ghosts.value, ...added]
     const gone = new Set(added.map((g) => g.id))
     later(() => (ghosts.value = ghosts.value.filter((g) => !gone.has(g.id))), GHOST_MS)
   }
+
+  celebrate(outcome, parity)
 
   const left = outcome.run.cells.filter((value) => value >= 0).length
   summary.value =
@@ -209,6 +216,56 @@ function onLanded(): void {
 
   if (outcome.run.over) finishRun(outcome.run)
   else persist()
+}
+
+// ---------------------------------------------------------------------------
+// Feedback: points flying up from the impact, praise for big drops, a bumping score.
+
+interface Popup {
+  id: number
+  left: string
+  top: string
+  text: string
+  combo: string
+}
+
+const popups = ref<Popup[]>([])
+const praise = ref<{ id: number; word: PraiseWord } | null>(null)
+const scoreBump = ref(0)
+
+type PraiseWord = 'nice' | 'great' | 'stellar' | 'supernova' | 'cleared'
+
+function praiseFor(removed: number, cleared: boolean): PraiseWord | null {
+  if (cleared) return 'cleared'
+  if (removed >= 24) return 'supernova'
+  if (removed >= 16) return 'stellar'
+  if (removed >= 10) return 'great'
+  if (removed >= 6) return 'nice'
+  return null
+}
+
+function celebrate(outcome: ShotResult, parity: Parity): void {
+  if (outcome.points <= 0) return
+  scoreBump.value++
+  const at = centre(outcome.cell, parity)
+  const popup: Popup = {
+    id: ++ids,
+    // Kept inside the field, so the number never runs into the HUD or off the side.
+    left: `${(Math.min(Math.max(at.x, 1.2), COLS - 1.2) / COLS) * 100}%`,
+    top: `${(Math.max(at.y, 2.4) / BOARD_HEIGHT) * 100}%`,
+    text: `+${formatNumber(outcome.points)}`,
+    combo: outcome.run.combo >= 2 ? t('bubbles.play.combo', { n: formatNumber(comboMultiplier(outcome.run.combo)) }) : '',
+  }
+  popups.value = [...popups.value, popup]
+  later(() => (popups.value = popups.value.filter((p) => p.id !== popup.id)), 1100)
+  const word = praiseFor(outcome.popped.length + outcome.fallen.length, outcome.cleared)
+  if (word) {
+    const current = { id: ++ids, word }
+    praise.value = current
+    later(() => {
+      if (praise.value?.id === current.id) praise.value = null
+    }, 1300)
+  }
 }
 
 function onSwap(): void {
@@ -318,6 +375,8 @@ function reset(next: BubblesRun): void {
   pending = null
   flight.value = null
   ghosts.value = []
+  popups.value = []
+  praise.value = null
   menuOpen.value = false
   confirmNew.value = false
   result.value = null
@@ -436,6 +495,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <SpaceBackdrop />
   <AppBar :title="t(`bubbles.variants.${variant}`)" :back-to="{ name: 'bubbles' }">
     <template #actions>
       <button type="button" class="icon-btn" :aria-label="t('common.rules')" @click="showRules = true">
@@ -455,31 +515,33 @@ onBeforeUnmount(() => {
   </AppBar>
 
   <main v-if="run && view" class="play">
-    <GameBackdrop game="bubbles" />
     <section class="hud">
-      <div class="hud__stat">
-        <span class="hud__label">{{ t('common.score') }}</span>
-        <strong class="hud__value tabular">{{ formatNumber(run.score) }}</strong>
+      <div class="hud__stat bx-panel">
+        <span class="bx-label">{{ t('common.score') }}</span>
+        <strong :key="scoreBump" class="hud__value bx-value tabular" :class="{ 'hud__value--bump': scoreBump > 0 }">{{ formatNumber(run.score) }}</strong>
       </div>
-      <div v-if="variant === 'endless'" class="hud__stat">
-        <span class="hud__label">{{ t('bubbles.play.misses') }}</span>
-        <strong class="hud__value tabular">{{ formatNumber(missLimit(run.rows) - run.misses) }}</strong>
+      <div v-if="variant === 'endless'" class="hud__stat bx-panel" :class="{ 'hud__stat--warn': missLimit(run.rows) - run.misses <= 1 }">
+        <span class="bx-label">{{ t('bubbles.play.misses') }}</span>
+        <span class="hud__pips" aria-hidden="true">
+          <i v-for="n in missLimit(run.rows)" :key="n" :class="{ on: n <= missLimit(run.rows) - run.misses }" />
+        </span>
+        <strong class="visually-hidden">{{ formatNumber(missLimit(run.rows) - run.misses) }}</strong>
       </div>
-      <div v-else-if="variant === 'time'" class="hud__stat" :class="{ 'hud__stat--warn': dropIn <= 3 && clockStarted }">
-        <span class="hud__label">{{ t('bubbles.play.drop') }}</span>
-        <strong class="hud__value tabular">{{ t('bubbles.play.seconds', { n: dropIn }) }}</strong>
+      <div v-else-if="variant === 'time'" class="hud__stat bx-panel" :class="{ 'hud__stat--warn': dropIn <= 3 && clockStarted }">
+        <span class="bx-label">{{ t('bubbles.play.drop') }}</span>
+        <strong class="hud__value bx-value tabular">{{ t('bubbles.play.seconds', { n: dropIn }) }}</strong>
       </div>
-      <div v-else class="hud__stat">
-        <span class="hud__label">{{ t('bubbles.play.shots') }}</span>
-        <strong class="hud__value tabular" :class="{ 'hud__value--warn': run.shotsLeft <= 3 }">{{ formatNumber(run.shotsLeft) }}</strong>
+      <div v-else class="hud__stat bx-panel" :class="{ 'hud__stat--warn': run.shotsLeft <= 3 }">
+        <span class="bx-label">{{ t('bubbles.play.shots') }}</span>
+        <strong class="hud__value bx-value tabular">{{ formatNumber(run.shotsLeft) }}</strong>
       </div>
-      <div v-if="variant !== 'levels'" class="hud__stat hud__stat--best">
-        <span class="hud__label">{{ t('bubbles.play.best') }}</span>
-        <strong class="hud__value tabular">{{ formatNumber(bestScore) }}</strong>
+      <div v-if="variant !== 'levels'" class="hud__stat bx-panel">
+        <span class="bx-label">{{ t('bubbles.play.best') }}</span>
+        <strong class="hud__value bx-value tabular">{{ formatNumber(bestScore) }}</strong>
       </div>
-      <div v-else class="hud__stat hud__stat--best">
-        <span class="hud__label">{{ t('bubbles.result.level') }}</span>
-        <strong class="hud__value tabular">{{ formatNumber(run.level) }}</strong>
+      <div v-else class="hud__stat bx-panel">
+        <span class="bx-label">{{ t('bubbles.result.level') }}</span>
+        <strong class="hud__value bx-value tabular">{{ formatNumber(run.level) }}</strong>
       </div>
     </section>
 
@@ -508,11 +570,22 @@ onBeforeUnmount(() => {
         @multitouch="pause"
       />
       <p v-if="variant === 'time' && !run.over && (paused || !clockStarted)" class="board-note">
-        <span>{{ paused ? t('bubbles.play.resume') : t('bubbles.play.start') }}</span>
+        <span class="bx-panel">{{ paused ? t('bubbles.play.resume') : t('bubbles.play.start') }}</span>
       </p>
+      <div class="popups" aria-hidden="true">
+        <span v-for="p in popups" :key="p.id" class="popup" :style="{ left: p.left, top: p.top }">
+          <strong>{{ p.text }}</strong>
+          <small v-if="p.combo">{{ p.combo }}</small>
+        </span>
+      </div>
+      <Transition name="praise">
+        <div v-if="praise" :key="praise.id" class="praise" :class="`praise--${praise.word}`" aria-hidden="true">
+          {{ t(`bubbles.praise.${praise.word}`) }}
+        </div>
+      </Transition>
     </div>
 
-    <p class="hint muted">{{ t('bubbles.play.hint') }} · {{ t('bubbles.play.keys') }}</p>
+    <p class="hint bx-panel">{{ t('bubbles.play.hint') }} · {{ t('bubbles.play.keys') }}</p>
     <p class="visually-hidden" aria-live="polite">{{ summary }}</p>
   </main>
 
@@ -565,6 +638,8 @@ onBeforeUnmount(() => {
   </AppDialog>
 </template>
 
+<style src="./console.css"></style>
+
 <style scoped>
 .play {
   display: flex;
@@ -590,32 +665,55 @@ onBeforeUnmount(() => {
   flex: 1;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 62px;
   padding: var(--space-2);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
 }
 
-.hud__stat--best {
-  background: color-mix(in srgb, var(--game-bubbles) 14%, var(--color-surface));
-}
-
-.hud__stat--warn,
-.hud__value--warn {
-  color: var(--color-error);
-}
-
-.hud__label {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  text-align: center;
+.hud__stat--warn {
+  border-color: #ff4d6d;
+  box-shadow:
+    0 0 14px rgb(255 77 109 / 45%),
+    inset 0 0 14px rgb(255 77 109 / 18%);
 }
 
 .hud__value {
   font-size: var(--text-xl);
-  font-weight: 800;
+}
+
+.hud__value--bump {
+  animation: bump 0.32s var(--ease-emphasized);
+}
+
+@keyframes bump {
+  40% {
+    transform: scale(1.22);
+    color: #b6fbff;
+  }
+}
+
+/* Misses left until a new row: a row of energy cells. */
+.hud__pips {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.hud__pips i {
+  width: 12px;
+  height: 16px;
+  border: 1px solid rgb(79 243 255 / 60%);
+  background: rgb(79 243 255 / 8%);
+}
+
+.hud__pips i.on {
+  background: linear-gradient(180deg, #b6fbff, #4ff3ff);
+  box-shadow: 0 0 6px #4ff3ff;
+}
+
+.hud__stat--warn .hud__pips i.on {
+  background: linear-gradient(180deg, #ffc2cf, #ff4d6d);
+  box-shadow: 0 0 6px #ff4d6d;
 }
 
 .board-wrap {
@@ -648,15 +746,139 @@ onBeforeUnmount(() => {
 .board-note span {
   max-width: 18em;
   padding: var(--space-2) var(--space-3);
-  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-  box-shadow: var(--shadow-md);
   font-weight: 700;
   text-align: center;
 }
 
 .hint {
-  font-size: var(--text-sm);
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
   text-align: center;
+  color: #bfefff;
+}
+
+/* Points flying up from the impact. */
+.popups {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-board-praise);
+  pointer-events: none;
+}
+
+.popup {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  color: #fff;
+  text-shadow:
+    0 0 6px #4ff3ff,
+    0 0 14px #4ff3ff,
+    0 2px 2px rgb(0 0 0 / 60%);
+  white-space: nowrap;
+  animation: rise 1.05s var(--ease-out) forwards;
+}
+
+.popup strong {
+  font-size: var(--text-lg);
+}
+
+.popup small {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: #ffe066;
+  text-shadow: 0 0 6px #ff9a1f;
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -30%) scale(0.7);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1.1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -260%) scale(1);
+  }
+}
+
+/* Praise for big drops: a neon word across the field. */
+.praise {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  z-index: var(--z-board-praise);
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow:
+    0 0 6px var(--praise),
+    0 0 18px var(--praise),
+    0 0 36px var(--praise),
+    0 3px 0 rgb(0 0 0 / 50%);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+
+  --praise: #4ff3ff;
+}
+
+.praise--great {
+  --praise: #3dffa8;
+}
+
+.praise--stellar {
+  --praise: #ffd23f;
+}
+
+.praise--supernova,
+.praise--cleared {
+  --praise: #ff5ad0;
+}
+
+.praise-enter-active {
+  animation: praise-in 0.42s var(--ease-emphasized);
+}
+
+.praise-leave-active {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.praise-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -90%) scale(1.1);
+}
+
+@keyframes praise-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) skewX(-12deg);
+  }
+
+  60% {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+:root[data-motion='reduced'] .popup,
+:root[data-motion='reduced'] .hud__value--bump,
+:root[data-motion='reduced'] .praise-enter-active {
+  animation: none;
+}
+
+:root[data-motion='reduced'] .popups {
+  display: none;
 }
 
 .menu {
