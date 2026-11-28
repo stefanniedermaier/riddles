@@ -144,7 +144,7 @@ limit and goals on every device. Pieces that drop in later depend on the run's R
   | target | 3    | 1.9            |
   | chain  | 5    | 3.1            |
   | crate  | 6    | 0.9 per hit    |
-  | item   | 2    | 4.8            |
+  | item   | 3    | 5.5            |
 - **Classic levels:** move limit 30, decreasing by one every three levels down to 18;
   difficulty ramp `min(0.9, 0.5 + 0.012·n) ± 0.03`; score goal
   `moves × pointsPerMove × ramp`; a collect goal from level 2; every third level from
