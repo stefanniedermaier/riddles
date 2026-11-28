@@ -4,7 +4,6 @@ import {
   ITEM_KIND,
   SIZE,
   cellAt,
-  isItem,
   colOf,
   rowOf,
   type Board,
@@ -76,24 +75,12 @@ function swapInPlace(board: Board, a: number, b: number): void {
   board[b] = tmp
 }
 
-/**
- * Moving a drop item one row down (swapping it with the piece below) is always allowed,
- * even without a match – it costs a move and guarantees progress.
- */
-export function isItemDrop(board: Board, a: number, b: number): boolean {
-  const p = board[a]
-  const q = board[b]
-  if (!p || !q || (isItem(p) && isItem(q))) return false
-  return (isItem(p) && b === a + SIZE) || (isItem(q) && a === b + SIZE)
-}
-
 /** Whether swapping the two (adjacent) cells is a legal move. */
 export function isValidSwap(board: Board, a: number, b: number, field?: Field): boolean {
   const p = board[a]
   const q = board[b]
   if (!p || !q) return false
   if (field && (field.chains[a]! > 0 || field.chains[b]! > 0)) return false
-  if (isItemDrop(board, a, b)) return true
   if (p.special === 'prism' || q.special === 'prism') return true
   if (p.special !== 'none' && q.special !== 'none') return true
   if (p.kind === q.kind) return false

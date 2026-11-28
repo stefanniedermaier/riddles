@@ -6,6 +6,12 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Shapes: an acorn can no longer be swapped with the piece below it without making a
+  match. Like every other piece, it moves only through a swap that creates a match, and it
+  falls when the pieces below it are cleared.
+
 ## [0.14.1] – 2026-11-26
 
 Hotfix: the sitemap and other files open directly again in a browser that has the app.
