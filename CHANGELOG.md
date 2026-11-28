@@ -32,6 +32,9 @@ Shapes.
   from the top or bottom edge shows them for a moment). Takes effect once Chrome has updated
   the installed app (usually within a day) or after reinstalling it. iPhone and iPad keep the
   normal view: Safari has no full screen for web apps.
+- Shapes: gaps below a crate or chain are now filled by pieces sliding in diagonally from
+  the neighbouring columns, instead of new pieces appearing there. Only cells no piece can
+  reach still get new pieces in place.
 
 ### Fixed
 
@@ -40,8 +43,8 @@ Shapes.
 - Snake: swipes are recognised more reliably – a quick flick counts even when it ends
   before the finger "moved" far enough, a swipe that starts diagonally waits for its clear
   direction instead of taking the wrong one, and a shorter swipe (18 px) is enough.
-- Shapes: new pieces below a crate or chain (where nothing can fall in from above) popped
-  up without animation. They now grow in their cell.
+- Shapes: new pieces in cells no piece can reach popped up without animation. They now grow
+  in their cell.
 
 ## [0.14.1] – 2026-11-26
 

@@ -6,7 +6,7 @@ import { findMatches } from '../match'
 import { createLevelField, getLevel } from '../levels'
 import { createRun, playMove } from '../modes'
 import { resolveMove, type ClearPhase, type FallPhase, type Phase } from '../resolve'
-import { CELLS, ITEM_KIND, SIZE, emptyField, type Board, type Field } from '../types'
+import { CELLS, ITEM_KIND, SIZE, colOf, emptyField, type Board, type Field } from '../types'
 import { at, context, patternBoard, set } from './helpers'
 
 const clears = (phases: Phase[]) => phases.filter((p): p is ClearPhase => p.type === 'clear')
@@ -86,7 +86,7 @@ describe('chains', () => {
     expect(result.field!.chains[at(3, 6)]).toBe(0)
   })
 
-  it('chained pieces do not fall; cells below them are refilled in place', () => {
+  it('chained pieces do not fall; the cell below them is filled by a diagonal slide', () => {
     // Clear (5,2)–(5,4); column 3 has a chained piece at (2,3).
     const board = set(patternBoard(), [
       [5, 2, 'G'],
@@ -97,14 +97,75 @@ describe('chains', () => {
     const chained = board[at(2, 3)]!
     const f = field({ chains: [[2, 3]] })
     const result = resolveMove(board, at(5, 5), at(5, 4), context(), f)
-    const [fall] = falls(result.phases)
+    const [fall, slide] = falls(result.phases)
     expect(fall!.board[at(2, 3)]).toEqual(chained)
     expect(fall!.moves.some((m) => m.from === at(2, 3))).toBe(false)
-    // Column 3 below the chain: rows 3–4 fall by one, row 3 gets a new piece in place.
-    const spawn = fall!.spawned.find((s) => s.cell === at(3, 3))
-    expect(spawn).toBeDefined()
-    expect(spawn!.fromRow).toBe(3)
+    // Column 3 below the chain: rows 3–4 fall by one, nothing appears in place …
+    expect(fall!.board[at(3, 3)]).toBeNull()
+    expect(fall!.spawned.some((s) => s.cell === at(3, 3))).toBe(false)
+    // … the piece above-left slides into the gap (left neighbour first).
+    const slid = fall!.board[at(2, 2)]!
+    expect(slide!.moves).toEqual([{ from: at(2, 2), to: at(3, 3), id: slid.id }])
+    expect(slide!.spawned).toEqual([])
+    expect(slide!.board[at(3, 3)]).toEqual(slid)
+    // Its old cell is refilled from above by the next wave.
+    const after = falls(result.phases).slice(2)
+    expect(after.some((p) => p.spawned.some((s) => colOf(s.cell) === 2 && s.fromRow < 0))).toBe(true)
+    expect(result.phases.flatMap((p) => (p.type === 'fall' ? p.spawned : [])).every((s) => s.fromRow < 0)).toBe(true)
     expectValidLevelBoard(result.board, result.field!)
+  })
+
+  it('slides from the right when the left neighbour is blocked', () => {
+    // Crates at (2,2) and (2,3): the gap below (2,3) can only be filled from (2,4).
+    const board = set(patternBoard(), [
+      [5, 2, 'G'],
+      [5, 3, 'G'],
+      [5, 4, 'B'],
+      [5, 5, 'G'],
+    ])
+    board[at(2, 2)] = null
+    board[at(2, 3)] = null
+    const f = field({ crates: [[2, 2, 2], [2, 3, 2]] })
+    const result = resolveMove(board, at(5, 5), at(5, 4), context(), f)
+    const slides = falls(result.phases).flatMap((p) => p.moves.filter((m) => colOf(m.from) !== colOf(m.to)))
+    expect(slides.find((m) => m.to === at(3, 3))?.from).toBe(at(2, 4))
+    // (3,2) below the left crate takes its piece from (2,1).
+    expect(slides.find((m) => m.to === at(3, 2))?.from).toBe(at(2, 1))
+    expectValidLevelBoard(result.board, result.field!)
+  })
+
+  it('cells that no piece can reach get new pieces in place', () => {
+    // Row 2 is closed by crates in columns 2–4 and chains elsewhere, so nothing can reach row 3.
+    const board = set(patternBoard(), [
+      [5, 2, 'G'],
+      [5, 3, 'G'],
+      [5, 4, 'B'],
+      [5, 5, 'G'],
+    ])
+    for (const c of [2, 3, 4]) board[at(2, c)] = null
+    const f = field({
+      crates: [2, 3, 4].map((c) => [2, c, 2] as [number, number, number]),
+      chains: [0, 1, 5, 6, 7].map((c) => [2, c] as [number, number]),
+    })
+    const result = resolveMove(board, at(5, 5), at(5, 4), context(), f)
+    const spawned = falls(result.phases).flatMap((p) => p.spawned)
+    for (const c of [2, 3, 4]) {
+      expect(spawned.find((s) => s.cell === at(3, c))?.fromRow).toBe(3)
+    }
+    expectValidLevelBoard(result.board, result.field!)
+  })
+
+  it('a board without obstacles falls in a single phase per cascade', () => {
+    const board = set(patternBoard(), [
+      [5, 2, 'G'],
+      [5, 3, 'G'],
+      [5, 4, 'B'],
+      [5, 5, 'G'],
+    ])
+    const result = resolveMove(board, at(5, 5), at(5, 4), context(), field({}))
+    const phases = result.phases.map((p) => p.type).join(' ')
+    expect(phases).toContain('fall')
+    expect(phases).not.toContain('fall fall')
   })
 })
 
