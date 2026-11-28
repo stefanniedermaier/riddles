@@ -6,10 +6,16 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Shapes: gaps below a crate or chain are now filled by pieces sliding in diagonally from
+  the neighbouring columns, instead of new pieces appearing there. Only cells no piece can
+  reach still get new pieces in place.
+
 ### Fixed
 
-- Shapes: new pieces below a crate or chain (where nothing can fall in from above) popped
-  up without animation. They now grow in their cell.
+- Shapes: new pieces in cells no piece can reach popped up without animation. They now grow
+  in their cell.
 
 ## [0.14.1] – 2026-11-26
 

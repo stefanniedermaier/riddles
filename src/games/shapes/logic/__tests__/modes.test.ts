@@ -116,8 +116,8 @@ describe('runs', () => {
     // Introduction levels of every obstacle type are won by the tuning bot in most games.
     for (const level of [3, 5, 7, 9]) {
       let wins = 0
-      for (let game = 0; game < 6; game++) if (botPlayLevel(level, 500 + game).won) wins++
-      expect(wins, `level ${level}`).toBeGreaterThanOrEqual(3)
+      for (let game = 0; game < 12; game++) if (botPlayLevel(level, 500 + game).won) wins++
+      expect(wins, `level ${level}`).toBeGreaterThanOrEqual(6)
     }
   })
 

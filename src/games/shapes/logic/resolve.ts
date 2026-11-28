@@ -52,7 +52,8 @@ export interface FallPhase {
   moves: { from: number; to: number; id: number }[]
   /**
    * New pieces. `fromRow` is the row they start from: negative (above the board) for the
-   * drop animation, or the target row itself for pieces appearing below an obstacle.
+   * drop animation, or the target row itself for pieces appearing in a cell that no piece
+   * can reach (enclosed by obstacles).
    */
   spawned: { cell: number; piece: Piece; fromRow: number }[]
   board: Board
@@ -164,7 +165,7 @@ export function resolveMove(
       const collected = collectStep(work, field, summary)
       if (!collected) break
       phases.push(collected)
-      phases.push(fallStep(work, field, ctx))
+      phases.push(...fallStep(work, field, ctx))
     }
   }
 
@@ -179,7 +180,7 @@ export function resolveMove(
   while (seeds || groups.length > 0) {
     cascade++
     phases.push(clearStep(work, field, groups, seeds, cascade === 1 ? [b, a] : [], cascade, summary))
-    phases.push(fallStep(work, field, ctx))
+    phases.push(...fallStep(work, field, ctx))
     collectAll()
     seeds = null
     groups = findMatches(work)
@@ -373,71 +374,130 @@ function clearStep(
 }
 
 /**
- * Gravity and refill. Each column is split into segments by fixed cells (crates and
- * chained pieces); pieces fall to the bottom of their segment. The topmost segment is
- * refilled from above the board (drop items enter here), lower segments get new pieces
- * that appear in place.
+ * Gravity and refill, in waves. Each column is split into segments by fixed cells (crates
+ * and chained pieces).
+ *
+ * 1. Pieces fall to the bottom of their segment; the top segment of every column is refilled
+ *    from above the board (drop items enter here).
+ * 2. An empty cell directly below a fixed cell cannot be reached from above, so a piece
+ *    slides into it diagonally from the row above – from the left neighbour column if
+ *    possible, otherwise from the right one. Its old cell is filled by the next wave.
+ *
+ * Both steps repeat until nothing moves any more. Cells that no piece can reach (enclosed by
+ * obstacles) finally get new pieces that appear in place. Each wave is one `fall` phase, so
+ * the animation shows the falls and slides one after another.
  */
-function fallStep(work: Board, field: Field | undefined, ctx: EngineContext): FallPhase {
-  const moves: FallPhase['moves'] = []
-  const slots: { cell: number; fromRow: number; top: boolean }[] = []
+function fallStep(work: Board, field: Field | undefined, ctx: EngineContext): FallPhase[] {
+  const phases: FallPhase[] = []
   const fixed = (cell: number) =>
     field !== undefined && (field.crates[cell]! > 0 || field.chains[cell]! > 0)
+  let itemPlaced = false
 
-  for (let col = 0; col < SIZE; col++) {
-    let row = SIZE - 1
-    while (row >= 0) {
-      if (fixed(cellAt(row, col))) {
-        row--
-        continue
-      }
-      const bottom = row
-      while (row >= 0 && !fixed(cellAt(row, col))) row--
-      const top = row + 1
+  for (let wave = 0; wave < CELLS; wave++) {
+    const moves: FallPhase['moves'] = []
+    const slots: { cell: number; fromRow: number }[] = []
 
-      let write = bottom
-      for (let r = bottom; r >= top; r--) {
-        const cell = cellAt(r, col)
-        const piece = work[cell]
-        if (!piece) continue
-        if (r !== write) {
-          const to = cellAt(write, col)
-          work[to] = piece
-          work[cell] = null
-          moves.push({ from: cell, to, id: piece.id })
+    for (let col = 0; col < SIZE; col++) {
+      let row = SIZE - 1
+      while (row >= 0) {
+        if (fixed(cellAt(row, col))) {
+          row--
+          continue
         }
-        write--
-      }
-      const empty = write - top + 1
-      for (let r = top; r <= write; r++) {
-        slots.push({ cell: cellAt(r, col), fromRow: top === 0 ? r - empty : r, top: top === 0 })
+        const bottom = row
+        while (row >= 0 && !fixed(cellAt(row, col))) row--
+        const top = row + 1
+
+        let write = bottom
+        for (let r = bottom; r >= top; r--) {
+          const cell = cellAt(r, col)
+          const piece = work[cell]
+          if (!piece) continue
+          if (r !== write) {
+            const to = cellAt(write, col)
+            work[to] = piece
+            work[cell] = null
+            moves.push({ from: cell, to, id: piece.id })
+          }
+          write--
+        }
+        // Only the top segment is refilled from above; lower ones wait for slides.
+        if (top !== 0) continue
+        const empty = write + 1
+        for (let r = 0; r <= write; r++) slots.push({ cell: cellAt(r, col), fromRow: r - empty })
       }
     }
-  }
 
-  // Order the refill like the original column-by-column, top-to-bottom spawning.
-  slots.sort((x, y) => colOf(x.cell) - colOf(y.cell) || x.cell - y.cell)
+    // Order the refill like the original column-by-column, top-to-bottom spawning.
+    slots.sort((x, y) => colOf(x.cell) - colOf(y.cell) || x.cell - y.cell)
 
-  let itemSlot = -1
-  if (field && field.itemsPending > 0) {
-    const onBoard = work.filter((piece) => isItem(piece)).length
-    // Items enter in the middle columns where possible (edge columns see few matches).
-    const top = slots.filter((slot) => slot.top)
-    const middle = top.filter((slot) => colOf(slot.cell) >= 2 && colOf(slot.cell) <= SIZE - 3)
-    const candidates = middle.length > 0 ? middle : top
-    if (onBoard < field.maxItems && candidates.length > 0) {
-      itemSlot = ctx.rng.pick(candidates).cell
-      field.itemsPending--
+    let itemSlot = -1
+    if (!itemPlaced && field && field.itemsPending > 0) {
+      const onBoard = work.filter((piece) => isItem(piece)).length
+      // Items enter in the middle columns where possible (edge columns see few matches).
+      const middle = slots.filter((slot) => colOf(slot.cell) >= 2 && colOf(slot.cell) <= SIZE - 3)
+      const candidates = middle.length > 0 ? middle : slots
+      if (onBoard < field.maxItems && candidates.length > 0) {
+        itemSlot = ctx.rng.pick(candidates).cell
+        field.itemsPending--
+        itemPlaced = true
+      }
     }
+
+    const spawned: FallPhase['spawned'] = []
+    for (const { cell, fromRow } of slots) {
+      const piece = cell === itemSlot ? newItem(ctx) : newPiece(ctx)
+      work[cell] = piece
+      spawned.push({ cell, piece, fromRow })
+    }
+    if (wave === 0 || moves.length > 0 || spawned.length > 0) {
+      phases.push({ type: 'fall', moves, spawned, board: cloneBoard(work) })
+    }
+
+    const slides = slideStep(work, fixed)
+    if (slides.length === 0) break
+    phases.push({ type: 'fall', moves: slides, spawned: [], board: cloneBoard(work) })
   }
 
-  const spawned: FallPhase['spawned'] = []
-  for (const { cell, fromRow } of slots) {
-    const piece = cell === itemSlot ? newItem(ctx) : newPiece(ctx)
+  // Cells no piece can reach: new pieces appear in place (together with the last wave).
+  const last = phases[phases.length - 1]!
+  for (let cell = 0; cell < CELLS; cell++) {
+    if (work[cell] || fixed(cell)) continue
+    const piece = newPiece(ctx)
     work[cell] = piece
-    spawned.push({ cell, piece, fromRow })
+    last.spawned.push({ cell, piece, fromRow: rowOf(cell) })
   }
-  return { type: 'fall', moves, spawned, board: cloneBoard(work) }
+  last.board = cloneBoard(work)
+  return phases
+}
+
+/**
+ * Diagonal slides of one wave: every empty cell right below a fixed cell takes a piece from
+ * the row above, left neighbour first. Each piece slides at most once per wave. Holes are
+ * handled bottom-up, so the lowest gaps are served first.
+ */
+function slideStep(work: Board, fixed: (cell: number) => boolean): FallPhase['moves'] {
+  const slides: FallPhase['moves'] = []
+  const slid = new Set<number>()
+  for (let row = SIZE - 1; row >= 1; row--) {
+    for (let col = 0; col < SIZE; col++) {
+      const cell = cellAt(row, col)
+      if (work[cell] || fixed(cell) || !fixed(cell - SIZE)) continue
+      for (const dc of [-1, 1]) {
+        const c = col + dc
+        if (c < 0 || c >= SIZE) continue
+        const from = cellAt(row - 1, c)
+        const piece = work[from]
+        if (!piece || fixed(from) || slid.has(piece.id)) continue
+        work[cell] = piece
+        work[from] = null
+        slid.add(piece.id)
+        slides.push({ from, to: cell, id: piece.id })
+        break
+      }
+    }
+  }
+  return slides
 }
 
 /** Removes drop items that reached the bottom row. */

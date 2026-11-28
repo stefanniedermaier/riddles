@@ -112,10 +112,14 @@ above it (icon, `current/target`, progress bar, check mark when done).
 | **Drop item**   | round token with a down arrow      | Cannot be matched and is immune to specials. Falls like a piece; collected when it reaches the bottom row. It can **always** be swapped one row down, even without a match (costs a move). | bring N items down |
 
 **Gravity with obstacles:** each column is split into segments by crates and chained pieces.
-Pieces fall to the bottom of their segment; the top segment is refilled from above the
-board (drop items enter only there, preferably in the middle columns), lower segments get
-new pieces that appear in place. When a crate breaks or a chain is released, the segments
-merge again. Fixed obstacles are never placed in the bottom row, so items can always be
+Gravity works in waves: pieces fall to the bottom of their segment and the top segment is
+refilled from above the board (drop items enter only there, preferably in the middle
+columns). Then every empty cell directly below a crate or chain takes a piece that slides in
+diagonally from the row above – from the left neighbour column if possible, otherwise from
+the right one; each piece slides at most once per wave. Waves repeat until nothing moves.
+Only cells no piece can reach (enclosed by obstacles) get new pieces that grow in place.
+Each wave is its own `fall` phase, so falls and slides are animated one after another.
+When a crate breaks or a chain is released, the segments merge again. Fixed obstacles are never placed in the bottom row, so items can always be
 collected. A dead board is shuffled without moving crates, chained pieces or items.
 
 **Swapping a prism with a drop item** clears the most common kind (items have no kind).
@@ -181,7 +185,7 @@ All game logic lives in `src/games/shapes/logic/` as pure, deterministic TypeScr
 
 `resolveMove(board, a, b, ctx, field?)` returns a list of phases – `swap`, `clear` (cells,
 created specials, triggered specials, score, cascade depth, obstacles afterwards), `fall`
-(moves and spawned pieces), `collect` (drop items leaving at the bottom) and optionally
+(moves and spawned pieces; with obstacles one per wave of falls and diagonal slides), `collect` (drop items leaving at the bottom) and optionally
 `shuffle` – each with a board snapshot, plus the updated obstacle field. Without a field
 (Zen, Time) the engine behaves exactly as before obstacles existed. `animator.ts` plays them one after another
 with CSS transform transitions. Piece ids are used as Vue keys and the rendered list is
