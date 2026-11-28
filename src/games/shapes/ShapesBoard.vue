@@ -256,7 +256,7 @@ function isSelected(piece: DisplayPiece): boolean {
         <div
           :key="piece.land"
           class="piece__land"
-          :class="{ 'piece__land--go': piece.land > 0 }"
+          :class="{ 'piece__land--go': piece.land > 0 && !piece.appear, 'piece__land--appear': piece.appear }"
           :style="{ animationDelay: `${piece.landDelayMs}ms` }"
         >
           <ShapePiece :kind="piece.kind" :special="piece.special" />
@@ -410,6 +410,11 @@ function isSelected(piece: DisplayPiece): boolean {
 
 .piece__land--go {
   animation: land-squash 0.32s ease-out both;
+}
+
+/* New pieces below an obstacle cannot fall in from above: they grow in their cell. */
+.piece__land--appear {
+  animation: piece-appear 0.3s var(--ease-out) both;
 }
 
 .piece__inner {
@@ -568,6 +573,20 @@ function isSelected(piece: DisplayPiece): boolean {
   }
 }
 
+@keyframes piece-appear {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+  }
+}
+
 @keyframes land-squash {
   0% {
     transform: none;
@@ -641,7 +660,8 @@ function isSelected(piece: DisplayPiece): boolean {
   }
 }
 
-:root[data-motion='reduced'] .piece__land--go {
+:root[data-motion='reduced'] .piece__land--go,
+:root[data-motion='reduced'] .piece__land--appear {
   animation: none;
 }
 
