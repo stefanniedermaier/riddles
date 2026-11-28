@@ -1,7 +1,7 @@
 import { expect, expectAccessible, test } from './fixtures'
 
 /** URL slugs of the games (Stars' id is `crowns`). */
-const GAMES = ['sudoku', 'stars', 'links', 'nonogram', 'arrows', 'shapes', 'merge', 'blocks', 'snake', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks']
+const GAMES = ['sudoku', 'stars', 'links', 'nonogram', 'arrows', 'shapes', 'merge', 'blocks', 'snake', 'bubbles', 'mines', 'pipes', 'watersort', 'codebreaker', 'solitaire', 'spider', 'freecell', 'tripeaks']
 const PAGES = ['', 'settings', 'stats', 'privacy', 'imprint', ...GAMES]
 
 test.describe('every page', () => {

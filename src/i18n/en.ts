@@ -7,7 +7,7 @@ const en = {
   /** Search engines, link previews and the prerendered pages (scripts/prerender.mjs). */
   seo: {
     title: 'Riddles – free puzzle games, offline and without ads',
-    description: 'Sudoku, Nonograms, Solitaire, Minesweeper and 13 more puzzle games – free, offline as an app, without ads, account or tracking.',
+    description: 'Sudoku, Nonograms, Solitaire, Minesweeper and 14 more puzzle games – free, offline as an app, without ads, account or tracking.',
     intro: 'Free puzzle games for your phone and browser. Install them as an app and play offline – no ads, no account, no tracking. Every puzzle is generated on your device.',
     gameTitle: '{game} – free online and offline · Riddles',
     games: 'All games',

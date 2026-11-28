@@ -4,6 +4,7 @@ import type { Messages } from '../types'
 import type en from './messages.en'
 import { de as arrows } from '@/games/arrows/i18n.de'
 import { de as blocks } from '@/games/blocks/i18n.de'
+import { de as bubbles } from '@/games/bubbles/i18n.de'
 import { de as codebreaker } from '@/games/codebreaker/i18n.de'
 import { de as crowns } from '@/games/crowns/i18n.de'
 import { de as freecell } from '@/games/freecell/i18n.de'
@@ -24,6 +25,7 @@ const de: Messages<typeof en> = {
   ...shell,
   arrows,
   blocks,
+  bubbles,
   codebreaker,
   crowns,
   freecell,

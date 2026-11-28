@@ -1,5 +1,6 @@
 import arrows from './arrows/module'
 import blocks from './blocks/module'
+import bubbles from './bubbles/module'
 import codebreaker from './codebreaker/module'
 import crowns from './crowns/module'
 import freecell from './freecell/module'
@@ -20,6 +21,6 @@ import watersort from './watersort/module'
  * All games in their default display order – the only list of games in the app.
  * Adding a game means adding its module here (see docs/architecture.md).
  */
-export const gameModules = [sudoku, crowns, links, nonogram, arrows, shapes, merge, blocks, snake, mines, pipes, watersort, codebreaker, solitaire, spider, freecell, tripeaks] as const
+export const gameModules = [sudoku, crowns, links, nonogram, arrows, shapes, merge, blocks, snake, bubbles, mines, pipes, watersort, codebreaker, solitaire, spider, freecell, tripeaks] as const
 
 export type GameId = (typeof gameModules)[number]['id']

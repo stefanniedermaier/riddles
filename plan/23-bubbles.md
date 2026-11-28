@@ -1,6 +1,7 @@
 # 23 – Bubbles
 
-**Status:** planned. Open questions decided in the wizard (see *Decisions*); not started.
+**Status:** done. Open questions decided in the wizard (see *Decisions*); notes on the
+implementation at the end. Docs: [docs/games/bubbles.md](../docs/games/bubbles.md).
 
 The bubble-shooter genre: aim from the bottom, shoot a coloured bubble into a hex grid of
 bubbles at the top; three or more of the same colour that touch pop, and every bubble no
@@ -282,3 +283,20 @@ From the wizard:
    the next bubble.
 6. **Look:** colour + symbol per bubble; symbols can be turned off in the settings.
 7. **Time mode:** pausable, speed setting slow / normal / fast; best score shows the speed.
+
+## Notes on the implementation
+
+- **Levels are played in order** (as in Shapes): the lobby shows the current level and the
+  stars collected; there is no level selection grid.
+- **Level calibration at runtime:** `getLevel(n)` lets the bot play the layout and sets par
+  and shot limit from its shot count (about 25 ms per level in Node, cached). Limit:
+  par × 1.6 (down to × 1.3 for later levels) + 3, at least 8. Level 1 starts with 3 colours.
+- **"Free the marked bubbles"** counts a marked bubble as freed when it pops *or* falls.
+- **Time mode:** "the ceiling sinks" is a new row pushed in at the top, like Endless; the
+  clock starts with the first shot and waits while a shot is in flight. No specials in this
+  mode.
+- **Swap key:** `X` only (Tab stays the focus key); ↑ also shoots.
+- **Colours** are tokens (`--bubble-0 … 5`, `--bubble-stone`) in `tokens.css`, light and dark;
+  the accent `--game-bubbles` is a deep sky blue.
+- **Size:** the game adds about 13 kB gzip; the total budget in `scripts/check-dist.mjs` was
+  raised from 360 to 375 kB.
