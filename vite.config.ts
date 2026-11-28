@@ -183,7 +183,7 @@ export default defineConfig({
         name: 'Riddles',
         short_name: 'Riddles',
         description:
-          'Free puzzle games that work offline: Sudoku, Nonograms, Solitaire, Minesweeper and 13 more – no ads, no account, no tracking.',
+          'Free puzzle games that work offline: Sudoku, Nonograms, Solitaire, Minesweeper and 14 more – no ads, no account, no tracking.',
         lang: 'en',
         start_url: './',
         scope: './',

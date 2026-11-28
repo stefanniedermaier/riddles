@@ -6,6 +6,7 @@
 import shell from '../en'
 import { en as arrows } from '@/games/arrows/i18n'
 import { en as blocks } from '@/games/blocks/i18n'
+import { en as bubbles } from '@/games/bubbles/i18n'
 import { en as codebreaker } from '@/games/codebreaker/i18n'
 import { en as crowns } from '@/games/crowns/i18n'
 import { en as freecell } from '@/games/freecell/i18n'
@@ -26,6 +27,7 @@ export default {
   ...shell,
   arrows,
   blocks,
+  bubbles,
   codebreaker,
   crowns,
   freecell,

@@ -22,9 +22,10 @@ const BUDGET_KB = {
   initial: 100,
   /**
    * All JavaScript and CSS, including lazily loaded games (precached for offline use).
-   * Raised from 280 to 360 kB for the four card games on a shared engine (plan 17).
+   * Raised from 280 to 360 kB for the four card games on a shared engine (plan 17), and to
+   * 375 kB for Bubbles (plan 23, about 13 kB).
    */
-  total: 360,
+  total: 375,
 }
 
 const dist = process.argv[2] ?? 'dist'

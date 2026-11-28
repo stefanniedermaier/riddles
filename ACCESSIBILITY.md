@@ -34,10 +34,16 @@ tested, the known limitations and how to report a barrier.
   always visible.
 - **Touch targets** are at least 44 × 44 px.
 - **No time pressure** except in modes that are about time (Shapes *Time*, Snake's
-  real-time speeds); all puzzles can be paused and resumed later, also after closing the app.
+  real-time speeds, Bubbles *Against the clock*); all puzzles can be paused and resumed
+  later, also after closing the app.
 - **Snake** pauses by itself (app in the background, a dialog, a second finger) and only
   moves on after a tap or a key. Its *Calm* speed has no time pressure at all: the snake
   moves one step per input. Direction buttons are on by default on touch screens.
+- **Bubbles** has no clock in *Endless* and *Levels*; *Against the clock* pauses by itself
+  (app in the background, a dialog, a second finger), waits for a tap and has a slow speed.
+  Every bubble shows a symbol as well as its colour (*Settings → Bubbles*). Keyboard: arrow
+  keys aim, Space shoots, X swaps. Aiming at an angle is not practical with a screen reader;
+  after every shot a summary says what popped and how many bubbles are left.
 - **Mines:** the long-press action can be switched off (*Settings → Mines*).
 
 ### Screen readers
@@ -72,6 +78,8 @@ Automated tools find only part of all barriers – reports from real use are ver
 - Snake in real time cannot be played with a screen reader – it moves faster than a reader
   can announce. The *Calm* speed announces the length and where the fruit is after every
   step.
+- Bubbles needs aiming at an angle, which is not practical with a screen reader; the
+  keyboard works (arrow keys in 2° or 0.5° steps), and every shot is summarised.
 - Drag and drop (cards, Blocks) has alternatives: tap to select and tap the target, or the
   keyboard.
 

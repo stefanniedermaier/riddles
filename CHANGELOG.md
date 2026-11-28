@@ -6,6 +6,17 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Bubbles** – the 18th game, a bubble shooter: drag to aim, let go to shoot, bounce off the
+  walls and pop three or more of a colour; everything that no longer hangs on the ceiling
+  falls. Three modes: *Endless* (a new row after a few misses), *Levels* (generated levels
+  with a goal, a shot limit and 1–3 stars – every level checked solvable by a bot) and
+  *Against the clock* (the ceiling comes down on a clock, three speeds, pauses by itself).
+  Earned bombs and rainbow bubbles, stones that only fall. Colour and symbol on every bubble
+  (symbols can be switched off), an aim line in three lengths, full keyboard control and
+  reduced motion. Plan 23.
+
 ### Changed
 
 - Installed app on Android: full screen – the status and navigation bars are hidden (a swipe

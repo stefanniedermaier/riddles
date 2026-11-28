@@ -142,6 +142,7 @@ incompatible format change instead of crashing the app.
 | `merge:current:<variant>:v1` | Running Merge game per variant; `merge:records:v1` = highest tiles |
 | `blocks:current:v1`          | Running Blocks game                         |
 | `snake:current:<mode>:v1`    | Running Snake game per mode; `snake:records:v1` = speed of the best score, settings: `snake:settings` |
+| `bubbles:current:<mode>:v1` | Running Bubbles game per mode; `bubbles:progress:v1` = next level and stars, `bubbles:records:v1` = speed of the best time score, settings: `bubbles:settings` |
 | `mines:current:v1`           | Running Mines game (pool: `mines:pool:v1`, settings: `mines:settings`) |
 | `pipes:current:v1`           | Running Pipes game                          |
 | `watersort:current:v1`       | Running Water Sort game (settings: `watersort:settings`) |

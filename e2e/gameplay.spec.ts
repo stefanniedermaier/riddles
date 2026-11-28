@@ -125,3 +125,63 @@ test('Snake: the real-time game starts on input and pauses when the page is hidd
   expect(await page.locator('.snake__head').getAttribute('cx')).toBe(head)
   expect(await page.locator('.hud__value').nth(1).textContent()).toBe(length)
 })
+
+test('Bubbles: a shot is saved, the run resumes from the lobby, and a level can be won', async ({ page }) => {
+  await page.goto('./bubbles/')
+  await page.getByRole('button', { name: /^Endless/ }).click()
+  await expect(page.locator('.bubbles-board')).toBeVisible()
+  await expectAccessible(page)
+
+  // Aim with the keyboard and shoot; the screen reader summary tells what happened.
+  await page.keyboard.press('ArrowLeft')
+  await page.keyboard.press('Space')
+  const summary = page.locator('main [aria-live="polite"]')
+  await expect(summary).toContainText('bubbles left')
+  const saved = () => page.evaluate(() => localStorage.getItem('riddles:bubbles:current:endless:v1'))
+  expect(await saved()).not.toBeNull()
+
+  // The next bubble is a button: tapping it swaps.
+  const swap = page.getByRole('button', { name: /^Next bubble/ })
+  const before = await swap.getAttribute('aria-label')
+  await swap.click()
+  await expect(page.locator('.bubbles-board .visually-hidden')).toContainText(before!.replace(/^Next bubble: (.*) – .*$/, '$1'))
+
+  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  await expect(page.getByRole('button', { name: /^Endless/ })).toContainText('Continue')
+
+  // A level one shot from its goal: two red bubbles under the ceiling, a red one to shoot.
+  await page.evaluate(() => {
+    const cells = new Array<number>(9 * 14).fill(-1)
+    cells[3] = 0
+    cells[4] = 0
+    const run = {
+      variant: 'levels', level: 1, speed: 'normal', cells, parity: 0, marked: [], current: 0, next: 0, colors: 3,
+      goal: { type: 'clear' }, progress: 0, shotsLeft: 5, shots: 1, misses: 0, combo: 0, rows: 0, clockMs: 0,
+      score: 0, rngState: 1, over: false, won: false,
+    }
+    localStorage.setItem('riddles:bubbles:current:levels:v1', JSON.stringify(run))
+  })
+  await page.goto('./bubbles/play/levels')
+  await expect(page.getByText('Clear the field')).toBeVisible()
+  await page.keyboard.press('Space')
+  const result = page.getByRole('dialog')
+  await expect(result).toContainText('Level complete!')
+  await expect(result).toContainText('Shots left bonus')
+  await result.getByRole('button', { name: 'Next level' }).click()
+  await expect(page.locator('.hud__value').nth(2)).toHaveText('2')
+})
+
+test('Bubbles: the clock starts with the first shot and pauses when the page is hidden', async ({ page }) => {
+  await page.goto('./bubbles/play/time?new=1')
+  await expect(page.getByText('The clock starts with your first shot')).toBeVisible()
+  await page.keyboard.press('Space')
+  await expect(page.getByText('The clock starts with your first shot')).toBeHidden()
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await expect(page.getByText('Paused – tap to continue')).toBeVisible()
+  const clock = await page.locator('.hud__value').nth(1).textContent()
+  await page.waitForTimeout(1200)
+  expect(await page.locator('.hud__value').nth(1).textContent()).toBe(clock)
+})

@@ -30,6 +30,7 @@ all data on the device. Every level is generated on the fly.
 | 20 | [QA & cleanup](20-qa-cleanup.md)             | App-wide review: shared lobby/session, a11y, performance, tooling, tests |
 | 21 | [Search engines & previews](21-seo.md)       | History routing, prerendered pages per game, link previews, structured data, sitemap |
 | 22 | [Snake](22-snake.md)                         | First real-time game: game loop, three modes, speeds and a calm step-by-step mode |
+| 23 | [Bubbles](23-bubbles.md)                     | Bubble shooter: hex grid, analytic aim and bounces, Endless / Levels (bot-checked) / Time |
 
 ## Decisions (from the kick-off wizard)
 

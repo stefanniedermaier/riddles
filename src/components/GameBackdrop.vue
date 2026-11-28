@@ -90,6 +90,13 @@ const theme = computed(() => (CARD_GAMES.has(props.game) ? 'cards' : props.game)
     radial-gradient(circle at 50% 100%, transparent 9px, var(--ink) 9.5px 11px, transparent 11.5px) 12px 6px / 24px 12px;
 }
 
+/* Bubbles: a honeycomb of bubble rings, as in the field. */
+.game-backdrop[data-theme-game='bubbles']::after {
+  background:
+    radial-gradient(circle, transparent 8px, var(--ink) 8.5px 10px, transparent 10.5px) 0 0 / 24px 41.6px,
+    radial-gradient(circle, transparent 8px, var(--ink) 8.5px 10px, transparent 10.5px) 12px 20.8px / 24px 41.6px;
+}
+
 /* Water Sort: rising bubbles. */
 .game-backdrop[data-theme-game='watersort']::after {
   background:
